@@ -52,5 +52,5 @@ public interface AnalyseDataService {
 
     void removeUselessData(String overviewId, List<SimpleFeatureScores> simpleFeatureScoresList, Double fdr);
 
-    int countProteins(String overviewId);
+    int countIdentifiedProteins(String overviewId);
 }

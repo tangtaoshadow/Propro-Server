@@ -2,7 +2,6 @@ package com.westlake.air.propro.service.impl;
 
 import com.westlake.air.propro.algorithm.formula.FormulaCalculator;
 import com.westlake.air.propro.algorithm.formula.FragmentFactory;
-import com.westlake.air.propro.constants.Constants;
 import com.westlake.air.propro.constants.ResidueType;
 import com.westlake.air.propro.constants.enums.ResultCode;
 import com.westlake.air.propro.dao.LibraryDAO;
@@ -29,6 +28,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.regex.Pattern;
+
+import static com.westlake.air.propro.constants.ExpTypeConst.DIA_SWATH;
+import static com.westlake.air.propro.constants.ExpTypeConst.PRM;
 
 /**
  * Created by James Lu MiaoShan
@@ -228,20 +230,26 @@ public class PeptideServiceImpl implements PeptideService {
         long start = System.currentTimeMillis();
         PeptideQuery query = new PeptideQuery(library.getId());
         float precursorMz = mzRange.getMz();
-        if (type.equals(Constants.EXP_TYPE_PRM)) {
-            //TODO: PRM
-            query.setMzStart(precursorMz - 0.0006d);
-            query.setMzEnd(precursorMz + 0.0006d);
-        } else {
-            query.setMzStart((double) mzRange.getStart());
-            query.setMzEnd((double) mzRange.getEnd());
+        switch (type){
+            case PRM:
+                //TODO: PRM
+                query.setMzStart(precursorMz - 0.0006d);
+                query.setMzEnd(precursorMz + 0.0006d);
+                break;
+            case DIA_SWATH:
+                query.setMzStart((double) mzRange.getStart());
+                query.setMzEnd((double) mzRange.getEnd());
+                break;
+            default:
+                break;
         }
+
         if (uniqueCheck) {
             query.setIsUnique(true);
         }
 
         List<SimplePeptide> targetList = peptideDAO.getSPAll(query);
-        if (type.equals(Constants.EXP_TYPE_PRM)) {
+        if (type.equals(PRM)) {
             prmFilter(targetList, rtExtractionWindows, slopeIntercept, rtRange, precursorMz);
         }
 

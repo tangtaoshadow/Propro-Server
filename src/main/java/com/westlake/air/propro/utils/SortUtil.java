@@ -6,6 +6,7 @@ import com.westlake.air.propro.domain.bean.score.FeatureScores;
 import com.westlake.air.propro.domain.bean.score.SimpleFeatureScores;
 import com.westlake.air.propro.domain.db.AnalyseOverviewDO;
 import com.westlake.air.propro.domain.db.PeptideDO;
+import com.westlake.air.propro.domain.db.SwathIndexDO;
 import com.westlake.air.propro.domain.db.simple.PeptideScores;
 
 import java.util.Comparator;
@@ -22,6 +23,17 @@ public class SortUtil {
         });
 
         return ordering.sortedCopy(scores);
+    }
+
+    public static List<SwathIndexDO> sortSwathIndexByStartPtr(List<SwathIndexDO> swathList) {
+        Ordering<SwathIndexDO> ordering = Ordering.from(new Comparator<SwathIndexDO>() {
+            @Override
+            public int compare(SwathIndexDO o1, SwathIndexDO o2) {
+                return o1.getStartPtr().compareTo(o2.getStartPtr());
+            }
+        });
+
+        return ordering.sortedCopy(swathList);
     }
 
     public static List<SimpleFeatureScores> sortByMainScore(List<SimpleFeatureScores> scores, boolean isDesc) {

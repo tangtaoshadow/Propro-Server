@@ -57,7 +57,7 @@ public class ExperimentDO extends BaseDO {
     //别名,默认为空
     String alias;
 
-    //DIA_SWATH, PRM, @see Constants
+    //DIA_SWATH, PRM, SCANNING_SWATH @see ExpType
     String type;
 
     //Aird文件大小,单位byte
@@ -101,5 +101,12 @@ public class ExperimentDO extends BaseDO {
 
     public String getAirdIndexPath() {
         return FilenameUtils.concat(FilenameUtils.concat(RepositoryUtil.getRepo(), projectName), name) + SuffixConst.JSON;
+    }
+
+    public Float getDeltaMzRange(){
+        if(windowRanges == null || windowRanges.size() == 1){
+            return null;
+        }
+        return windowRanges.get(0).getEnd()-windowRanges.get(0).getStart();
     }
 }

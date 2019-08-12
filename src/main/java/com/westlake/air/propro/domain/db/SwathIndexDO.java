@@ -6,6 +6,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -54,4 +55,13 @@ public class SwathIndexDO {
      * 用于存储KV键值对
      */
     String features;
+
+    public void init(){
+        startPtr = 0L;
+        endPtr = 0L;
+        nums = new ArrayList<>();
+        rts = new ArrayList<>();
+        mzs = new ArrayList<>();
+        ints = new ArrayList<>();
+    }
 }

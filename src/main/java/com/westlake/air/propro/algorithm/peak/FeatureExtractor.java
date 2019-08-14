@@ -123,7 +123,7 @@ public class FeatureExtractor {
         List<PeakGroup> peakGroupFeatureList;
         if (DeveloperParams.USE_NEW_PEAKGROUP_SELECTOR) {
             peakGroupFeatureList = featureFinder.findFeaturesNew(peptideSpectrum, ionPeaks, ionPeakParams, noise1000Map);
-        } else {
+        }else {
             peakGroupFeatureList = featureFinder.findFeatures(peptideSpectrum, ionPeaks, ionPeakParams, noise1000Map);
         }
         PeptideFeature featureResult = new PeptideFeature(true);

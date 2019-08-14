@@ -3,12 +3,13 @@ package com.westlake.air.propro.controller;
 import com.alibaba.fastjson.JSON;
 import com.westlake.air.propro.algorithm.formula.FragmentFactory;
 import com.westlake.air.propro.algorithm.parser.LibraryTsvParser;
+import com.westlake.air.propro.algorithm.playground.PairComparator;
 import com.westlake.air.propro.constants.Constants;
+import com.westlake.air.propro.constants.enums.ScoreType;
 import com.westlake.air.propro.domain.bean.aird.WindowRange;
-import com.westlake.air.propro.domain.db.ExperimentDO;
-import com.westlake.air.propro.domain.db.FragmentInfo;
-import com.westlake.air.propro.domain.db.LibraryDO;
-import com.westlake.air.propro.domain.db.PeptideDO;
+import com.westlake.air.propro.domain.bean.score.FeatureScores;
+import com.westlake.air.propro.domain.db.*;
+import com.westlake.air.propro.service.AnalyseDataService;
 import com.westlake.air.propro.service.ExperimentService;
 import com.westlake.air.propro.service.LibraryService;
 import com.westlake.air.propro.service.PeptideService;
@@ -36,9 +37,13 @@ public class PatchController extends BaseController{
     @Autowired
     ExperimentService experimentService;
     @Autowired
+    AnalyseDataService analyseDataService;
+    @Autowired
     LibraryTsvParser tsvParser;
     @Autowired
     FragmentFactory fragmentFactory;
+    @Autowired
+    PairComparator pairComparator;
 
     @RequestMapping("/addToLib")
     @ResponseBody
@@ -283,5 +288,102 @@ public class PatchController extends BaseController{
         peptideService.insertAll(irtPeptides, false);
         libraryService.countAndUpdateForLibrary(libraryDO);
         return null;
+    }
+
+    @RequestMapping("/getscore/{id}")
+    @ResponseBody
+    String getScores(@PathVariable("id") String overviewId){
+        String typeName = ScoreType.LibraryCorr.getTypeName();
+        List<AnalyseDataDO> analyseDataDOList = analyseDataService.getAllByOverviewId(overviewId);
+        List<Double> positiveList = new ArrayList<>();
+        List<Double> targetScoreList = new ArrayList<>();
+        List<Double> decoyScoreList = new ArrayList<>();
+        for (AnalyseDataDO dataDO: analyseDataDOList){
+            if (dataDO.getIsDecoy()){
+                for (FeatureScores featureScores: dataDO.getFeatureScoresList()) {
+                    decoyScoreList.add(featureScores.get(typeName, ScoreType.getAllTypesName()));
+                }
+            } else {
+                double bestRt = dataDO.getBestRt();
+                for (FeatureScores featureScores: dataDO.getFeatureScoresList()) {
+                    if (featureScores.getRt().equals(bestRt) && dataDO.getIdentifiedStatus() == AnalyseDataDO.IDENTIFIED_STATUS_SUCCESS){
+                        positiveList.add(featureScores.get(typeName, ScoreType.getAllTypesName()));
+                    }else {
+                        targetScoreList.add(featureScores.get(typeName, ScoreType.getAllTypesName()));
+                    }
+                }
+            }
+        }
+
+        List<Double> positivePiece = positiveList.subList(0,10000);
+        List<Double> targetPiece = targetScoreList.subList(0,10000);
+        List<Double> decoyPiece = decoyScoreList.subList(0,10000);
+
+        List<Double> pList = getPMoreIsBetter(positivePiece, decoyPiece);
+        System.out.println(pList);
+//        System.out.println("positive:");
+//        System.out.println(positivePiece);
+//        System.out.println("target: ");
+//        System.out.println(targetPiece);
+//        System.out.println("decoy: ");
+//        System.out.println(decoyPiece);
+        return null;
+    }
+
+    @RequestMapping("getgraph")
+    @ResponseBody
+    String getGraph(){
+        pairComparator.getGraph("5d254a12edbdf722f53aeb78");
+        return null;
+    }
+
+    private List<Double> getPLessIsBetter(List<Double> positiveList, List<Double> negativeList){
+        int positiveIndex = 0, negativeIndex = 0;
+        List<Double> pList = new ArrayList<>();
+        Collections.sort(positiveList);
+        Collections.sort(negativeList);
+        double score = positiveList.get(0);
+        while (positiveIndex < positiveList.size() && negativeIndex < negativeList.size()){
+            if (positiveList.get(positiveIndex) <= negativeList.get(negativeIndex)){
+                pList.add((double)negativeIndex/negativeList.size());
+                positiveIndex ++;
+            }else {
+                negativeIndex ++;
+            }
+        }
+        while (positiveIndex != positiveList.size()){
+            pList.add(1d);
+            positiveIndex ++;
+        }
+        return pList;
+    }
+
+    private List<Double> getPMoreIsBetter(List<Double> positiveList, List<Double> negativeList){
+        int positiveIndex = 0, negativeIndex = 0;
+        List<Double> pList = new ArrayList<>();
+        Collections.sort(positiveList,new Comparator<Double>(){
+            @Override
+            public int compare(Double o1, Double o2) {
+                return o2.compareTo(o1);
+            }});
+        Collections.sort(negativeList,new Comparator<Double>(){
+            @Override
+            public int compare(Double o1, Double o2) {
+                return o2.compareTo(o1);
+            }});
+        double score = positiveList.get(0);
+        while (positiveIndex < positiveList.size() && negativeIndex < negativeList.size()){
+            if (positiveList.get(positiveIndex) >= negativeList.get(negativeIndex)){
+                pList.add((double)negativeIndex/negativeList.size());
+                positiveIndex ++;
+            }else {
+                negativeIndex ++;
+            }
+        }
+        while (positiveIndex != positiveList.size()){
+            pList.add(1d);
+            positiveIndex ++;
+        }
+        return pList;
     }
 }

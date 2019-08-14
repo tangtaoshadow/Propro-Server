@@ -11,8 +11,10 @@ import com.westlake.air.propro.algorithm.parser.AirdFileParser;
 import com.westlake.air.propro.domain.db.SwathIndexDO;
 import com.westlake.air.propro.service.ExperimentService;
 import com.westlake.air.propro.service.SwathIndexService;
+import com.westlake.air.propro.utils.CompressUtil;
 import com.westlake.air.propro.utils.FileUtil;
 import com.westlake.air.propro.utils.PermissionUtil;
+import org.apache.commons.codec.binary.Base64;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -22,6 +24,11 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.io.File;
 import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.DoubleBuffer;
+import java.nio.FloatBuffer;
+import java.util.TreeMap;
 
 /**
  * Created by James Lu MiaoShan
@@ -91,6 +98,80 @@ public class SpectrumController extends BaseController {
         res.put("intensity", intensityArray);
         resultDO.setModel(res);
         return resultDO;
+    }
+
+    @RequestMapping(value = "/mzxmlextractor")
+    String mzxmlextractor(Model model,
+                          @RequestParam(value = "isZlibCompression", required = false) boolean isZlibCompression,
+                          @RequestParam(value = "values", required = false) String values,
+                          @RequestParam(value = "precision", required = false, defaultValue = "32") Integer precision) {
+        model.addAttribute("values", values);
+        model.addAttribute("precision", precision);
+        model.addAttribute("isZlibCompression", isZlibCompression);
+
+        if (values != null && !values.isEmpty()) {
+            MzIntensityPairs pairs = getPeakMap(new Base64().decode(values.trim()), precision, isZlibCompression);
+            model.addAttribute("mzArray", pairs.getMzArray());
+            model.addAttribute("intensityArray", pairs.getIntensityArray());
+        }
+
+        return "spectrum/mzxmlextractor";
+    }
+
+    private Float[] getValues(byte[] value, int precision, boolean isCompression, ByteOrder byteOrder) {
+        double[] doubleValues;
+        Float[] floatValues;
+        ByteBuffer byteBuffer = null;
+
+        if (isCompression) {
+            byteBuffer = ByteBuffer.wrap(CompressUtil.zlibDecompress(value));
+        }else{
+            byteBuffer = ByteBuffer.wrap(value);
+        }
+
+        byteBuffer.order(byteOrder);
+        if (precision == 64) {
+            DoubleBuffer doubleBuffer = byteBuffer.asDoubleBuffer();
+            doubleValues = new double[doubleBuffer.capacity()];
+            doubleBuffer.get(doubleValues);
+            floatValues = new Float[doubleValues.length];
+            for (int index = 0; index < doubleValues.length; index++) {
+                floatValues[index] = (float) doubleValues[index];
+            }
+        } else {
+            FloatBuffer floats = byteBuffer.asFloatBuffer();
+            floatValues = new Float[floats.capacity()];
+            for (int index = 0; index < floats.capacity(); index++) {
+                floatValues[index] = floats.get(index);
+            }
+        }
+
+        byteBuffer.clear();
+        return floatValues;
+    }
+
+    private MzIntensityPairs getPeakMap(byte[] value, int precision, boolean isZlibCompression) {
+        MzIntensityPairs pairs = new MzIntensityPairs();
+        Float[] values = getValues(value, precision, isZlibCompression, ByteOrder.BIG_ENDIAN);
+        TreeMap<Float, Float> map = new TreeMap<>();
+        for (int peakIndex = 0; peakIndex < values.length - 1; peakIndex += 2) {
+            Float mz = values[peakIndex];
+            Float intensity = values[peakIndex + 1];
+            map.put(mz, intensity);
+        }
+
+        Float[] mzArray = new Float[map.size()];
+        Float[] intensityArray = new Float[map.size()];
+        int i = 0;
+        for (Float key : map.keySet()) {
+            mzArray[i] = key;
+            intensityArray[i] = map.get(key);
+            i++;
+        }
+
+        pairs.setMzArray(mzArray);
+        pairs.setIntensityArray(intensityArray);
+        return pairs;
     }
 
 }

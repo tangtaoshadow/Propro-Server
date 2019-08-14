@@ -367,22 +367,20 @@ public class TestController extends BaseController {
     @RequestMapping("compare")
     @ResponseBody
     String compareTest() {
-//        String analyseOverviewId = "5d087c33e24d2e62a82055a3";
-//        String filePath = "P:\\data\\HCC_sciex\\pyprophet\\D20181207yix_HCC_SW_T_46A_with_dscore_filtered.tsv";
-//        HashSet<String> result = resultComparator.getFileOnlyPepRef(analyseOverviewId, filePath);
-//        resultComparator.proteinResults(analyseOverviewId, filePath);
-//        resultComparator.peptideRefResults(analyseOverviewId, filePath);
-//        resultComparator.peptideSeqResults(analyseOverviewId, filePath);
-//        resultComparator.silacResults(analyseOverviewId, filePath);
-        String projectIdOld = "5d08705fe0073c9b70faff6a";
-        String projectId = "5d11dd3f33251e8512a2f402";
-        String libraryId = "5d0870dce0073c9b70fb008f";
-        String matrixFilePath = "P:\\data\\HCC_QE3\\HCC_20190106_dia_os_peptides_matrix.tsv";
-        String matrixFilePathNew = "P:\\data\\HCC_QE3\\QEpeptides_2019626.txt";
+        String analyseOverviewId = "5d50c25a2b617d2542652f78";
+        String filePath = "P:\\data\\yixiao\\pyprophet\\D20190802yix_HCCC_b1_pool-HCCC_pool_b1_allFrag_with_dscore_filtered.tsv";
+        resultCompareService.printPepResults(analyseOverviewId, filePath);
+        resultCompareService.printProtResults(analyseOverviewId, filePath, true);
+        resultCompareService.printFileOnlyPep(analyseOverviewId, filePath, 20);
+//        String projectIdOld = "5d08705fe0073c9b70faff6a";
+//        String projectId = "5d11dd3f33251e8512a2f402";
+//        String libraryId = "5d0870dce0073c9b70fb008f";
+//        String matrixFilePath = "P:\\data\\HCC_QE3\\HCC_20190106_dia_os_peptides_matrix.tsv";
+//        String matrixFilePathNew = "P:\\data\\HCC_QE3\\QEpeptides_2019626.txt";
 //        String projectId = "5d087107e0073c9b70fb0091";
 //        String matrixFilePath = "P:\\data\\HCC_sciex\\HCC_20190114_swath_os_peptides_matrix.tsv";
 //        resultCompareService.compareMatrix(projectId, matrixFilePathNew, 0, true);
-        resultCompareService.printProteinCoverage(projectId, libraryId, matrixFilePathNew);
+//        resultCompareService.printProteinCoverage(projectId, libraryId, matrixFilePathNew);
         return null;
     }
 
@@ -396,9 +394,9 @@ public class TestController extends BaseController {
 //        resultComparator.compareReplicate(projectId1, filePath1, "C20181210yix_HCC_DIA_T_24A", "C20181218yix_HCC_DIA_T_24B");
 //        resultComparator.compareReplicate(projectId1, filePath1, "C20181208yix_HCC_DIA_T_46A", "C20181218yix_HCC_DIA_T_46B");
 //        resultComparator.compareReplicate(projectId1, filePath1, "C20181208yix_HCC_DIA_T_48A", "C20181218yix_HCC_DIA_T_48B");
-        String projectId2 = "5d08705fe0073c9b70faff6a";
-        String filePath2 = "P:\\data\\HCC_sciex\\HCC_20190114_swath_os_peptides_matrix.tsv";
-        resultCompareService.compareMatrixReplicate(projectId2, filePath2, "D20181213yix_HCC_SW_T_17A", "D20181217yix_HCC_SW_T_17B", 0, false);
+        String projectId2 = "5d3f9ef467258222a8c6e31b";
+        String filePath2 = "P:\\data\\HeLa_caix_Compare\\peptides_hela20190730_sum.txt";
+        resultCompareService.compareMatrixReplicate(projectId2, filePath2, "5d3fa0aa67258222a8c6e334", "5d3fa0aa67258222a8c6e335", 1, false);
 //        resultComparator.compareReplicate(projectId2, filePath2, "D20181213yix_HCC_SW_T_18A", "D20181217yix_HCC_SW_T_18B");
 //        resultComparator.compareReplicate(projectId2, filePath2, "D20181213yix_HCC_SW_T_24A", "D20181217yix_HCC_SW_T_24B");
 //        resultComparator.compareReplicate(projectId2, filePath2, "D20181207yix_HCC_SW_T_46A", "D20181217yix_HCC_SW_T_46B");
@@ -406,11 +404,81 @@ public class TestController extends BaseController {
         return null;
     }
 
+    @RequestMapping("compareSamples")
+    @ResponseBody
+    String compareSamples(){
+        List<String> experimentIdList = new ArrayList<>();
+//        experimentIdList.add("5d3fa0aa67258222a8c6e333");
+//        experimentIdList.add("5d3fa0aa67258222a8c6e334");
+//        experimentIdList.add("5d3fa0aa67258222a8c6e335");
+        experimentIdList.add("5d3fa0aa67258222a8c6e336");
+        experimentIdList.add("5d3fa0aa67258222a8c6e337");
+//        experimentIdList.add("5d3fa0aa67258222a8c6e338");
+
+        HashMap<String,Integer> proproPepMatchTime = new HashMap<>();
+        for (String experimentId: experimentIdList){
+            HashSet<String> tempPepRefs = resultCompareService.getProproPeptideRefs(analyseOverviewService.getAllByExpId(experimentId).get(1).getId());
+            for (String pep: tempPepRefs){
+                if (proproPepMatchTime.containsKey(pep)){
+                    proproPepMatchTime.put(pep, proproPepMatchTime.get(pep) + 1);
+                }else {
+                    proproPepMatchTime.put(pep, 1);
+                }
+            }
+        }
+        int[] proproCount = new int[experimentIdList.size()];
+        for (int times: proproPepMatchTime.values()){
+            proproCount[times-1] ++;
+        }
+        System.out.println("----------------- Propro -----------------");
+        for (int i = 0; i < proproCount.length; i++){
+            System.out.println("Match " + (i+1) + " times: " + proproCount[i]);
+        }
+        int total = 0;
+        for (int num: proproCount){
+            total += num;
+        }
+        System.out.println("Total: " + total);
+        System.out.println("----------------- File -----------------");
+        HashSet<String> expNameSet = new HashSet<>();
+        for (String expId: experimentIdList){
+            expNameSet.add(experimentService.getById(expId).getModel().getName());
+        }
+        HashMap<String,Integer> filePepMatchTime = new HashMap<>();
+        HashMap<String, HashSet<String>> filePepMap = resultCompareService.getMatrixFilePepMap("5d3f9ef467258222a8c6e31b","P:\\data\\HeLa_caix_Compare\\peptides_hela20190730_sum.txt");
+        for (String experimentName: filePepMap.keySet()){
+            if (!expNameSet.contains(experimentName)){
+                continue;
+            }
+            HashSet<String> pepSet = filePepMap.get(experimentName);
+            for (String pep: pepSet){
+                if (filePepMatchTime.containsKey(pep)){
+                    filePepMatchTime.put(pep, filePepMatchTime.get(pep) + 1);
+                }else {
+                    filePepMatchTime.put(pep, 1);
+                }
+            }
+        }
+        int[] fileCount = new int[experimentIdList.size()];
+        for (int times: filePepMatchTime.values()){
+            fileCount[times-1] ++;
+        }
+        for (int i = 0; i < fileCount.length; i++){
+            System.out.println("Match " + (i+1) + " times: " + fileCount[i]);
+        }
+        int fileTotal = 0;
+        for (int num: fileCount){
+            fileTotal += num;
+        }
+        System.out.println("Total: " + fileTotal);
+        return null;
+    }
+
     @RequestMapping("silac")
     @ResponseBody
     String silacTest() {
-        String overviewId = "5d18e4341fb7212da56b31f1";
-        String filePath = "P:\\data\\SILAC_QE\\F20190530liangx_SILAC_K562_DIA_LHtitra1_1_allFrag_with_dscore_filtered.csv";
+        String overviewId = "5d3fce4de8a83346c944be48";
+        String filePath = "P:\\data\\SILAC_QE\\F20190530liangx_SILAC_K562_DIA_LHtitra1_0_allFrag_with_dscore_filtered.csv";
         resultCompareService.printSilacResults(overviewId, filePath);
         return null;
     }

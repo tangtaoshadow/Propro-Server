@@ -58,7 +58,7 @@ public class Extractor {
      * 目前只支持MS2的XIC提取
      *
      * @param workflowParams 将XIC提取,选峰及打分合并在一个步骤中执行,可以完整的省去一次IO读取及解析,提升分析速度,
-     *                   需要experimentDO,libraryId,rtExtractionWindow,mzExtractionWindow,SlopeIntercept
+     *                       需要experimentDO,libraryId,rtExtractionWindow,mzExtractionWindow,SlopeIntercept
      */
     public ResultDO<AnalyseOverviewDO> extract(WorkflowParams workflowParams) {
         ResultDO<AnalyseOverviewDO> resultDO = new ResultDO(true);
@@ -89,6 +89,7 @@ public class Extractor {
     /**
      * 实时提取某一个PeptideRef的XIC图谱,即全时间段XIC提取
      * 不适合用于大批量处理
+     *
      * @param exp
      * @param peptide
      * @return
@@ -110,7 +111,7 @@ public class Extractor {
             SwathIndexDO swathIndexDO = null;
             List<SwathIndexDO> swathIndexList = null;
             TreeMap<Float, MzIntensityPairs> rtMap = new TreeMap<Float, MzIntensityPairs>();
-            switch (exp.getType()){
+            switch (exp.getType()) {
                 case ExpTypeConst.PRM:
                     swathIndexDO = swathIndexService.getPrmIndex(exp.getId(), peptide.getMz().floatValue());
                     if (swathIndexDO == null) {
@@ -132,11 +133,11 @@ public class Extractor {
             }
 
             //Step2.获取该窗口内的谱图Map,key值代表了RT
-            if(exp.getType().equals(ExpTypeConst.SCANNING_SWATH)){
-                for(SwathIndexDO swathIndex : swathIndexList){
+            if (exp.getType().equals(ExpTypeConst.SCANNING_SWATH)) {
+                for (SwathIndexDO swathIndex : swathIndexList) {
                     rtMap.putAll(airdFileParser.parseSwathBlockValues(raf, swathIndex, exp.fetchCompressor(Compressor.TARGET_MZ), exp.fetchCompressor(Compressor.TARGET_INTENSITY)));
                 }
-            }else{
+            } else {
                 rtMap = airdFileParser.parseSwathBlockValues(raf, swathIndexDO, exp.fetchCompressor(Compressor.TARGET_MZ), exp.fetchCompressor(Compressor.TARGET_INTENSITY));
             }
 
@@ -192,19 +193,22 @@ public class Extractor {
     public void extractForIrtWithLib(List<AnalyseDataDO> finalList, List<SimplePeptide> coordinates, TreeMap<Float, MzIntensityPairs> rtMap, String overviewId, ExtractParams extractParams) {
         long start = System.currentTimeMillis();
         int count = 0;
-        for (SimplePeptide tp : coordinates) {
+        for (int i = 0; i < coordinates.size(); i++) {
             if (count >= 1) {
                 break;
             }
-            AnalyseDataDO dataDO = extractForOne(tp, rtMap, extractParams, overviewId);
+            if (coordinates.get(i).getSequence().length() <= 13) {
+                continue;
+            }
+            AnalyseDataDO dataDO = extractForOne(coordinates.get(i), rtMap, extractParams, overviewId);
             if (dataDO == null) {
                 continue;
             }
-            scoreService.strictScoreForOne(dataDO, tp, rtMap);
+            scoreService.strictScoreForOne(dataDO, coordinates.get(i), rtMap);
 
             if (dataDO.getFeatureScoresList() != null) {
                 finalList.add(dataDO);
-                logger.info("找到了:" + dataDO.getPeptideRef() + ",BestRT:" + dataDO.getFeatureScoresList().get(0).getRt() + "耗时:" + (System.currentTimeMillis() - start));
+                logger.info("第" + i + "次搜索找到了:" + dataDO.getPeptideRef() + ",BestRT:" + dataDO.getFeatureScoresList().get(0).getRt() + "耗时:" + (System.currentTimeMillis() - start));
                 count++;
             }
         }
@@ -290,7 +294,7 @@ public class Extractor {
     /**
      * 提取MS2 XIC图谱并且输出最终结果,不返回最终的XIC结果以减少内存的使用
      *
-     * @param raf  用于读取Aird文件
+     * @param raf            用于读取Aird文件
      * @param overviewDO
      * @param workflowParams
      */
@@ -328,7 +332,7 @@ public class Extractor {
                     dataCount += dataList.size();
                 }
                 analyseDataService.insertAll(dataList, false);
-                taskService.update(task,"第" + count + "轮数据XIC提取完毕,有效肽段:" + (dataList == null ? 0 : dataList.size()) + "个,耗时:" + (System.currentTimeMillis() - start) / 1000 + "秒");
+                taskService.update(task, "第" + count + "轮数据XIC提取完毕,有效肽段:" + (dataList == null ? 0 : dataList.size()) + "个,耗时:" + (System.currentTimeMillis() - start) / 1000 + "秒");
                 count++;
             }
 

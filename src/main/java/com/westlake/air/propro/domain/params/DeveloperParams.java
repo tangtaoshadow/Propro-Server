@@ -6,7 +6,7 @@ package com.westlake.air.propro.domain.params;
  */
 public class DeveloperParams {
 
-    public static boolean USE_NEW_PEAKGROUP_SELECTOR = false;
+    public static boolean USE_NEW_PEAKGROUP_SELECTOR = true;
 
     public static boolean USE_NEW_LIBRARY_SHIFT_SCORE = true;
 }

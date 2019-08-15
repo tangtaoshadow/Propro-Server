@@ -1,6 +1,5 @@
 package com.westlake.air.propro.algorithm.extract;
 
-import akka.util.Switch;
 import com.westlake.air.propro.algorithm.parser.AirdFileParser;
 import com.westlake.air.propro.constants.Constants;
 import com.westlake.air.propro.constants.ExpTypeConst;
@@ -11,6 +10,7 @@ import com.westlake.air.propro.domain.bean.aird.WindowRange;
 import com.westlake.air.propro.domain.bean.analyse.MzIntensityPairs;
 import com.westlake.air.propro.domain.db.*;
 import com.westlake.air.propro.domain.db.simple.SimplePeptide;
+import com.westlake.air.propro.domain.params.CoordinateBuildingParams;
 import com.westlake.air.propro.domain.params.ExtractParams;
 import com.westlake.air.propro.domain.params.WorkflowParams;
 import com.westlake.air.propro.domain.query.SwathIndexQuery;
@@ -204,7 +204,7 @@ public class Extractor {
             if (dataDO == null) {
                 continue;
             }
-            scoreService.strictScoreForOne(dataDO, coordinates.get(i), rtMap);
+            scoreService.strictScoreForOne(dataDO, coordinates.get(i), rtMap, extractParams.getShapeScoreThreshold());
 
             if (dataDO.getFeatureScoresList() != null) {
                 finalList.add(dataDO);
@@ -366,7 +366,15 @@ public class Extractor {
             rtRange = workflowParams.getRtRangeMap().get(precursorMz);
         }
         ExperimentDO exp = workflowParams.getExperimentDO();
-        coordinates = peptideService.buildMS2Coordinates(workflowParams.getLibrary(), workflowParams.getSlopeIntercept(), workflowParams.getExtractParams().getRtExtractWindow(), swathIndex.getRange(), rtRange, exp.getType(), workflowParams.isUniqueOnly(), false);
+        CoordinateBuildingParams params = new CoordinateBuildingParams();
+        params.setSlopeIntercept(workflowParams.getSlopeIntercept());
+        params.setRtExtractionWindows(workflowParams.getExtractParams().getRtExtractWindow());
+        params.setRtRange(rtRange);
+        params.setType(exp.getType());
+        params.setUniqueCheck(workflowParams.isUniqueOnly());
+        params.setNoDecoy(false);
+
+        coordinates = peptideService.buildCoordinates(workflowParams.getLibrary(), swathIndex.getRange(), params);
         if (coordinates.isEmpty()) {
             logger.warn("No Coordinates Found,Rang:" + swathIndex.getRange().getStart() + ":" + swathIndex.getRange().getEnd());
             return null;

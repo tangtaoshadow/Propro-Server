@@ -27,7 +27,7 @@
 
     <div class="alert alert-success" role="alert" th:if="${success_msg}" th:text="${success_msg}"></div>
     <div class="row">
-        <div class="col-md-8">
+        <div class="col-md-12">
             <div class="m-portlet m-portlet--tab">
                 <div class="m-portlet__head">
                     <div class="m-portlet__head-caption">
@@ -76,21 +76,44 @@
                             <div class="col-2"></div>
                             <div class="m-checkbox-list col-10">
                                 <label class="m-checkbox">
-                                    <input type="checkbox" id="useLibrary" name="useLibrary" th:checked="${useLibrary}" th:text="#{label_use_library_for_irt}" onchange="changeVisible()">
+                                    <input type="checkbox" id="useLibrary" name="useLibrary" th:checked="${useLibrary}"
+                                           th:text="#{label_use_library_for_irt}" onchange="changeVisible()">
                                     <span></span>
                                 </label>
                             </div>
                         </div>
 
-                        <div id="librarySelectDiv" class="form-group m-form__group row">
-                            <label for="libraryId" class="col-2 col-form-label" th:text="#{label_library}">
-                            </label>
-                            <div class="col-10">
-                                <select class="form-control m-input" id="libraryId" name="libraryId">
-                                    <option th:each="library:${libraries}" th:value="${library.id}"
-                                            th:text="|${library.name}(${library.id})|"
-                                            th:selected="${libraryId}==${library.id}?true:false"></option>
-                                </select>
+                        <div id="librarySelectDiv">
+                            <div class="form-group m-form__group row">
+                                <label for="libraryId" class="col-2 col-form-label" th:text="#{label_library}">
+                                </label>
+                                <div class="col-10">
+                                    <select class="form-control m-input" id="libraryId" name="libraryId">
+                                        <option th:each="library:${libraries}" th:value="${library.id}"
+                                                th:text="|${library.name}(${library.id})|"
+                                                th:selected="${libraryId}==${library.id}?true:false"></option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group m-form__group row">
+                                <label for="wantedNumbers" class="col-2 col-form-label">Wanted Peptides</label>
+                                <div class="col-2">
+                                    <input type="number" class="form-control m-input" id="wantedNumbers"
+                                           name="wantedNumbers" th:value="${wantedNumbers}">
+                                    <span class="m-form__help">Default Value is 50</span>
+                                </div>
+                                <label for="pickedNumbers" class="col-2 col-form-label">Picked Peptides</label>
+                                <div class="col-2">
+                                    <input type="number" class="form-control m-input" id="pickedNumbers"
+                                           name="pickedNumbers" th:value="${pickedNumbers}">
+                                    <span class="m-form__help">Default Value is 500</span>
+                                </div>
+                                <label for="shapeScoreThreshold" class="col-2 col-form-label">Score Threshold</label>
+                                <div class="col-2">
+                                    <input type="text" class="form-control m-input" id="shapeScoreThreshold"
+                                           name="shapeScoreThreshold" th:value="${shapeScoreThreshold}">
+                                    <span class="m-form__help">Default Value is 0.95</span>
+                                </div>
                             </div>
                         </div>
 
@@ -114,7 +137,8 @@
                             </div>
                         </div>
                         <div class="form-group m-form__group row">
-                            <label for="mzExtractWindow" class="col-2 col-form-label" th:text="#{label_mz_extract_window}"></label>
+                            <label for="mzExtractWindow" class="col-2 col-form-label"
+                                   th:text="#{label_mz_extract_window}"></label>
                             <div class="col-10">
                                 <input type="text" class="form-control m-input" id="mzExtractWindow"
                                        name="mzExtractWindow"
@@ -139,7 +163,7 @@
 <th:block layout:fragment="script">
     <script th:inline="javascript">
 
-        var useLibrary =  document.getElementById("useLibrary").checked;
+        var useLibrary = document.getElementById("useLibrary").checked;
         $librarySelectDiv = $('#librarySelectDiv');
         $selectPointsCount = $('#selectPointsCountDiv');
 
@@ -147,12 +171,12 @@
             changeVisible();
         });
 
-        function changeVisible(){
-            useLibrary =  document.getElementById("useLibrary").checked;
-            if (useLibrary){
+        function changeVisible() {
+            useLibrary = document.getElementById("useLibrary").checked;
+            if (useLibrary) {
                 $librarySelectDiv.show();
                 $selectPointsCount.show();
-            }else{
+            } else {
                 $librarySelectDiv.hide();
                 $selectPointsCount.hide();
             }

@@ -29,5 +29,5 @@ public interface ScoreService {
      * @param peptide
      * @param rtMap
      */
-    void strictScoreForOne(AnalyseDataDO data, SimplePeptide peptide , TreeMap<Float, MzIntensityPairs> rtMap);
+    void strictScoreForOne(AnalyseDataDO data, SimplePeptide peptide , TreeMap<Float, MzIntensityPairs> rtMap, float shapeScoreThreshold);
 }

@@ -349,6 +349,9 @@ public class ExperimentController extends BaseController {
             model.addAttribute("libraryId", project.getLibraryId());
         }
 
+        model.addAttribute("wantedNumbers", 50);
+        model.addAttribute("pickedNumbers", 500);
+        model.addAttribute("shapeScoreThreshold", 0.95f);
         model.addAttribute("irtLibraries", getLibraryList(1, true));
         model.addAttribute("libraries", getLibraryList(0, true));
         model.addAttribute("experiment", resultDO.getModel());
@@ -360,6 +363,9 @@ public class ExperimentController extends BaseController {
                  @RequestParam(value = "id", required = true) String id,
                  @RequestParam(value = "iRtLibraryId", required = false) String iRtLibraryId,
                  @RequestParam(value = "useLibrary", required = true, defaultValue = "false") boolean useLibrary,
+                 @RequestParam(value = "wantedNumbers", required = false) Integer wantedNumbers,
+                 @RequestParam(value = "pickedNumbers", required = false) Integer pickedNumbers,
+                 @RequestParam(value = "shapeScoreThreshold", required = false) Float shapeScoreThreshold,
                  @RequestParam(value = "libraryId", required = false) String libraryId,
                  @RequestParam(value = "sigma", required = true, defaultValue = Constants.DEFAULT_SIGMA_STR) Float sigma,
                  @RequestParam(value = "spacing", required = true, defaultValue = Constants.DEFAULT_SPACING_STR) Float spacing,
@@ -385,6 +391,9 @@ public class ExperimentController extends BaseController {
         irtParams.setSigmaSpacing(sigmaSpacing);
         irtParams.setUseLibrary(useLibrary);
         irtParams.setLibrary(lib);
+        irtParams.setShapeScoreThreshold(shapeScoreThreshold);
+        irtParams.setPickedNumbers(pickedNumbers);
+        irtParams.setWantedNumber(wantedNumbers);
 
         experimentTask.irt(taskDO, exps, irtParams);
 

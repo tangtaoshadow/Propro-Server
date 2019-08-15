@@ -18,6 +18,8 @@ public class ExtractParams {
 
     Float halfRtWindow;
 
+    Float shapeScoreThreshold;
+
     public ExtractParams(Float mzExtractWindow, Float rtExtractWindow) {
         this.mzExtractWindow = mzExtractWindow;
         this.rtExtractWindow = rtExtractWindow;

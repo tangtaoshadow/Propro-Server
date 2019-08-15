@@ -20,6 +20,7 @@ import com.westlake.air.propro.domain.db.ExperimentDO;
 import com.westlake.air.propro.domain.db.LibraryDO;
 import com.westlake.air.propro.domain.db.SwathIndexDO;
 import com.westlake.air.propro.domain.db.simple.SimplePeptide;
+import com.westlake.air.propro.domain.params.CoordinateBuildingParams;
 import com.westlake.air.propro.domain.params.ExtractParams;
 import com.westlake.air.propro.domain.params.IrtParams;
 import com.westlake.air.propro.domain.query.SwathIndexQuery;
@@ -30,7 +31,6 @@ import com.westlake.air.propro.utils.ConvolutionUtil;
 import com.westlake.air.propro.utils.FileUtil;
 import com.westlake.air.propro.utils.MathUtil;
 import org.apache.commons.lang3.tuple.Pair;
-import org.jblas.util.Random;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -117,10 +117,11 @@ public class Irt {
 
         LibraryDO library = irtParams.getLibrary();
         float mzExtractWindow = irtParams.getMzExtractWindow();
-        int selectPoints, step;
+        int selectPoints = irtParams.getWantedNumber();
+        int step;
         if (irtParams.isUseLibrary()) {
             int rangeSize = exp.getWindowRanges().size();
-            selectPoints = Math.min(rangeSize, 50);//获取windowRange Size大小,如果超过50的话则采用采样录取的方式
+            selectPoints = Math.min(rangeSize, selectPoints);//获取windowRange Size大小,如果超过50的话则采用采样录取的方式
             step = rangeSize / selectPoints;
         } else {
             selectPoints = swathList.size();
@@ -130,12 +131,24 @@ public class Irt {
         try {
             raf = new RandomAccessFile(file, "r");
             for (int i = 0; i < selectPoints; i++) {
+                logger.info("第"+(i+1)+"轮搜索开始");
                 //Step1.按照步长获取SwathList的点位库
                 SwathIndexDO swathIndexDO = swathList.get(i * step);
 
                 //Step2.获取标准库的目标肽段片段的坐标
                 TreeMap<Float, MzIntensityPairs> rtMap; //key为rt
-                List<SimplePeptide> coordinates = peptideService.buildMS2Coordinates(library, SlopeIntercept.create(), -1, swathIndexDO.getRange(), null, exp.getType(), false, true);
+                CoordinateBuildingParams params = new CoordinateBuildingParams();
+                params.setSlopeIntercept(SlopeIntercept.create());
+                params.setRtExtractionWindows(-1);
+                params.setType(exp.getType());
+                params.setNoDecoy(true);
+                params.setLimit(irtParams.getPickedNumbers());
+                //如果使用标准库进行卷积,为了缩短读取数据库的时间,每一轮从数据库中仅读取300个点位进行测试
+                if (library.getType().equals(LibraryDO.TYPE_STANDARD)){
+                    params.setLimit(irtParams.getPickedNumbers());
+                }
+
+                List<SimplePeptide> coordinates = peptideService.buildCoordinates(library, swathIndexDO.getRange(), params);
                 if (coordinates.size() == 0) {
                     logger.warn("No iRT Coordinates Found,Rang:" + swathIndexDO.getRange().getStart() + ":" + swathIndexDO.getRange().getEnd());
                     continue;
@@ -155,7 +168,9 @@ public class Irt {
                     extractor.extractForIrt(finalList, coordinates, rtMap, null, new ExtractParams(mzExtractWindow, -1f));
                 } else {
                     //如果是使用标准库进行校准的,那么会按照需要选择的总点数进行抽取选择
-                    extractor.extractForIrtWithLib(finalList, coordinates, rtMap, null, new ExtractParams(mzExtractWindow, -1f));
+                    ExtractParams ep = new ExtractParams(mzExtractWindow, -1f);
+                    ep.setShapeScoreThreshold(irtParams.getShapeScoreThreshold());
+                    extractor.extractForIrtWithLib(finalList, coordinates, rtMap, null, ep);
                 }
             }
         } catch (Exception e) {

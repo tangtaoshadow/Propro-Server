@@ -23,6 +23,9 @@ public class PeptideQuery extends PageQuery {
      */
     Double rt;
 
+    /**
+     * 是否是该蛋白对应的具有唯一性的肽段
+     */
     Boolean isUnique;
 
     /**

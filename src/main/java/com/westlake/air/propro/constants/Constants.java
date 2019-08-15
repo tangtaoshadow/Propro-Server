@@ -90,6 +90,7 @@ public class Constants {
     public static final double EMG_CONST = 2.4055;
     public static final int EMG_MAX_ITERATION = 500;
 
+    //搜索邻近SWATH窗口的窗口数目,3代表向上向下各搜索3个窗口,总计6个
     public static final int SCANNING_SWATH_COLLECTED_NUMBER = 3;
     public static final String CHANGE_LINE = "\r\n";
     public static final String TAB = "\t";

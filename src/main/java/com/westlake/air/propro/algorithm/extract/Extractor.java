@@ -118,14 +118,17 @@ public class Extractor {
                         return ResultDO.buildError(ResultCode.SWATH_INDEX_NOT_EXISTED);
                     }
                     break;
+                case ExpTypeConst.SCANNING_SWATH:
+//                    swathIndexDO = swathIndexService.getSwathIndex(exp.getId(), peptide.getMz().floatValue());
+//                    swathIndexList = new ArrayList<>();
+//                    swathIndexList.add(swathIndexDO);
+                    swathIndexList = swathIndexService.getLinkedSwathIndex(exp.getId(), peptide.getMz().floatValue(), exp.getDeltaMzRange(), Constants.SCANNING_SWATH_COLLECTED_NUMBER);
+                    break;
                 case ExpTypeConst.DIA_SWATH:
                     swathIndexDO = swathIndexService.getSwathIndex(exp.getId(), peptide.getMz().floatValue());
                     if (swathIndexDO == null) {
                         return ResultDO.buildError(ResultCode.SWATH_INDEX_NOT_EXISTED);
                     }
-                    break;
-                case ExpTypeConst.SCANNING_SWATH:
-                    swathIndexList = swathIndexService.getLinkedSwathIndex(exp.getId(), peptide.getMz().floatValue(), exp.getDeltaMzRange(), Constants.SCANNING_SWATH_COLLECTED_NUMBER);
                     break;
                 default:
                     swathIndexDO = swathIndexService.getSwathIndex(exp.getId(), peptide.getMz().floatValue());

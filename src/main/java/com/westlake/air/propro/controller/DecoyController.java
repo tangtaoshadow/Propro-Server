@@ -46,6 +46,7 @@ public class DecoyController extends BaseController {
         return "redirect:/library/detail/" + id;
     }
 
+    // 生成伪肽段
     @RequestMapping(value = "/generate")
     String generate(Model model,
                     @RequestParam(value = "id", required = true) String id,
@@ -61,6 +62,7 @@ public class DecoyController extends BaseController {
         //计算原始肽段数目
         PeptideQuery query = new PeptideQuery();
         query.setLibraryId(id);
+
         long totalCount = peptideService.count(query);
         int totalPage = (int) (totalCount / MAX_UPDATE_RECORD_FOR_PEPTIDE) + 1;
         query.setPageSize(MAX_UPDATE_RECORD_FOR_PEPTIDE);
@@ -93,6 +95,9 @@ public class DecoyController extends BaseController {
 
         libraryService.countAndUpdateForLibrary(library);
 
+        // 重定向到详情
         return "redirect:/library/detail/" + id;
     }
+
+
 }

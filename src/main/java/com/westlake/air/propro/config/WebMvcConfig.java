@@ -11,16 +11,18 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
     /**
      * 跨域脚本规则,仅允许来自Aliyun 指定OSS文件可以访问
+     *
      * @param registry
      */
     @Override
     public void addCorsMappings(CorsRegistry registry) {
 //				registry.addMapping("/api/**");
         registry.addMapping("/**")
-                .allowedOrigins("http://wias.oss-cn-shanghai.aliyuncs.com")
+                // 调试阶段允许所有请求
+                .allowedOrigins("*")
                 .allowedHeaders("*")
                 .allowedMethods("GET", "POST", "DELETE", "PUT", "OPTIONS")
-                .allowCredentials(false).maxAge(3600);
+                .allowCredentials(false).maxAge(7200);
     }
 
     @Override
@@ -29,4 +31,6 @@ public class WebMvcConfig implements WebMvcConfigurer {
         interceptor.setParamName("lang");
         registry.addInterceptor(interceptor);
     }
+
+
 }

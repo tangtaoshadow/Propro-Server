@@ -2,48 +2,92 @@ package com.westlake.air.propro.config;
 
 import com.westlake.air.propro.domain.db.UserDO;
 import com.westlake.air.propro.service.UserService;
-import org.apache.shiro.authc.*;
+import com.westlake.air.propro.utils.JWTUtil;
+import org.apache.shiro.authc.AuthenticationException;
+import org.apache.shiro.authc.AuthenticationInfo;
+import org.apache.shiro.authc.AuthenticationToken;
+import org.apache.shiro.authc.SimpleAuthenticationInfo;
 import org.apache.shiro.authz.AuthorizationInfo;
 import org.apache.shiro.authz.SimpleAuthorizationInfo;
 import org.apache.shiro.realm.AuthorizingRealm;
 import org.apache.shiro.subject.PrincipalCollection;
-import org.apache.shiro.util.ByteSource;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class ShiroRealm extends AuthorizingRealm {
 
+
+    // 装载 对 user 表操作的 class
     @Autowired
     private UserService userService;
 
+
     /**
-     * 授权方法，如果不设置缓存管理的话，访问需要一定的权限或角色的请求时会进入这个方法
+     * 必须重写此方法，不然会报错
+     */
+    @Override
+    public boolean supports(AuthenticationToken token) {
+        return token instanceof JWTToken;
+    }
+
+
+    // /**
+    //  * 默认使用此方法进行用户名正确与否验证，错误抛出异常即可。
+    //  */
+    @Override
+    protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken authenticationToken) throws AuthenticationException {
+
+        System.out.println(">执行 doGetAuthenticationInfo 身份认证");
+
+        String token = (String) authenticationToken.getCredentials();
+
+        // 解密获得 username 用于和数据库进行对比
+        String username = JWTUtil.getUsername(token);
+
+        if (null == username || !JWTUtil.verify(token, username)) {
+            throw new AuthenticationException("token 认证失败");
+        }
+
+
+        UserDO userInfo = userService.getByUsername(username);
+        if (userInfo == null) {
+            // 抛出 AuthenticationException
+            throw new AuthenticationException("Username or password error");
+        }
+
+        return new SimpleAuthenticationInfo(userInfo, token, getName());
+
+
+    }
+
+    /**
+     * 只有当需要检测用户权限的时候才会调用此方法，例如checkRole,checkPermission之类的
      */
     @Override
     protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principals) {
-        UserDO principal = (UserDO) principals.getPrimaryPrincipal();
-        return new SimpleAuthorizationInfo(principal.getRoles());
-    }
 
-    /**
-     * 认证方法
-     */
-    @Override
-    protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken token) throws AuthenticationException {
+        System.out.println(">执行 doGetAuthorizationInfo 权限认证");
+        // principals 传过来的是 token
+        // System.out.println(">principals = "+principals);
+        String username = JWTUtil.getUsername(principals.toString());
 
-        UsernamePasswordToken userToken = (UsernamePasswordToken) token;
-        //根据登录名查询用户，这里不用校验密码，因为密码的校验是交给shiro来完成的
-        UserDO userInfo = userService.getByUsername(userToken.getUsername());
+        SimpleAuthorizationInfo info = new SimpleAuthorizationInfo();
 
-        if (userInfo == null) {
-            throw new IncorrectCredentialsException("Username or password error");
+        // 获取数据库中对应的用户
+        UserDO userInfo = userService.getByUsername(username);
+
+        // 如果查询为空 应该
+        if (null == userInfo) {
+            return info;
         }
 
-        SimpleAuthenticationInfo authenticationInfo = new SimpleAuthenticationInfo(
-                userInfo,//用户
-                userInfo.getPassword(),//密码
-                ByteSource.Util.bytes(userInfo.getSalt()),//盐值用 ByteSource.Util.bytes 来生成
-                getName()//realm name
-        );
-        return authenticationInfo;
+        // 设置该用户拥有的角色和权限
+        info.setRoles(userInfo.getRoles());
+
+        info.setStringPermissions(userInfo.getPerms());
+
+        return info;
+
     }
+
+
 }

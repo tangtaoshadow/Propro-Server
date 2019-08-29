@@ -1,7 +1,7 @@
 package com.westlake.air.propro.controller;
 
 import com.alibaba.fastjson.JSON;
-import com.westlake.air.propro.constants.enums.ResultCode;
+import com.alibaba.fastjson.JSONObject;
 import com.westlake.air.propro.constants.enums.TaskStatus;
 import com.westlake.air.propro.constants.enums.TaskTemplate;
 import com.westlake.air.propro.domain.ResultDO;
@@ -11,18 +11,19 @@ import com.westlake.air.propro.service.TaskService;
 import com.westlake.air.propro.utils.PermissionUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.text.SimpleDateFormat;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by James Lu MiaoShan
  * Time: 2018-08-13 21:33
  */
-@Controller
+@RestController
 @RequestMapping("task")
 public class TaskController extends BaseController {
 
@@ -36,25 +37,25 @@ public class TaskController extends BaseController {
                 @RequestParam(value = "taskTemplate", required = false) String taskTemplate,
                 @RequestParam(value = "taskStatus", required = false) String taskStatus) {
 
-        if(taskTemplate != null){
+        if (taskTemplate != null) {
             model.addAttribute("taskTemplate", taskTemplate);
         }
         model.addAttribute("taskTemplates", TaskTemplate.values());
 
-        if(taskStatus != null){
+        if (taskStatus != null) {
             model.addAttribute("taskStatus", taskStatus);
         }
         model.addAttribute("statusList", TaskStatus.values());
 
         model.addAttribute("pageSize", pageSize);
         TaskQuery query = new TaskQuery();
-        if(taskTemplate != null && !taskTemplate.isEmpty() && !taskTemplate.equals("All")){
+        if (taskTemplate != null && !taskTemplate.isEmpty() && !taskTemplate.equals("All")) {
             query.setTaskTemplate(taskTemplate);
         }
-        if(taskStatus != null && !taskStatus.isEmpty() && !taskStatus.equals("All")){
+        if (taskStatus != null && !taskStatus.isEmpty() && !taskStatus.equals("All")) {
             query.setStatus(taskStatus);
         }
-        if(!isAdmin()){
+        if (!isAdmin()) {
             query.setCreator(getCurrentUsername());
         }
         query.setPageSize(pageSize);
@@ -69,28 +70,37 @@ public class TaskController extends BaseController {
         return "task/list";
     }
 
-    @RequestMapping(value = "/detail/{id}")
-    String detail(Model model, @PathVariable("id") String id) {
-        ResultDO<TaskDO> resultDO = taskService.getById(id);
-        if (resultDO.isFailed()) {
-            model.addAttribute(ERROR_MSG, ResultCode.OBJECT_NOT_EXISTED.getMessage());
-            return "task/detail";
-        }
-        PermissionUtil.check(resultDO.getModel());
 
-        TaskDO taskDO = resultDO.getModel();
-        model.addAttribute("task", taskDO);
-        model.addAttribute("taskId", taskDO.getId());
-        TaskTemplate taskTemplate = TaskTemplate.getByName(taskDO.getTaskTemplate());
-        if (taskTemplate == null) {
-            model.addAttribute(ERROR_MSG, ResultCode.OBJECT_NOT_EXISTED.getMessage());
-            return "task/detail";
-        }
-        return "task/detail";
+    @RequestMapping(value = "/detail", method = RequestMethod.POST)
+    String detail(Model model, @RequestParam("taskId") String id) {
+        int status = -1;
+        Map<String, Object> map = new HashMap<String, Object>();
+
+        do {
+            ResultDO<TaskDO> resultDO = taskService.getById(id);
+            if (resultDO.isFailed()) {
+                // 任务查询失败
+                status = -3;
+                break;
+            }
+            PermissionUtil.check(resultDO.getModel());
+            TaskDO taskDO = resultDO.getModel();
+            map.put("task", taskDO);
+            TaskTemplate taskTemplate = TaskTemplate.getByName(taskDO.getTaskTemplate());
+            if (taskTemplate == null) {
+                // 对象不存在
+                status = -4;
+                break;
+            }
+            status = 0;
+        } while (false);
+        map.put("status", status);
+        // 返回数据
+        JSONObject json = new JSONObject(map);
+        return json.toString();
     }
 
     @RequestMapping(value = "/getTaskInfo/{id}")
-    @ResponseBody
     String getTaskInfo(Model model, @PathVariable("id") String id) {
         ResultDO<TaskDO> resultDO = taskService.getById(id);
         if (resultDO.isSuccess() && resultDO.getModel() != null) {

@@ -205,45 +205,69 @@ public class LibraryController extends BaseController {
         return "library/create";
     }
 
+    /***
+     * @UpdateTime 2019-8-29 10:18:41
+     * @param name 库名称
+     * @param libType 库类型
+     * @param description 描述
+     * @param libFile
+     * @param prmFile
+     * @return 0 正在执行插入 返回 taskId  -3 文件不存在 -4 插入失败
+     */
     @RequestMapping(value = "/add", method = RequestMethod.POST)
-    String add(Model model,
-               @RequestParam(value = "name", required = true) String name,
-               @RequestParam(value = "type", required = true) Integer type,
-               @RequestParam(value = "description", required = false) String description,
-               @RequestParam(value = "libFile", required = true) MultipartFile libFile,
-               @RequestParam(value = "prmFile", required = false) MultipartFile prmFile,
-               RedirectAttributes redirectAttributes) {
+    String add(
+            @RequestParam(value = "name") String name,
+            @RequestParam(value = "libType") String libType,
+            @RequestParam(value = "description", required = false) String description,
+            @RequestParam(value = "libFile") MultipartFile libFile,
+            @RequestParam(value = "prmFile", required = false) MultipartFile prmFile
+    ) {
 
-        if (libFile == null || libFile.getOriginalFilename() == null || libFile.getOriginalFilename().isEmpty()) {
-            model.addAttribute(ERROR_MSG, ResultCode.FILE_NOT_EXISTED);
-            return "library/create";
-        }
-        LibraryDO library = new LibraryDO();
-        library.setName(name);
-        library.setDescription(description);
-        library.setType(type);
-        library.setCreator(getCurrentUsername());
-        ResultDO resultDO = libraryService.insert(library);
-        TaskDO taskDO = new TaskDO(TaskTemplate.UPLOAD_LIBRARY_FILE, library.getName());
-        taskService.insert(taskDO);
-        if (resultDO.isFailed()) {
-            logger.warn(resultDO.getMsgInfo());
-            redirectAttributes.addFlashAttribute(ERROR_MSG, resultDO.getMsgInfo());
-            redirectAttributes.addFlashAttribute("library", library);
-            return "redirect://library/create";
-        }
-        try {
-            InputStream libFileStream = libFile.getInputStream();
-            InputStream prmFileStream = null;
-            if (!prmFile.isEmpty()) {
-                prmFileStream = prmFile.getInputStream();
+        int status = -1;
+        Map<String, Object> map = new HashMap<String, Object>();
+
+        do {
+            if (libFile == null || libFile.getOriginalFilename() == null || libFile.getOriginalFilename().isEmpty()) {
+                // 文件不存在
+                status = -3;
+                break;
+            }
+            LibraryDO library = new LibraryDO();
+            library.setName(name);
+            library.setDescription(description);
+            int type = "library".equals(libType) ? 0 : 1;
+            library.setType(type);
+            library.setCreator(getCurrentUsername());
+            ResultDO resultDO = libraryService.insert(library);
+            TaskDO taskDO = new TaskDO(TaskTemplate.UPLOAD_LIBRARY_FILE, library.getName());
+            taskService.insert(taskDO);
+            if (resultDO.isFailed()) {
+                // 文件插入失败 比如名称重复
+                status = -4;
+                break;
+            }
+            try {
+                InputStream libFileStream = libFile.getInputStream();
+                InputStream prmFileStream = null;
+                System.out.println("prrmFile" + prmFile);
+                if (null != prmFile && !prmFile.isEmpty()) {
+                    prmFileStream = prmFile.getInputStream();
+                }
+                libraryTask.saveLibraryTask(library, libFileStream, libFile.getOriginalFilename(), prmFileStream, taskDO);
+            } catch (IOException e) {
+                e.printStackTrace();
             }
 
-            libraryTask.saveLibraryTask(library, libFileStream, libFile.getOriginalFilename(), prmFileStream, taskDO);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return "redirect:/task/detail/" + taskDO.getId();
+            // 注意 这里只是标记 status 并不代表库上传成功
+            status = 0;
+            map.put("taskId", taskDO.getId());
+
+        } while (false);
+
+        map.put("status", status);
+        // 返回数据
+        JSONObject json = new JSONObject(map);
+        return json.toString();
     }
 
     /***

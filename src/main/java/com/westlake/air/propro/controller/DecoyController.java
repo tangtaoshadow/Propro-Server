@@ -1,5 +1,6 @@
 package com.westlake.air.propro.controller;
 
+import com.alibaba.fastjson.JSONObject;
 import com.westlake.air.propro.algorithm.decoy.BaseGenerator;
 import com.westlake.air.propro.algorithm.decoy.generator.NicoGenerator;
 import com.westlake.air.propro.algorithm.decoy.generator.ShuffleGenerator;
@@ -10,12 +11,14 @@ import com.westlake.air.propro.domain.query.PeptideQuery;
 import com.westlake.air.propro.service.PeptideService;
 import com.westlake.air.propro.utils.PermissionUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.westlake.air.propro.constants.Constants.MAX_UPDATE_RECORD_FOR_PEPTIDE;
 
@@ -23,7 +26,7 @@ import static com.westlake.air.propro.constants.Constants.MAX_UPDATE_RECORD_FOR_
  * Created by James Lu MiaoShan
  * Time: 2018-06-19 16:03
  */
-@Controller
+@RestController
 @RequestMapping("decoy")
 public class DecoyController extends BaseController {
 
@@ -35,7 +38,11 @@ public class DecoyController extends BaseController {
     PeptideService peptideService;
 
     @RequestMapping(value = "/delete")
-    String delete(Model model, @RequestParam(value = "id", required = true) String id) {
+    String delete(@RequestParam(value = "id", required = true) String id) {
+
+        System.out.println("删除 肽段" + id);
+        int status = -1;
+        Map<String, Object> map = new HashMap<String, Object>();
 
         LibraryDO library = libraryService.getById(id);
         PermissionUtil.check(library);
@@ -43,7 +50,11 @@ public class DecoyController extends BaseController {
         peptideService.deleteAllDecoyByLibraryId(id);
 
         libraryService.countAndUpdateForLibrary(library);
-        return "redirect:/library/detail/" + id;
+        status = 0;
+        map.put("status", status);
+        // 返回数据
+        JSONObject json = new JSONObject(map);
+        return json.toString();
     }
 
     // 生成伪肽段
@@ -51,6 +62,8 @@ public class DecoyController extends BaseController {
     String generate(Model model,
                     @RequestParam(value = "id", required = true) String id,
                     @RequestParam(value = "generator", required = false, defaultValue = "shuffle") String generator) {
+        int status = -1;
+        Map<String, Object> map = new HashMap<String, Object>();
 
         LibraryDO library = libraryService.getById(id);
         PermissionUtil.check(library);
@@ -89,14 +102,19 @@ public class DecoyController extends BaseController {
             ResultDO resultTmp = peptideService.updateDecoyInfos(list);
             if (resultTmp.isSuccess()) {
                 countForInsert += list.size();
-                logger.info("新生成伪肽段" + countForInsert + "条");
+                logger.info(i + "新生成伪肽段" + countForInsert + "条");
             }
         }
 
         libraryService.countAndUpdateForLibrary(library);
 
+        logger.info("肽段生成完成");
+        status = 0;
+        map.put("status", status);
         // 重定向到详情
-        return "redirect:/library/detail/" + id;
+        // 返回数据  有可能不能正常返回状态连接就断了
+        JSONObject json = new JSONObject(map);
+        return json.toString();
     }
 
 

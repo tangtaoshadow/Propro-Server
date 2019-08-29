@@ -396,7 +396,7 @@ public class LibraryController extends BaseController {
             library.setDescription(description);
 
             // 注意 这里传入的是字符串
-            if ("library" == type) {
+            if ("library".equals(type)) {
                 library.setType(0);
             } else {
                 library.setType(1);
@@ -459,31 +459,38 @@ public class LibraryController extends BaseController {
     }
 
 
-    @RequestMapping(value = "/delete/{id}")
-    String delete(Model model, @PathVariable("id") String id,
-                  RedirectAttributes redirectAttributes) {
-        LibraryDO library = libraryService.getById(id);
-        int type = 0;
-        if (library != null) {
-            type = library.getType();
-        }
-        PermissionUtil.check(library);
-        ResultDO resultDO = libraryService.delete(id);
+    @RequestMapping(value = "/delete")
+    String delete(@RequestParam("id") String id) {
 
-        String redirectListUrl = null;
-        if (type == 1) {
-            redirectListUrl = "redirect:/library/listIrt";
-        } else {
-            redirectListUrl = "redirect:/library/list";
-        }
-        peptideService.deleteAllByLibraryId(id);
-        if (resultDO.isSuccess()) {
-            redirectAttributes.addFlashAttribute(SUCCESS_MSG, SuccessMsg.DELETE_LIBRARY_SUCCESS);
-            return redirectListUrl;
-        } else {
-            redirectAttributes.addFlashAttribute(ERROR_MSG, resultDO.getMsgInfo());
-            return redirectListUrl;
-        }
+        Map<String, Object> map = new HashMap<String, Object>();
+        // 状态标记
+        int status = -1;
+        do {
+            LibraryDO library = libraryService.getById(id);
+            int type = 0;
+            if (library != null) {
+                type = library.getType();
+            }
+            PermissionUtil.check(library);
+            ResultDO resultDO = libraryService.delete(id);
+
+            // 执行删除操作
+            peptideService.deleteAllByLibraryId(id);
+            if (resultDO.isSuccess()) {
+                // 删除成功
+                status = 0;
+            } else {
+                // 删除失败
+                status = -3;
+            }
+
+        } while (false);
+
+        // 返回状态结果
+        map.put("status", status);
+        // 返回数据
+        JSONObject json = new JSONObject(map);
+        return json.toString();
     }
 
     @RequestMapping(value = "/setPublic/{id}")

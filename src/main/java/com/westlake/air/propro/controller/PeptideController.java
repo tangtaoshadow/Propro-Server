@@ -1,6 +1,8 @@
 package com.westlake.air.propro.controller;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.westlake.air.propro.algorithm.decoy.generator.ShuffleGenerator;
 import com.westlake.air.propro.algorithm.formula.FormulaCalculator;
 import com.westlake.air.propro.algorithm.formula.FragmentFactory;
@@ -46,12 +48,13 @@ public class PeptideController extends BaseController {
             @RequestParam(value = "sequence", required = false) String sequence,
             @RequestParam(value = "currentPage", required = false, defaultValue = "1") Integer currentPage,
             @RequestParam(value = "uniqueFilter", required = false, defaultValue = "All") String uniqueFilter,
-            @RequestParam(value = "pageSize", required = false, defaultValue = "50") Integer pageSize) {
+            @RequestParam(value = "pageSize", required = false, defaultValue = "500") Integer pageSize) {
 
         Map<String, Object> map = new HashMap<String, Object>();
         // 状态标记
         int status = -1;
 
+        JSONObject json = new JSONObject(map);
         Map<String, Object> data = new HashMap<String, Object>();
 
         do {
@@ -59,9 +62,8 @@ public class PeptideController extends BaseController {
             long startTime = System.currentTimeMillis();
             LibraryDO temp = libraryService.getById(libraryId);
             PermissionUtil.check(temp);
-
-            data.put("libraryId", libraryId);
-            data.put("libraryName", temp.getName());
+            //
+            data.put("libraryInfo", temp);
             data.put("proteinName", proteinName);
             data.put("peptideRef", peptideRef);
             data.put("pageSize", pageSize);
@@ -99,23 +101,22 @@ public class PeptideController extends BaseController {
             ResultDO<List<PeptideDO>> resultDO = peptideService.getList(query);
 
             data.put("peptideList", resultDO.getModel());
-            map.put("peptideList", resultDO.getModel());
             data.put("totalPage", resultDO.getTotalPage());
             data.put("currentPage", currentPage);
-            StringBuilder builder = new StringBuilder();
-            builder.append("本次搜索耗时:").append(System.currentTimeMillis() - startTime).append("毫秒;包含搜索结果总计:")
-                    .append(resultDO.getTotalNum()).append("条");
-            data.put("searchResult", builder.toString());
+            // 搜索用时
+            data.put("searchTime", System.currentTimeMillis() - startTime);
+            // 搜索结果共计
+            data.put("searchNumbers", resultDO.getTotalNum());
+            data.put("pageSize", pageSize);
             status = 0;
         } while (false);
 
         map.put("status", status);
         // 将数据再打包一次 简化前端数据处理逻辑
-        // map.put("data", data);
+        map.put("data", data);
 
         // 返回数据
-        JSONObject json = new JSONObject(map);
-        return json.toString();
+        return JSON.toJSONString(map, SerializerFeature.WriteNonStringKeyAsString);
 
     }
 

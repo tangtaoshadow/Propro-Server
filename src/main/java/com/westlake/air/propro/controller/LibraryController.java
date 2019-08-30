@@ -97,7 +97,7 @@ public class LibraryController extends BaseController {
     @RequestMapping(value = "/listIrt", method = RequestMethod.POST)
     String listIrt(Model model,
                    @RequestParam(value = "currentPage", required = false, defaultValue = "1") Integer currentPage,
-                   @RequestParam(value = "pageSize", required = false, defaultValue = "20") Integer pageSize,
+                   @RequestParam(value = "pageSize", required = false, defaultValue = "100") Integer pageSize,
                    @RequestParam(value = "searchName", required = false) String searchName) {
         model.addAttribute("searchName", searchName);
         model.addAttribute("pageSize", pageSize);
@@ -136,7 +136,7 @@ public class LibraryController extends BaseController {
      */
     @RequestMapping(value = "/listPublic", method = RequestMethod.POST)
     String listPublic(@RequestParam(value = "currentPage", required = false, defaultValue = "1") Integer currentPage,
-                      @RequestParam(value = "pageSize", required = false, defaultValue = "20") Integer pageSize,
+                      @RequestParam(value = "pageSize", required = false, defaultValue = "100") Integer pageSize,
                       @RequestParam(value = "searchName", required = false) String searchName) {
         // 返回状态
         Map<String, Object> map = new HashMap<String, Object>();
@@ -186,7 +186,7 @@ public class LibraryController extends BaseController {
     @RequestMapping(value = "/listPublicIrt")
     String listPublicIrt(Model model,
                          @RequestParam(value = "currentPage", required = false, defaultValue = "1") Integer currentPage,
-                         @RequestParam(value = "pageSize", required = false, defaultValue = "20") Integer pageSize,
+                         @RequestParam(value = "pageSize", required = false, defaultValue = "100") Integer pageSize,
                          @RequestParam(value = "searchName", required = false) String searchName) {
         model.addAttribute("searchName", searchName);
         model.addAttribute("pageSize", pageSize);

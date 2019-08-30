@@ -47,15 +47,23 @@ public class LibraryController extends BaseController {
     PeptideService peptideService;
 
     // 标准库
+
+    /***
+     * @UpdateTime 2019-8-30 14:47:36
+     * @Archive 查询当前标准库列表
+     * @param currentPage 默认 1
+     * @param pageSize 默认 100
+     * @param searchName
+     * @return
+     */
     @RequestMapping(value = "/list")
-    String list(Model model,
-                @RequestParam(value = "currentPage", required = false, defaultValue = "1") Integer currentPage,
-                @RequestParam(value = "pageSize", required = false, defaultValue = "20") Integer pageSize,
-                @RequestParam(value = "searchName", required = false) String searchName) {
+    String list(
+            @RequestParam(value = "currentPage", required = false, defaultValue = "1") Integer currentPage,
+            @RequestParam(value = "pageSize", required = false, defaultValue = "100") Integer pageSize,
+            @RequestParam(value = "searchName", required = false) String searchName) {
+
         int status = -1;
         Map<String, Object> map = new HashMap<String, Object>();
-
-
         map.put("searchName", searchName);
         map.put("pageSize", pageSize);
 
@@ -494,7 +502,6 @@ public class LibraryController extends BaseController {
     /***
      * @UpdateTime 2019-8-30 12:53:54
      * @param id 需要公开的标准库 id
-     * @param redirectAttributes
      * @return
      */
     @RequestMapping(value = "/setPublic")

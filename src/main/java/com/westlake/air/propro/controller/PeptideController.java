@@ -48,7 +48,7 @@ public class PeptideController extends BaseController {
             @RequestParam(value = "sequence", required = false) String sequence,
             @RequestParam(value = "currentPage", required = false, defaultValue = "1") Integer currentPage,
             @RequestParam(value = "uniqueFilter", required = false, defaultValue = "All") String uniqueFilter,
-            @RequestParam(value = "pageSize", required = false, defaultValue = "500") Integer pageSize) {
+            @RequestParam(value = "pageSize", required = false, defaultValue = "1000") Integer pageSize) {
 
         Map<String, Object> map = new HashMap<String, Object>();
         // 状态标记
@@ -62,7 +62,7 @@ public class PeptideController extends BaseController {
             long startTime = System.currentTimeMillis();
             LibraryDO temp = libraryService.getById(libraryId);
             PermissionUtil.check(temp);
-            //
+            // 把库的信息也发送回去
             data.put("libraryInfo", temp);
             data.put("proteinName", proteinName);
             data.put("peptideRef", peptideRef);

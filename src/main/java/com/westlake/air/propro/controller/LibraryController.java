@@ -4,8 +4,6 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.westlake.air.propro.algorithm.parser.LibraryTsvParser;
 import com.westlake.air.propro.algorithm.parser.TraMLParser;
-import com.westlake.air.propro.constants.Constants;
-import com.westlake.air.propro.constants.SuccessMsg;
 import com.westlake.air.propro.constants.enums.ResultCode;
 import com.westlake.air.propro.constants.enums.TaskTemplate;
 import com.westlake.air.propro.domain.ResultDO;
@@ -493,26 +491,38 @@ public class LibraryController extends BaseController {
         return json.toString();
     }
 
-    @RequestMapping(value = "/setPublic/{id}")
-    String setPublic(@PathVariable("id") String id,
-                     RedirectAttributes redirectAttributes) {
-        LibraryDO library = libraryService.getById(id);
-        if (library == null) {
-            redirectAttributes.addFlashAttribute(ERROR_MSG, ResultCode.LIBRARY_NOT_EXISTED.getMessage());
-            return "redirect:/library/list";
-        }
+    /***
+     * @UpdateTime 2019-8-30 12:53:54
+     * @param id 需要公开的标准库 id
+     * @param redirectAttributes
+     * @return
+     */
+    @RequestMapping(value = "/setPublic")
+    String setPublic(
+            @RequestParam("id") String id
+    ) {
 
-        PermissionUtil.check(library);
+        Map<String, Object> map = new HashMap<String, Object>();
+        // 状态标记
+        int status = -1;
+        do {
+            LibraryDO library = libraryService.getById(id);
+            if (library == null) {
+                //  库不存在
+                status = -3;
+            }
+            PermissionUtil.check(library);
+            library.setDoPublic(true);
+            libraryService.update(library);
 
-        library.setDoPublic(true);
-        libraryService.update(library);
+            status = 0;
+        } while (false);
 
-        redirectAttributes.addFlashAttribute(SUCCESS_MSG, SuccessMsg.SET_PUBLIC_SUCCESS);
-        if (library.getType().equals(Constants.LIBRARY_TYPE_STANDARD)) {
-            return "redirect:/library/list";
-        } else {
-            return "redirect:/library/listIrt";
-        }
+        // 返回状态结果
+        map.put("status", status);
+        // 返回数据
+        JSONObject json = new JSONObject(map);
+        return json.toString();
     }
 
     @RequestMapping(value = "/search")

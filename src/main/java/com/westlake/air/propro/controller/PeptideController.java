@@ -165,6 +165,7 @@ public class PeptideController extends BaseController {
     }
 
     /***
+     * @UpdateTime 2019-9-1 00:56:58
      * @Archive 肽段列表里的蛋白质详情
      * @param id 指定的id
      * @return
@@ -174,6 +175,7 @@ public class PeptideController extends BaseController {
             @RequestParam("id") String id) {
 
         Map<String, Object> map = new HashMap<String, Object>();
+        Map<String, Object> data = new HashMap<String, Object>();
         // 状态标记
         int status = -1;
         do {
@@ -181,9 +183,9 @@ public class PeptideController extends BaseController {
             if (resultDO.isSuccess()) {
                 LibraryDO temp = libraryService.getById(resultDO.getModel().getLibraryId());
                 PermissionUtil.check(temp);
-
+                data.put("libraryInfo", temp);
                 // 查询成功
-                map.put("peptide", resultDO.getModel());
+                data.put("peptide", resultDO.getModel());
                 status = 0;
                 break;
             } else {
@@ -194,6 +196,8 @@ public class PeptideController extends BaseController {
         } while (false);
 
         map.put("status", status);
+        // 将数据包装一次
+        map.put("data", data);
 
         // 返回数据
         return JSON.toJSONString(map, SerializerFeature.WriteNonStringKeyAsString);

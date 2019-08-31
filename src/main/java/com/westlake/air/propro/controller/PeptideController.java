@@ -1,7 +1,6 @@
 package com.westlake.air.propro.controller;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.westlake.air.propro.algorithm.decoy.generator.ShuffleGenerator;
 import com.westlake.air.propro.algorithm.formula.FormulaCalculator;
@@ -15,8 +14,10 @@ import com.westlake.air.propro.service.PeptideService;
 import com.westlake.air.propro.utils.PermissionUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -40,6 +41,17 @@ public class PeptideController extends BaseController {
     @Autowired
     ShuffleGenerator shuffleGenerator;
 
+    /***
+     * @Archive 查询指定id的肽段列表
+     * @param libraryId 查询的id
+     * @param proteinName
+     * @param peptideRef
+     * @param sequence
+     * @param currentPage 当前页面
+     * @param uniqueFilter
+     * @param pageSize 页大小
+     * @return
+     */
     @PostMapping(value = "/list")
     String peptideList(
             @RequestParam(value = "libraryId") String libraryId,
@@ -54,7 +66,6 @@ public class PeptideController extends BaseController {
         // 状态标记
         int status = -1;
 
-        JSONObject json = new JSONObject(map);
         Map<String, Object> data = new HashMap<String, Object>();
 
         do {
@@ -153,20 +164,40 @@ public class PeptideController extends BaseController {
         return "peptide/protein";
     }
 
-    @PostMapping(value = "/detail/{id}")
-    String detail(Model model, @PathVariable("id") String id, RedirectAttributes redirectAttributes) {
-        ResultDO<PeptideDO> resultDO = peptideService.getById(id);
-        if (resultDO.isSuccess()) {
+    /***
+     * @Archive 肽段列表里的蛋白质详情
+     * @param id 指定的id
+     * @return
+     */
+    @PostMapping(value = "/detail")
+    String detail(
+            @RequestParam("id") String id) {
 
-            LibraryDO temp = libraryService.getById(resultDO.getModel().getLibraryId());
-            PermissionUtil.check(temp);
+        Map<String, Object> map = new HashMap<String, Object>();
+        // 状态标记
+        int status = -1;
+        do {
+            ResultDO<PeptideDO> resultDO = peptideService.getById(id);
+            if (resultDO.isSuccess()) {
+                LibraryDO temp = libraryService.getById(resultDO.getModel().getLibraryId());
+                PermissionUtil.check(temp);
 
-            model.addAttribute("peptide", resultDO.getModel());
-            return "peptide/detail";
-        } else {
-            redirectAttributes.addFlashAttribute(ERROR_MSG, resultDO.getMsgInfo());
-            return "redirect:/peptide/list";
-        }
+                // 查询成功
+                map.put("peptide", resultDO.getModel());
+                status = 0;
+                break;
+            } else {
+                // 查询失败
+                status = -2;
+                break;
+            }
+        } while (false);
+
+        map.put("status", status);
+
+        // 返回数据
+        return JSON.toJSONString(map, SerializerFeature.WriteNonStringKeyAsString);
+
     }
 
     @PostMapping(value = "/calculator")

@@ -38,6 +38,130 @@
 - 标准库设置为public和private `2019-8-30 14:14:21`
 - 标准库实现自定义排序，默认排序 `2019-8-30 14:14:06`
 
+```java
+package com.westlake.air.propro.controller;
+
+ /***
+     * @Archive 查询指定id的肽段列表
+     * @param libraryId 查询的id
+     * @param proteinName
+     * @param peptideRef
+     * @param sequence
+     * @param currentPage 当前页面
+     * @param uniqueFilter
+     * @param pageSize 页大小
+     * @return
+     */
+    @PostMapping(value = "/list")
+    String peptideList(
+            @RequestParam(value = "libraryId") String libraryId,
+            @RequestParam(value = "proteinName", required = false) String proteinName,
+            @RequestParam(value = "peptideRef", required = false) String peptideRef,
+            @RequestParam(value = "sequence", required = false) String sequence,
+            @RequestParam(value = "currentPage", required = false, defaultValue = "1") Integer currentPage,
+            @RequestParam(value = "uniqueFilter", required = false, defaultValue = "All") String uniqueFilter,
+            @RequestParam(value = "pageSize", required = false, defaultValue = "1000") Integer pageSize) {
+
+        Map<String, Object> map = new HashMap<String, Object>();
+        // 状态标记
+        int status = -1;
+
+        Map<String, Object> data = new HashMap<String, Object>();
+
+        do {
+
+            long startTime = System.currentTimeMillis();
+            LibraryDO temp = libraryService.getById(libraryId);
+            PermissionUtil.check(temp);
+            // 把库的信息也发送回去
+            data.put("libraryInfo", temp);
+            data.put("proteinName", proteinName);
+            data.put("peptideRef", peptideRef);
+            data.put("pageSize", pageSize);
+            data.put("uniqueFilter", uniqueFilter);
+            data.put("libraries", getLibraryList(null, true));
+            data.put("sequence", sequence);
+
+            PeptideQuery query = new PeptideQuery();
+
+            if (libraryId != null && !libraryId.isEmpty()) {
+                query.setLibraryId(libraryId);
+            }
+            if (peptideRef != null && !peptideRef.isEmpty()) {
+                query.setPeptideRef(peptideRef);
+            }
+
+            if (proteinName != null && !proteinName.isEmpty()) {
+                query.setProteinName(proteinName);
+            }
+
+            if (sequence != null && !sequence.isEmpty()) {
+                query.setSequence(sequence);
+            }
+
+            if (!uniqueFilter.equals("All")) {
+                if (uniqueFilter.equals("Yes")) {
+                    query.setIsUnique(true);
+                } else if (uniqueFilter.equals("No")) {
+                    query.setIsUnique(false);
+                }
+            }
+
+            query.setPageSize(pageSize);
+            query.setPageNo(currentPage);
+            ResultDO<List<PeptideDO>> resultDO = peptideService.getList(query);
+
+            data.put("peptideList", resultDO.getModel());
+            data.put("totalPage", resultDO.getTotalPage());
+            data.put("currentPage", currentPage);
+            // 搜索用时
+            data.put("searchTime", System.currentTimeMillis() - startTime);
+            // 搜索结果共计
+            data.put("searchNumbers", resultDO.getTotalNum());
+            data.put("pageSize", pageSize);
+            status = 0;
+        } while (false);
+
+        map.put("status", status);
+        // 将数据再打包一次 简化前端数据处理逻辑
+        map.put("data", data);
+
+        // 返回数据
+        return JSON.toJSONString(map, SerializerFeature.WriteNonStringKeyAsString);
+
+    }
+
+```
+
+类似有 ` PermissionUtil.check(temp);` 的函数并没有处理报错的情况，而是继续向下执行或者直接终止,这里的异常要重新定义并且捕获
+
+```java
+
+    public static void check(LibraryDO library) throws UnauthorizedAccessException {
+        UserDO user = getCurrentUser();
+        if(library == null || user == null){
+            throw new UnauthorizedAccessException("redirect:/library/list");
+        }
+
+        if(library.isDoPublic()){
+            return;
+        }
+
+        if(user.getRoles().contains(Roles.ROLE_ADMIN)){
+            return;
+        }
+
+        if (!library.getCreator().equals(user.getUsername())) {
+            if(library.getType().equals(Constants.LIBRARY_TYPE_IRT)){
+                throw new UnauthorizedAccessException("redirect:/library/listIrt");
+            }
+            throw new UnauthorizedAccessException("redirect:/library/list");
+        } else {
+            return;
+        }
+    }
+```
+
 
 
 

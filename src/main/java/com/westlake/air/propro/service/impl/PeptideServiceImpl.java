@@ -37,9 +37,8 @@ import java.util.regex.Pattern;
 @Service("peptideService")
 public class PeptideServiceImpl implements PeptideService {
 
-    public final Logger logger = LoggerFactory.getLogger(PeptideServiceImpl.class);
-
     public static Pattern pattern = Pattern.compile("/\\(.*\\)/");
+    public final Logger logger = LoggerFactory.getLogger(PeptideServiceImpl.class);
     @Autowired
     PeptideDAO peptideDAO;
     @Autowired
@@ -207,7 +206,10 @@ public class PeptideServiceImpl implements PeptideService {
         List<Protein> proteins = peptideDAO.getProteinList(query);
         ResultDO<List<Protein>> resultDO = new ResultDO<>(true);
         resultDO.setModel(proteins);
-        resultDO.setTotalNum(libraryDO.getProteinCount());
+        System.out.println("getProteinCount" + libraryDO.getProteinCount());
+        // 防止出现踩空 tangtao
+        long totalNum = null == libraryDO.getProteinCount() ? 0 : libraryDO.getProteinCount();
+        resultDO.setTotalNum(totalNum);
         resultDO.setPageSize(query.getPageSize());
         return resultDO;
     }

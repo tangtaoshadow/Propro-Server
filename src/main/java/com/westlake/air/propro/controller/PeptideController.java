@@ -73,6 +73,7 @@ public class PeptideController extends BaseController {
             long startTime = System.currentTimeMillis();
             LibraryDO temp = libraryService.getById(libraryId);
             PermissionUtil.check(temp);
+
             // 把库的信息也发送回去
             data.put("libraryInfo", temp);
             data.put("proteinName", proteinName);
@@ -87,6 +88,7 @@ public class PeptideController extends BaseController {
             if (libraryId != null && !libraryId.isEmpty()) {
                 query.setLibraryId(libraryId);
             }
+
             if (peptideRef != null && !peptideRef.isEmpty()) {
                 query.setPeptideRef(peptideRef);
             }
@@ -143,7 +145,7 @@ public class PeptideController extends BaseController {
     String protein(
             @RequestParam(value = "libraryId", required = true) String libraryId,
             @RequestParam(value = "currentPage", required = false, defaultValue = "1") Integer currentPage,
-            @RequestParam(value = "pageSize", required = false, defaultValue = "30") Integer pageSize) {
+            @RequestParam(value = "pageSize", required = false, defaultValue = "1000") Integer pageSize) {
 
         Map<String, Object> map = new HashMap<String, Object>();
         // 状态标记
@@ -154,29 +156,51 @@ public class PeptideController extends BaseController {
 
         long startTime = System.currentTimeMillis();
 
-        LibraryDO temp = libraryService.getById(libraryId);
-        PermissionUtil.check(temp);
 
-        data.put("libraryId", libraryId);
-        data.put("pageSize", pageSize);
+        do {
 
-        PeptideQuery query = new PeptideQuery();
 
-        if (libraryId != null && !libraryId.isEmpty()) {
-            query.setLibraryId(libraryId);
-        }
+            LibraryDO temp = libraryService.getById(libraryId);
+            PermissionUtil.check(temp);
 
-        query.setPageSize(pageSize);
-        query.setPageNo(currentPage);
-        ResultDO<List<Protein>> resultDO = peptideService.getProteinList(query);
+            // 写入库的详情
+            data.put("libraryInfo", temp);
+            data.put("libraryId", libraryId);
+            // 把所有库名称发送给前端
+            data.put("libraries", getLibraryList(null, true));
 
-        data.put("proteins", resultDO.getModel());
-        data.put("totalPage", resultDO.getTotalPage());
-        data.put("currentPage", currentPage);
-        StringBuilder builder = new StringBuilder();
-        builder.append("本次搜索耗时:").append(System.currentTimeMillis() - startTime).append("毫秒;包含搜索结果总计:")
-                .append(resultDO.getTotalNum()).append("条");
-        data.put("searchResult", builder.toString());
+            // 分页 大小也写入
+            data.put("pageSize", pageSize);
+
+            PeptideQuery query = new PeptideQuery();
+
+            if (libraryId != null && !libraryId.isEmpty()) {
+                query.setLibraryId(libraryId);
+            } else {
+                //  踩空了 直接退出
+                status = -3;
+                break;
+            }
+
+            query.setPageSize(pageSize);
+
+            query.setPageNo(currentPage);
+
+            ResultDO<List<Protein>> resultDO = peptideService.getProteinList(query);
+
+            data.put("proteins", resultDO.getModel());
+            data.put("totalPage", resultDO.getTotalPage());
+            data.put("currentPage", currentPage);
+
+            // 搜索用时
+            data.put("searchTime", System.currentTimeMillis() - startTime);
+            // 搜索结果共计
+            data.put("searchNumbers", resultDO.getTotalNum());
+            // 所有操作完成 状态标记
+            status = 0;
+
+
+        } while (false);
 
         map.put("status", status);
 

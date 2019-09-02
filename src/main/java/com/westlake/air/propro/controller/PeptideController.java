@@ -131,18 +131,34 @@ public class PeptideController extends BaseController {
 
     }
 
+    /***
+     * @UpdateTime 2019-9-2 11:18:26
+     * @Archive 查询蛋白列表
+     * @param libraryId 蛋白列表的id
+     * @param currentPage
+     * @param pageSize
+     * @return
+     */
     @PostMapping(value = "/protein")
-    String protein(Model model,
-                   @RequestParam(value = "libraryId", required = true) String libraryId,
-                   @RequestParam(value = "currentPage", required = false, defaultValue = "1") Integer currentPage,
-                   @RequestParam(value = "pageSize", required = false, defaultValue = "30") Integer pageSize) {
+    String protein(
+            @RequestParam(value = "libraryId", required = true) String libraryId,
+            @RequestParam(value = "currentPage", required = false, defaultValue = "1") Integer currentPage,
+            @RequestParam(value = "pageSize", required = false, defaultValue = "30") Integer pageSize) {
+
+        Map<String, Object> map = new HashMap<String, Object>();
+        // 状态标记
+        int status = -1;
+
+        Map<String, Object> data = new HashMap<String, Object>();
+
+
         long startTime = System.currentTimeMillis();
 
         LibraryDO temp = libraryService.getById(libraryId);
         PermissionUtil.check(temp);
 
-        model.addAttribute("libraryId", libraryId);
-        model.addAttribute("pageSize", pageSize);
+        data.put("libraryId", libraryId);
+        data.put("pageSize", pageSize);
 
         PeptideQuery query = new PeptideQuery();
 
@@ -154,14 +170,21 @@ public class PeptideController extends BaseController {
         query.setPageNo(currentPage);
         ResultDO<List<Protein>> resultDO = peptideService.getProteinList(query);
 
-        model.addAttribute("proteins", resultDO.getModel());
-        model.addAttribute("totalPage", resultDO.getTotalPage());
-        model.addAttribute("currentPage", currentPage);
+        data.put("proteins", resultDO.getModel());
+        data.put("totalPage", resultDO.getTotalPage());
+        data.put("currentPage", currentPage);
         StringBuilder builder = new StringBuilder();
         builder.append("本次搜索耗时:").append(System.currentTimeMillis() - startTime).append("毫秒;包含搜索结果总计:")
                 .append(resultDO.getTotalNum()).append("条");
-        model.addAttribute("searchResult", builder.toString());
-        return "peptide/protein";
+        data.put("searchResult", builder.toString());
+
+        map.put("status", status);
+
+        // 将数据再打包一次 简化前端数据处理逻辑
+        map.put("data", data);
+
+        // 返回数据
+        return JSON.toJSONString(map, SerializerFeature.WriteNonStringKeyAsString);
     }
 
     /***

@@ -37,6 +37,7 @@
 
 - 标准库设置为public和private `2019-8-30 14:14:21`
 - 标准库实现自定义排序，默认排序 `2019-8-30 14:14:06`
+-  ` PermissionUtil.check(temp);` 异常处理
 
 ```java
 package com.westlake.air.propro.controller;

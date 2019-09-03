@@ -1,7 +1,9 @@
 package com.westlake.air.propro.controller;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.westlake.air.propro.algorithm.parser.LibraryTsvParser;
 import com.westlake.air.propro.algorithm.parser.TraMLParser;
 import com.westlake.air.propro.constants.enums.ResultCode;
@@ -32,6 +34,7 @@ import java.util.Map;
 /**
  * Created by James Lu MiaoShan
  * Time: 2018-05-31 09:53
+ * UpdateTime：2019-9-3 21:50:33
  */
 @RestController
 @RequestMapping("library")
@@ -94,13 +97,29 @@ public class LibraryController extends BaseController {
     }
 
 
-    @RequestMapping(value = "/listIrt", method = RequestMethod.POST)
-    String listIrt(Model model,
-                   @RequestParam(value = "currentPage", required = false, defaultValue = "1") Integer currentPage,
-                   @RequestParam(value = "pageSize", required = false, defaultValue = "100") Integer pageSize,
-                   @RequestParam(value = "searchName", required = false) String searchName) {
-        model.addAttribute("searchName", searchName);
-        model.addAttribute("pageSize", pageSize);
+    /***
+     * @UpdateTime 2019-9-3 21:59:07
+     * @param currentPage
+     * @param pageSize
+     * @param searchName
+     * @Archive 查询 irt 库
+     * @return
+     */
+    @PostMapping(value = "/listIrt")
+    String listIrt(
+            @RequestParam(value = "currentPage", required = false, defaultValue = "1") Integer currentPage,
+            @RequestParam(value = "pageSize", required = false, defaultValue = "1000") Integer pageSize,
+            @RequestParam(value = "searchName", required = false) String searchName) {
+
+
+        // 执行状态
+        int status = -1;
+        Map<String, Object> map = new HashMap<String, Object>();
+        // 数据打包
+        Map<String, Object> data = new HashMap<String, Object>();
+
+        data.put("searchName", searchName);
+        data.put("pageSize", pageSize);
 
         LibraryQuery query = new LibraryQuery();
         if (searchName != null && !searchName.isEmpty()) {
@@ -118,10 +137,17 @@ public class LibraryController extends BaseController {
         query.setType(1);
         ResultDO<List<LibraryDO>> resultDO = libraryService.getList(query);
 
-        model.addAttribute("libraryList", resultDO.getModel());
-        model.addAttribute("totalPage", resultDO.getTotalPage());
-        model.addAttribute("currentPage", currentPage);
-        return "library/listIrt";
+        data.put("libraryList", resultDO.getModel());
+        data.put("totalPage", resultDO.getTotalPage());
+        data.put("currentPage", currentPage);
+
+        status = 0;
+        map.put("status", status);
+        map.put("data", data);
+
+        // 返回数据
+        return JSON.toJSONString(map, SerializerFeature.WriteNonStringKeyAsString);
+
     }
 
 
@@ -134,7 +160,7 @@ public class LibraryController extends BaseController {
      * @param searchName
      * @return
      */
-    @RequestMapping(value = "/listPublic", method = RequestMethod.POST)
+    @PostMapping(value = "/listPublic")
     String listPublic(@RequestParam(value = "currentPage", required = false, defaultValue = "1") Integer currentPage,
                       @RequestParam(value = "pageSize", required = false, defaultValue = "100") Integer pageSize,
                       @RequestParam(value = "searchName", required = false) String searchName) {
@@ -183,7 +209,7 @@ public class LibraryController extends BaseController {
         return json.toString();
     }
 
-    @RequestMapping(value = "/listPublicIrt")
+    @PostMapping(value = "/listPublicIrt")
     String listPublicIrt(Model model,
                          @RequestParam(value = "currentPage", required = false, defaultValue = "1") Integer currentPage,
                          @RequestParam(value = "pageSize", required = false, defaultValue = "100") Integer pageSize,
@@ -206,7 +232,7 @@ public class LibraryController extends BaseController {
         return "library/listPublicIrt";
     }
 
-    @RequestMapping(value = "/create")
+    @PostMapping(value = "/create")
     String create(Model model) {
         return "library/create";
     }
@@ -220,7 +246,7 @@ public class LibraryController extends BaseController {
      * @param prmFile
      * @return 0 正在执行插入 返回 taskId  -3 文件不存在 -4 插入失败
      */
-    @RequestMapping(value = "/add", method = RequestMethod.POST)
+    @PostMapping(value = "/add")
     String add(
             @RequestParam(value = "name") String name,
             @RequestParam(value = "libType") String libType,
@@ -282,7 +308,7 @@ public class LibraryController extends BaseController {
      * @param id            标准库的id
      * @return 0 succes
      */
-    @RequestMapping(value = "/aggregate")
+    @PostMapping(value = "/aggregate")
     String aggregate(@RequestParam(value = "id") String id) {
 
         int status = -1;
@@ -306,7 +332,7 @@ public class LibraryController extends BaseController {
     }
 
 
-    @RequestMapping(value = "/edit/{id}")
+    @PostMapping(value = "/edit/{id}")
     String edit(Model model, @PathVariable("id") String id,
                 RedirectAttributes redirectAttributes) {
 
@@ -322,7 +348,7 @@ public class LibraryController extends BaseController {
     }
 
 
-    @RequestMapping(value = "/detail", method = RequestMethod.POST)
+    @PostMapping(value = "/detail")
     public String libraryListIdDetail(@RequestParam(value = "id") String id
     ) {
 
@@ -370,7 +396,7 @@ public class LibraryController extends BaseController {
     }
 
 
-    @RequestMapping(value = "/update", method = RequestMethod.POST)
+    @PostMapping(value = "/update")
     public String update(
             @RequestParam(value = "id", required = true) String id,
             @RequestParam(value = "name") String name,
@@ -465,7 +491,7 @@ public class LibraryController extends BaseController {
     }
 
 
-    @RequestMapping(value = "/delete")
+    @PostMapping(value = "/delete")
     String delete(@RequestParam("id") String id) {
 
         Map<String, Object> map = new HashMap<String, Object>();
@@ -504,7 +530,7 @@ public class LibraryController extends BaseController {
      * @param id 需要公开的标准库 id
      * @return
      */
-    @RequestMapping(value = "/setPublic")
+    @PostMapping(value = "/setPublic")
     String setPublic(
             @RequestParam("id") String id
     ) {
@@ -532,8 +558,7 @@ public class LibraryController extends BaseController {
         return json.toString();
     }
 
-    @RequestMapping(value = "/search")
-    @ResponseBody
+    @PostMapping(value = "/search")
     ResultDO<JSONObject> search(Model model,
                                 @RequestParam(value = "fragmentSequence", required = false) String fragmentSequence,
                                 @RequestParam(value = "precursorMz", required = false) Float precursorMz,
@@ -581,8 +606,7 @@ public class LibraryController extends BaseController {
         return resultDO;
     }
 
-    @RequestMapping(value = "overview/{id}")
-    @ResponseBody
+    @PostMapping(value = "overview/{id}")
     String overview(Model model, @PathVariable("id") String id) {
         LibraryDO library = libraryService.getById(id);
         PermissionUtil.check(library);

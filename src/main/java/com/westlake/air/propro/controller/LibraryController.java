@@ -52,8 +52,8 @@ public class LibraryController extends BaseController {
     // 标准库
 
     /***
-     * @UpdateTime 2019-8-30 14:47:36
-     * @Archive 查询当前标准库列表
+     * @UpdateTime 2019-9-4 21:38:14
+     * @Archive 查询当前标准库列表(非公开)
      * @param currentPage 默认 1
      * @param pageSize 默认 100
      * @param searchName
@@ -67,8 +67,10 @@ public class LibraryController extends BaseController {
 
         int status = -1;
         Map<String, Object> map = new HashMap<String, Object>();
-        map.put("searchName", searchName);
-        map.put("pageSize", pageSize);
+        // 数据打包
+        Map<String, Object> data = new HashMap<String, Object>();
+        data.put("searchName", searchName);
+        data.put("pageSize", pageSize);
 
         LibraryQuery query = new LibraryQuery();
         if (searchName != null && !searchName.isEmpty()) {
@@ -84,16 +86,18 @@ public class LibraryController extends BaseController {
         query.setType(0);
         ResultDO<List<LibraryDO>> resultDO = libraryService.getList(query);
 
-        map.put("libraryList", resultDO.getModel());
-        map.put("totalPage", resultDO.getTotalPage());
-        map.put("currentPage", currentPage);
+        data.put("libraryList", resultDO.getModel());
+        data.put("totalPage", resultDO.getTotalPage());
+        data.put("currentPage", currentPage);
         status = 0;
-        map.put("status", status);
+        data.put("status", status);
+
+        map.put("data", data);
 
         // 返回数据
-        JSONObject json = new JSONObject(map);
 
-        return json.toString();
+        return JSON.toJSONString(map, SerializerFeature.WriteNonStringKeyAsString);
+
     }
 
 
@@ -115,6 +119,7 @@ public class LibraryController extends BaseController {
         // 执行状态
         int status = -1;
         Map<String, Object> map = new HashMap<String, Object>();
+
         // 数据打包
         Map<String, Object> data = new HashMap<String, Object>();
 
@@ -129,12 +134,15 @@ public class LibraryController extends BaseController {
         if (!isAdmin()) {
             query.setCreator(getCurrentUsername());
         }
+
         if (!isAdmin()) {
             query.setCreator(getCurrentUsername());
         }
+
         query.setPageSize(pageSize);
         query.setPageNo(currentPage);
         query.setType(1);
+
         ResultDO<List<LibraryDO>> resultDO = libraryService.getList(query);
 
         data.put("libraryList", resultDO.getModel());
@@ -354,6 +362,7 @@ public class LibraryController extends BaseController {
 
         // 返回状态
         Map<String, Object> map = new HashMap<String, Object>();
+        Map<String, Object> data = new HashMap<String, Object>();
 
         // 状态标记
         int status = -1;

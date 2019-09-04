@@ -90,7 +90,7 @@ public class LibraryController extends BaseController {
         data.put("totalPage", resultDO.getTotalPage());
         data.put("currentPage", currentPage);
         status = 0;
-        data.put("status", status);
+        map.put("status", status);
 
         map.put("data", data);
 
@@ -356,6 +356,11 @@ public class LibraryController extends BaseController {
     }
 
 
+    /***
+     * @Archive 查询指定库的id irt库 标准库共用
+     * @param id 查询库的id
+     * @return
+     */
     @PostMapping(value = "/detail")
     public String libraryListIdDetail(@RequestParam(value = "id") String id
     ) {
@@ -383,11 +388,11 @@ public class LibraryController extends BaseController {
 
                     Double[] range = peptideService.getRTRange(id);
                     if (range != null && range.length == 2) {
-                        map.put("minRt", range[0]);
-                        map.put("maxRt", range[1]);
+                        data.put("minRt", range[0]);
+                        data.put("maxRt", range[1]);
                     }
                 }
-                map.put("data", library);
+                data.put("libraryInfo", library);
                 status = 0;
             }
         } while (false);
@@ -395,13 +400,12 @@ public class LibraryController extends BaseController {
 
         // 返回状态结果
         map.put("status", status);
+        // 打包数据
+        map.put("data", data);
+
 
         // 返回数据
-        JSONObject json = new JSONObject(map);
-
-        System.out.println(json.toString());
-        return json.toString();
-
+        return JSON.toJSONString(map, SerializerFeature.WriteNonStringKeyAsString);
     }
 
 

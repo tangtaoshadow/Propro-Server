@@ -421,15 +421,13 @@ public class LibraryController extends BaseController {
             @RequestParam(value = "prmFile", required = false) MultipartFile prmFile
     ) {
 
-
         Map<String, Object> map = new HashMap<String, Object>();
+        Map<String, Object> data = new HashMap<String, Object>();
 
         // 状态标记
         int status = -1;
 
         do {
-
-
             LibraryDO library = libraryService.getById(id);
 
             if (library == null) {
@@ -438,10 +436,9 @@ public class LibraryController extends BaseController {
             }
             PermissionUtil.check(library);
 
+            // 只有有数据时才允许更新
             if (null != description && 0 < description.length()) {
-                // 只有有数据时才允许更新
                 library.setDescription(description);
-
             }
 
             // 注意 这里传入的是字符串
@@ -469,6 +466,7 @@ public class LibraryController extends BaseController {
             taskService.insert(taskDO);
 
             try {
+
                 InputStream libFileStream = libFile.getInputStream();
                 InputStream prmFileStream = null;
 
@@ -479,28 +477,31 @@ public class LibraryController extends BaseController {
                 libraryTask.saveLibraryTask(library, libFileStream, libFile.getOriginalFilename(), prmFileStream, taskDO);
 
             } catch (IOException e) {
+
                 // 更新过程出错
                 e.printStackTrace();
+
                 status = -5;
+
                 break;
             }
 
             // 更新成功
             status = 0;
             // 返回 taskId
-            map.put("taskId", taskDO.getId());
+            data.put("taskId", taskDO.getId());
 
 
         } while (false);
 
         // 返回状态结果
         map.put("status", status);
+        map.put("data", data);
 
         // 返回数据
         JSONObject json = new JSONObject(map);
 
         return json.toString();
-
     }
 
 

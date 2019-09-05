@@ -22,7 +22,7 @@ import static org.springframework.data.mongodb.core.query.Criteria.where;
  * Time: 2018-06-07 20:50
  */
 @Service
-public class PeptideDAO extends BaseDAO<PeptideDO, PeptideQuery>{
+public class PeptideDAO extends BaseDAO<PeptideDO, PeptideQuery> {
 
     public static String CollectionName = "peptide";
 
@@ -126,7 +126,12 @@ public class PeptideDAO extends BaseDAO<PeptideDO, PeptideQuery>{
         return a.getMappedResults();
     }
 
-    public void updateDecoyInfos(List<PeptideDO> peptideList){
+    public void updateDecoyInfos(List<PeptideDO> peptideList) {
+
+        // 存在的缺陷 tangtao 2019-9-5 13:45:21
+        // peptideList.size() 如果为0 就会
+        // java.lang.IllegalArgumentException: state should be: writes is not an empty list
+        System.out.println(peptideList.size());
         BulkOperations ops = mongoTemplate.bulkOps(BulkOperations.BulkMode.UNORDERED, PeptideDO.class);
         for (PeptideDO peptide : peptideList) {
 

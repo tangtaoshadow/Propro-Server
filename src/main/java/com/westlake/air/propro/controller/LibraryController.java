@@ -154,6 +154,7 @@ public class LibraryController extends BaseController {
         map.put("data", data);
 
         // 返回数据
+
         return JSON.toJSONString(map, SerializerFeature.WriteNonStringKeyAsString);
 
     }
@@ -311,9 +312,9 @@ public class LibraryController extends BaseController {
     }
 
     /***
-     * @Achieve 重新统计标准库的蛋白质和肽段数目
+     * @Achieve 重新统计irt 标准库的蛋白质和肽段数目
      * @UpdateTiem 2019-8-26 15:51:53
-     * @param id            标准库的id
+     * @param id  统计库的id
      * @return 0 succes
      */
     @PostMapping(value = "/aggregate")
@@ -333,10 +334,11 @@ public class LibraryController extends BaseController {
             libraryService.countAndUpdateForLibrary(library);
             status = 0;
         } while (false);
+        // 发送处理后的状态
         map.put("status", status);
         // 返回数据
-        JSONObject json = new JSONObject(map);
-        return json.toString();
+        return JSON.toJSONString(map, SerializerFeature.WriteNonStringKeyAsString);
+
     }
 
 
@@ -420,7 +422,6 @@ public class LibraryController extends BaseController {
     ) {
 
 
-        System.out.println(prmFile);
         Map<String, Object> map = new HashMap<String, Object>();
 
         // 状态标记
@@ -428,7 +429,6 @@ public class LibraryController extends BaseController {
 
         do {
 
-            System.out.println("2");
 
             LibraryDO library = libraryService.getById(id);
 
@@ -436,9 +436,13 @@ public class LibraryController extends BaseController {
                 status = -2;
                 break;
             }
-            System.out.println("3");
             PermissionUtil.check(library);
-            library.setDescription(description);
+
+            if (null != description && 0 < description.length()) {
+                // 只有有数据时才允许更新
+                library.setDescription(description);
+
+            }
 
             // 注意 这里传入的是字符串
             if ("library".equals(type)) {
@@ -447,6 +451,7 @@ public class LibraryController extends BaseController {
                 library.setType(1);
 
             }
+
             ResultDO updateResult = libraryService.update(library);
             if (updateResult.isFailed()) {
                 // 更新失败
@@ -454,7 +459,6 @@ public class LibraryController extends BaseController {
                 break;
             }
 
-            System.out.println("4");
             // 没有更新源文件
             if (libFile == null || libFile.getOriginalFilename() == null || libFile.getOriginalFilename().isEmpty()) {
                 status = -4;
@@ -463,17 +467,14 @@ public class LibraryController extends BaseController {
 
             TaskDO taskDO = new TaskDO(TaskTemplate.UPLOAD_LIBRARY_FILE, library.getName());
             taskService.insert(taskDO);
-            System.out.println("5");
 
             try {
                 InputStream libFileStream = libFile.getInputStream();
                 InputStream prmFileStream = null;
 
                 if (null != prmFile && !prmFile.isEmpty()) {
-                    System.out.println("null != prmFile && !prmFile.isEmpty()");
                     prmFileStream = prmFile.getInputStream();
                 }
-
 
                 libraryTask.saveLibraryTask(library, libFileStream, libFile.getOriginalFilename(), prmFileStream, taskDO);
 
@@ -483,7 +484,6 @@ public class LibraryController extends BaseController {
                 status = -5;
                 break;
             }
-            System.out.println("6");
 
             // 更新成功
             status = 0;

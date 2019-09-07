@@ -180,14 +180,6 @@ public class LibraryController extends BaseController {
         int status = -1;
 
         do {
-            // 验证 token
-            String username = getCurrentUsername();
-
-            if (username == null) {
-                // token 不正常
-                status = -2;
-                break;
-            }
 
             data.put("searchName", searchName);
             data.put("pageSize", pageSize);
@@ -220,27 +212,51 @@ public class LibraryController extends BaseController {
         return json.toString();
     }
 
+    /***
+     * @UpdateTime 2019-9-7 22:31:40
+     * @Archive 公共irt 库 列表
+     * @param currentPage
+     * @param pageSize
+     * @param searchName
+     * @return
+     */
     @PostMapping(value = "/listPublicIrt")
-    String listPublicIrt(Model model,
-                         @RequestParam(value = "currentPage", required = false, defaultValue = "1") Integer currentPage,
-                         @RequestParam(value = "pageSize", required = false, defaultValue = "100") Integer pageSize,
-                         @RequestParam(value = "searchName", required = false) String searchName) {
-        model.addAttribute("searchName", searchName);
-        model.addAttribute("pageSize", pageSize);
-        LibraryQuery query = new LibraryQuery();
-        if (searchName != null && !searchName.isEmpty()) {
-            query.setName(searchName);
-        }
-        query.setDoPublic(true);
-        query.setPageSize(pageSize);
-        query.setPageNo(currentPage);
-        query.setType(1);
-        ResultDO<List<LibraryDO>> resultDO = libraryService.getList(query);
+    String listPublicIrt(
+            @RequestParam(value = "currentPage", required = false, defaultValue = "1") Integer currentPage,
+            @RequestParam(value = "pageSize", required = false, defaultValue = "100") Integer pageSize,
+            @RequestParam(value = "searchName", required = false) String searchName) {
+        // 返回状态
+        Map<String, Object> map = new HashMap<String, Object>();
+        Map<String, Object> data = new HashMap<String, Object>();
+        // 检查参数 username
+        int status = -1;
 
-        model.addAttribute("libraryList", resultDO.getModel());
-        model.addAttribute("totalPage", resultDO.getTotalPage());
-        model.addAttribute("currentPage", currentPage);
-        return "library/listPublicIrt";
+        do {
+
+            data.put("searchName", searchName);
+            data.put("pageSize", pageSize);
+            LibraryQuery query = new LibraryQuery();
+            if (searchName != null && !searchName.isEmpty()) {
+                query.setName(searchName);
+            }
+            query.setDoPublic(true);
+            query.setPageSize(pageSize);
+            query.setPageNo(currentPage);
+            query.setType(1);
+            ResultDO<List<LibraryDO>> resultDO = libraryService.getList(query);
+
+            data.put("libraryList", resultDO.getModel());
+            data.put("totalPage", resultDO.getTotalPage());
+            data.put("currentPage", currentPage);
+
+            status = 0;
+        } while (false);
+
+        map.put("status", status);
+        map.put("data", data);
+
+        return JSON.toJSONString(map, SerializerFeature.WriteNonStringKeyAsString);
+
     }
 
     @PostMapping(value = "/create")

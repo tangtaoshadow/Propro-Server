@@ -162,8 +162,8 @@ public class LibraryController extends BaseController {
 
     /***
      *
-     * @UpdateTime 2019-8-27 18:40:32
-     * @Archive 公共标准库
+     * @UpdateTime 2019-9-7 22:23:24
+     * @Archive 公共标准库列表
      * @param currentPage
      * @param pageSize
      * @param searchName
@@ -175,6 +175,7 @@ public class LibraryController extends BaseController {
                       @RequestParam(value = "searchName", required = false) String searchName) {
         // 返回状态
         Map<String, Object> map = new HashMap<String, Object>();
+        Map<String, Object> data = new HashMap<String, Object>();
         // 检查参数 username
         int status = -1;
 
@@ -188,8 +189,8 @@ public class LibraryController extends BaseController {
                 break;
             }
 
-            map.put("searchName", searchName);
-            map.put("pageSize", pageSize);
+            data.put("searchName", searchName);
+            data.put("pageSize", pageSize);
             LibraryQuery query = new LibraryQuery();
             if (searchName != null && !searchName.isEmpty()) {
                 query.setName(searchName);
@@ -201,15 +202,16 @@ public class LibraryController extends BaseController {
             query.setType(0);
             ResultDO<List<LibraryDO>> resultDO = libraryService.getList(query);
 
-            map.put("libraryList", resultDO.getModel());
-            map.put("totalPage", resultDO.getTotalPage());
-            map.put("currentPage", currentPage);
+            data.put("libraryList", resultDO.getModel());
+            data.put("totalPage", resultDO.getTotalPage());
+            data.put("currentPage", currentPage);
 
             // 最后标记成功
             status = 0;
         } while (false);
 
         // 返回状态结果
+        map.put("data", data);
         map.put("status", status);
 
         // 返回数据

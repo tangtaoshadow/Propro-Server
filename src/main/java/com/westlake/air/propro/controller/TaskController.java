@@ -2,6 +2,7 @@ package com.westlake.air.propro.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.westlake.air.propro.constants.enums.TaskStatus;
 import com.westlake.air.propro.constants.enums.TaskTemplate;
 import com.westlake.air.propro.domain.ResultDO;
@@ -30,48 +31,83 @@ public class TaskController extends BaseController {
     @Autowired
     TaskService taskService;
 
-    @RequestMapping(value = "/list")
-    String list(Model model,
-                @RequestParam(value = "currentPage", required = false, defaultValue = "1") Integer currentPage,
-                @RequestParam(value = "pageSize", required = false, defaultValue = "50") Integer pageSize,
-                @RequestParam(value = "taskTemplate", required = false) String taskTemplate,
-                @RequestParam(value = "taskStatus", required = false) String taskStatus) {
 
-        if (taskTemplate != null) {
-            model.addAttribute("taskTemplate", taskTemplate);
-        }
-        model.addAttribute("taskTemplates", TaskTemplate.values());
+    /***
+     * @UpdateTime 2019-9-9 16:29:53
+     * @Archive 任务列表
+     * @param currentPage
+     * @param pageSize
+     * @param taskTemplate
+     * @param taskStatus
+     * @return
+     */
+    @PostMapping(value = "/list")
+    String taskList(
+            @RequestParam(value = "currentPage", required = false, defaultValue = "1") Integer currentPage,
+            @RequestParam(value = "pageSize", required = false, defaultValue = "50") Integer pageSize,
+            @RequestParam(value = "taskTemplate", required = false) String taskTemplate,
+            @RequestParam(value = "taskStatus", required = false) String taskStatus) {
 
-        if (taskStatus != null) {
-            model.addAttribute("taskStatus", taskStatus);
-        }
-        model.addAttribute("statusList", TaskStatus.values());
 
-        model.addAttribute("pageSize", pageSize);
-        TaskQuery query = new TaskQuery();
-        if (taskTemplate != null && !taskTemplate.isEmpty() && !taskTemplate.equals("All")) {
-            query.setTaskTemplate(taskTemplate);
-        }
-        if (taskStatus != null && !taskStatus.isEmpty() && !taskStatus.equals("All")) {
-            query.setStatus(taskStatus);
-        }
-        if (!isAdmin()) {
-            query.setCreator(getCurrentUsername());
-        }
-        query.setPageSize(pageSize);
-        query.setPageNo(currentPage);
-        query.setSortColumn("createDate");
-        query.setOrderBy(Sort.Direction.DESC);
-        ResultDO<List<TaskDO>> resultDO = taskService.getList(query);
+        // 执行状态
+        int status = -1;
+        Map<String, Object> map = new HashMap<String, Object>();
 
-        model.addAttribute("tasks", resultDO.getModel());
-        model.addAttribute("totalPage", resultDO.getTotalPage());
-        model.addAttribute("currentPage", currentPage);
-        return "task/list";
+        // 数据打包
+        Map<String, Object> data = new HashMap<String, Object>();
+
+        do {
+
+            if (taskTemplate != null) {
+                data.put("taskTemplate", taskTemplate);
+            }
+
+            data.put("taskTemplates", TaskTemplate.values());
+
+            if (taskStatus != null) {
+                data.put("taskStatus", taskStatus);
+            }
+
+            data.put("statusList", TaskStatus.values());
+
+            data.put("pageSize", pageSize);
+            TaskQuery query = new TaskQuery();
+            if (taskTemplate != null && !taskTemplate.isEmpty() && !taskTemplate.equals("All")) {
+                query.setTaskTemplate(taskTemplate);
+            }
+
+            if (taskStatus != null && !taskStatus.isEmpty() && !taskStatus.equals("All")) {
+                query.setStatus(taskStatus);
+            }
+
+            if (!isAdmin()) {
+                query.setCreator(getCurrentUsername());
+            }
+
+            query.setPageSize(pageSize);
+            query.setPageNo(currentPage);
+            query.setSortColumn("createDate");
+            query.setOrderBy(Sort.Direction.DESC);
+            ResultDO<List<TaskDO>> resultDO = taskService.getList(query);
+
+            data.put("tasks", resultDO.getModel());
+            data.put("totalPage", resultDO.getTotalPage());
+            data.put("currentPage", currentPage);
+
+        } while (false);
+
+
+        map.put("data", data);
+        map.put("status", status);
+
+        // 返回数据
+
+        return JSON.toJSONString(map, SerializerFeature.WriteNonStringKeyAsString);
+
     }
 
 
-    @RequestMapping(value = "/detail", method = RequestMethod.POST)
+    @PostMapping(value = "/detail", method = RequestMethod.POST)
     String detail(Model model, @RequestParam("taskId") String id) {
         int status = -1;
         Map<String, Object> map = new HashMap<String, Object>();
@@ -100,7 +136,7 @@ public class TaskController extends BaseController {
         return json.toString();
     }
 
-    @RequestMapping(value = "/getTaskInfo/{id}")
+    @PostMapping(value = "/getTaskInfo/{id}")
     String getTaskInfo(Model model, @PathVariable("id") String id) {
         ResultDO<TaskDO> resultDO = taskService.getById(id);
         if (resultDO.isSuccess() && resultDO.getModel() != null) {
@@ -111,7 +147,7 @@ public class TaskController extends BaseController {
         }
     }
 
-    @RequestMapping(value = "/delete/{id}")
+    @PostMapping(value = "/delete/{id}")
     String delete(Model model, @PathVariable("id") String id) {
         ResultDO<TaskDO> resultDO = taskService.getById(id);
         PermissionUtil.check(resultDO.getModel());

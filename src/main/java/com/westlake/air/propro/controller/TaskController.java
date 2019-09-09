@@ -107,7 +107,7 @@ public class TaskController extends BaseController {
     }
 
 
-    @PostMapping(value = "/detail", method = RequestMethod.POST)
+    @PostMapping(value = "/detail")
     String detail(Model model, @RequestParam("taskId") String id) {
         int status = -1;
         Map<String, Object> map = new HashMap<String, Object>();

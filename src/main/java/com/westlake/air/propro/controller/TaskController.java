@@ -44,7 +44,7 @@ public class TaskController extends BaseController {
     @PostMapping(value = "/list")
     String taskList(
             @RequestParam(value = "currentPage", required = false, defaultValue = "1") Integer currentPage,
-            @RequestParam(value = "pageSize", required = false, defaultValue = "50") Integer pageSize,
+            @RequestParam(value = "pageSize", required = false, defaultValue = "1000") Integer pageSize,
             @RequestParam(value = "taskTemplate", required = false) String taskTemplate,
             @RequestParam(value = "taskStatus", required = false) String taskStatus) {
 
@@ -94,6 +94,8 @@ public class TaskController extends BaseController {
             data.put("totalPage", resultDO.getTotalPage());
             data.put("currentPage", currentPage);
 
+            status = 0;
+
         } while (false);
 
 
@@ -108,7 +110,7 @@ public class TaskController extends BaseController {
 
 
     @PostMapping(value = "/detail")
-    String detail(Model model, @RequestParam("taskId") String id) {
+    String detail(@RequestParam("taskId") String id) {
         int status = -1;
         Map<String, Object> map = new HashMap<String, Object>();
 
@@ -136,6 +138,7 @@ public class TaskController extends BaseController {
         return json.toString();
     }
 
+
     @PostMapping(value = "/getTaskInfo/{id}")
     String getTaskInfo(Model model, @PathVariable("id") String id) {
         ResultDO<TaskDO> resultDO = taskService.getById(id);
@@ -147,11 +150,25 @@ public class TaskController extends BaseController {
         }
     }
 
-    @PostMapping(value = "/delete/{id}")
-    String delete(Model model, @PathVariable("id") String id) {
+
+    @PostMapping(value = "/delete")
+    String delete(@RequestParam("id") String id) {
+
+        // 执行状态
+        int status = -1;
+        Map<String, Object> map = new HashMap<String, Object>();
+
         ResultDO<TaskDO> resultDO = taskService.getById(id);
         PermissionUtil.check(resultDO.getModel());
+
         taskService.delete(id);
-        return "redirect:/task/list";
+
+        status = 0;
+        map.put("status", status);
+
+        return JSON.toJSONString(map, SerializerFeature.WriteNonStringKeyAsString);
+
     }
+
+
 }

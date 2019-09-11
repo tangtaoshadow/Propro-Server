@@ -1,7 +1,6 @@
 package com.westlake.air.propro.controller;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.westlake.air.propro.constants.enums.TaskStatus;
 import com.westlake.air.propro.constants.enums.TaskTemplate;
@@ -44,7 +43,7 @@ public class TaskController extends BaseController {
     @PostMapping(value = "/list")
     String taskList(
             @RequestParam(value = "currentPage", required = false, defaultValue = "1") Integer currentPage,
-            @RequestParam(value = "pageSize", required = false, defaultValue = "1000") Integer pageSize,
+            @RequestParam(value = "pageSize", required = false, defaultValue = "30") Integer pageSize,
             @RequestParam(value = "taskTemplate", required = false) String taskTemplate,
             @RequestParam(value = "taskStatus", required = false) String taskStatus) {
 
@@ -92,6 +91,10 @@ public class TaskController extends BaseController {
 
             data.put("tasks", resultDO.getModel());
             data.put("totalPage", resultDO.getTotalPage());
+            // 得出全部记录数
+            data.put("totalNumbers", resultDO.getTotalNum());
+
+
             data.put("currentPage", currentPage);
 
             status = 0;
@@ -109,8 +112,16 @@ public class TaskController extends BaseController {
     }
 
 
+    /***
+     * @UpdateTime 2019-9-10 09:20:56
+     * @Archive 查询任务id的详情
+     * @param id 任务id
+     * @return
+     */
     @PostMapping(value = "/detail")
     String detail(@RequestParam("taskId") String id) {
+
+        // 状态标记
         int status = -1;
         Map<String, Object> map = new HashMap<String, Object>();
 
@@ -130,12 +141,16 @@ public class TaskController extends BaseController {
                 status = -4;
                 break;
             }
+            // 成功状态
             status = 0;
         } while (false);
+
+        // 返回状态
         map.put("status", status);
+
         // 返回数据
-        JSONObject json = new JSONObject(map);
-        return json.toString();
+        return JSON.toJSONString(map, SerializerFeature.WriteNonStringKeyAsString);
+
     }
 
 

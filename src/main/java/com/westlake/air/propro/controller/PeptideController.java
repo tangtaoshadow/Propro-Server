@@ -60,6 +60,7 @@ public class PeptideController extends BaseController {
             @RequestParam(value = "sequence", required = false) String sequence,
             @RequestParam(value = "currentPage", required = false, defaultValue = "1") Integer currentPage,
             @RequestParam(value = "uniqueFilter", required = false, defaultValue = "All") String uniqueFilter,
+            // 这个pageSize =1000 对应前端设置的默认页大小 不能轻易改动 与前端保持一致 否则页面加载进度会出现逻辑紊乱
             @RequestParam(value = "pageSize", required = false, defaultValue = "1000") Integer pageSize) {
 
         Map<String, Object> map = new HashMap<String, Object>();
@@ -119,7 +120,7 @@ public class PeptideController extends BaseController {
             // 搜索用时
             data.put("searchTime", System.currentTimeMillis() - startTime);
             // 搜索结果共计
-            data.put("searchNumbers", resultDO.getTotalNum());
+            data.put("totalNumbers", resultDO.getTotalNum());
             data.put("pageSize", pageSize);
             status = 0;
         } while (false);
@@ -195,7 +196,7 @@ public class PeptideController extends BaseController {
             // 搜索用时
             data.put("searchTime", System.currentTimeMillis() - startTime);
             // 搜索结果共计
-            data.put("searchNumbers", resultDO.getTotalNum());
+            data.put("totalNumbers", resultDO.getTotalNum());
             // 所有操作完成 状态标记
             status = 0;
 

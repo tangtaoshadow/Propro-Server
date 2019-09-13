@@ -1,6 +1,8 @@
 package com.westlake.air.propro.controller;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.westlake.air.propro.algorithm.extract.Extractor;
 import com.westlake.air.propro.algorithm.feature.ChromatographicScorer;
 import com.westlake.air.propro.algorithm.feature.LibraryScorer;
@@ -9,7 +11,9 @@ import com.westlake.air.propro.algorithm.formula.FragmentFactory;
 import com.westlake.air.propro.algorithm.peak.FeatureExtractor;
 import com.westlake.air.propro.algorithm.peak.GaussFilter;
 import com.westlake.air.propro.algorithm.peak.SignalToNoiseEstimator;
-import com.westlake.air.propro.constants.*;
+import com.westlake.air.propro.constants.Constants;
+import com.westlake.air.propro.constants.ResidueType;
+import com.westlake.air.propro.constants.SuccessMsg;
 import com.westlake.air.propro.constants.enums.ResultCode;
 import com.westlake.air.propro.constants.enums.ScoreType;
 import com.westlake.air.propro.dao.ConfigDAO;
@@ -22,7 +26,9 @@ import com.westlake.air.propro.domain.params.ExtractParams;
 import com.westlake.air.propro.domain.query.AnalyseDataQuery;
 import com.westlake.air.propro.domain.query.AnalyseOverviewQuery;
 import com.westlake.air.propro.service.*;
-import com.westlake.air.propro.utils.*;
+import com.westlake.air.propro.utils.FeatureUtil;
+import com.westlake.air.propro.utils.PermissionUtil;
+import com.westlake.air.propro.utils.RepositoryUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -82,43 +88,63 @@ public class AnalyseController extends BaseController {
     @Autowired
     FormulaCalculator formulaCalculator;
 
-    @RequestMapping(value = "/overview/list")
-    String overviewList(Model model,
-                        @RequestParam(value = "expId", required = false) String expId,
-                        @RequestParam(value = "currentPage", required = false, defaultValue = "1") Integer currentPage,
-                        @RequestParam(value = "pageSize", required = false, defaultValue = "20") Integer pageSize) {
+    @RequestMapping(value = "/list")
+    String overviewList(
+            @RequestParam(value = "expId", required = false) String expId,
+            @RequestParam(value = "currentPage", required = false, defaultValue = "1") Integer currentPage,
+            @RequestParam(value = "pageSize", required = false, defaultValue = "500") Integer pageSize) {
 
-        model.addAttribute("pageSize", pageSize);
-        model.addAttribute("expId", expId);
-        ResultDO<ExperimentDO> expResult = null;
-        if (StringUtils.isNotEmpty(expId)) {
-            expResult = experimentService.getById(expId);
-            if (expResult.isFailed()) {
-                model.addAttribute(ERROR_MSG, ResultCode.EXPERIMENT_NOT_EXISTED);
-                return "analyse/overview/list";
+        Map<String, Object> map = new HashMap<String, Object>();
+        // 状态标记
+        int status = -1;
+
+        Map<String, Object> data = new HashMap<String, Object>();
+
+        do {
+
+            data.put("pageSize", pageSize);
+            data.put("expId", expId);
+            ResultDO<ExperimentDO> expResult = null;
+            if (StringUtils.isNotEmpty(expId)) {
+                expResult = experimentService.getById(expId);
+                if (expResult.isFailed()) {
+                    // 出错了
+                    data.put(ERROR_MSG, ResultCode.EXPERIMENT_NOT_EXISTED);
+                    status = -2;
+                    break;
+                }
+                PermissionUtil.check(expResult.getModel());
+                data.put("experiment", expResult.getModel());
             }
-            PermissionUtil.check(expResult.getModel());
-            model.addAttribute("experiment", expResult.getModel());
-        }
 
-        AnalyseOverviewQuery query = new AnalyseOverviewQuery();
-        query.setPageSize(pageSize);
-        query.setPageNo(currentPage);
-        if (StringUtils.isNotEmpty(expId)) {
-            query.setExpId(expId);
-        }
-        if (!isAdmin()) {
-            query.setOwnerName(getCurrentUsername());
-        }
-        query.setOrderBy(Sort.Direction.DESC);
-        query.setSortColumn("createDate");
-        ResultDO<List<AnalyseOverviewDO>> resultDO = analyseOverviewService.getList(query);
-        model.addAttribute("overviews", resultDO.getModel());
-        model.addAttribute("totalPage", resultDO.getTotalPage());
-        model.addAttribute("currentPage", currentPage);
-        model.addAttribute("scores", ScoreType.getUsedTypes());
+            AnalyseOverviewQuery query = new AnalyseOverviewQuery();
+            query.setPageSize(pageSize);
+            query.setPageNo(currentPage);
+            if (StringUtils.isNotEmpty(expId)) {
+                query.setExpId(expId);
+            }
+            if (!isAdmin()) {
+                query.setOwnerName(getCurrentUsername());
+            }
+            query.setOrderBy(Sort.Direction.DESC);
+            query.setSortColumn("createDate");
+            ResultDO<List<AnalyseOverviewDO>> resultDO = analyseOverviewService.getList(query);
+            data.put("overviews", resultDO.getModel());
+            data.put("totalPage", resultDO.getTotalPage());
+            data.put("currentPage", currentPage);
+            data.put("scores", ScoreType.getUsedTypes());
+            status = 0;
+        } while (false);
 
-        return "analyse/overview/list";
+
+        map.put("status", status);
+
+        // 将数据再打包一次 简化前端数据处理逻辑
+        map.put("data", data);
+
+        // 返回数据
+        return JSON.toJSONString(map, SerializerFeature.WriteNonStringKeyAsString);
+
     }
 
     @RequestMapping(value = "/overview/detail/{id}")

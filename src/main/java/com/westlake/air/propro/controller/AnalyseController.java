@@ -33,11 +33,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.servlet.http.HttpServletRequest;
@@ -51,7 +48,7 @@ import java.util.*;
  * Created by James Lu MiaoShan
  * Time: 2018-07-19 16:50
  */
-@Controller
+@RestController
 @RequestMapping("analyse")
 public class AnalyseController extends BaseController {
 
@@ -88,7 +85,16 @@ public class AnalyseController extends BaseController {
     @Autowired
     FormulaCalculator formulaCalculator;
 
-    @RequestMapping(value = "/list")
+    /***
+     * @UpdateTime 2019-9-13 15:40:18
+     * @UpdateAuthor tangtao
+     * @Archive 分析列表
+     * @param expId
+     * @param currentPage
+     * @param pageSize
+     * @return
+     */
+    @PostMapping(value = "/list")
     String overviewList(
             @RequestParam(value = "expId", required = false) String expId,
             @RequestParam(value = "currentPage", required = false, defaultValue = "1") Integer currentPage,
@@ -131,6 +137,7 @@ public class AnalyseController extends BaseController {
             ResultDO<List<AnalyseOverviewDO>> resultDO = analyseOverviewService.getList(query);
             data.put("overviews", resultDO.getModel());
             data.put("totalPage", resultDO.getTotalPage());
+            data.put("TotalNumbers", resultDO.getTotalNum());
             data.put("currentPage", currentPage);
             data.put("scores", ScoreType.getUsedTypes());
             status = 0;
@@ -147,7 +154,7 @@ public class AnalyseController extends BaseController {
 
     }
 
-    @RequestMapping(value = "/overview/detail/{id}")
+    @PostMapping(value = "/overview/detail/{id}")
     String overviewDetail(Model model, @PathVariable("id") String id, RedirectAttributes redirectAttributes) {
 
         ResultDO<AnalyseOverviewDO> resultDO = analyseOverviewService.getById(id);
@@ -175,7 +182,7 @@ public class AnalyseController extends BaseController {
         return "analyse/overview/detail";
     }
 
-    @RequestMapping(value = "/overview/export/{id}")
+    @PostMapping(value = "/overview/export/{id}")
     String overviewExport(Model model, @PathVariable("id") String id, RedirectAttributes redirectAttributes) throws IOException {
 
         ResultDO<AnalyseOverviewDO> overviewResult = analyseOverviewService.getById(id);
@@ -235,7 +242,7 @@ public class AnalyseController extends BaseController {
 
     }
 
-    @RequestMapping(value = "/overview/delete/{id}")
+    @PostMapping(value = "/overview/delete/{id}")
     String overviewDelete(Model model, @PathVariable("id") String id, RedirectAttributes redirectAttributes) {
 
         ResultDO<AnalyseOverviewDO> overviewResult = analyseOverviewService.getById(id);
@@ -246,12 +253,12 @@ public class AnalyseController extends BaseController {
         return "redirect:/analyse/overview/list?expId=" + expId;
     }
 
-    @RequestMapping(value = "/overview/select")
+    @PostMapping(value = "/overview/select")
     String overviewSelect(Model model, RedirectAttributes redirectAttributes) {
         return "analyse/overview/select";
     }
 
-    @RequestMapping(value = "/overview/comparison")
+    @PostMapping(value = "/overview/comparison")
     String overviewComparison(Model model,
                               @RequestParam(value = "overviewIdA", required = false) String overviewIdA,
                               @RequestParam(value = "overviewIdB", required = false) String overviewIdB,
@@ -300,7 +307,7 @@ public class AnalyseController extends BaseController {
         return "analyse/overview/comparison";
     }
 
-    @RequestMapping(value = "/data/list")
+    @PostMapping(value = "/data/list")
     String dataList(Model model,
                     @RequestParam(value = "overviewId", required = true) String overviewId,
                     @RequestParam(value = "peptideRef", required = false) String peptideRef,
@@ -335,7 +342,7 @@ public class AnalyseController extends BaseController {
         return "analyse/data/list";
     }
 
-    @RequestMapping(value = "/clinic")
+    @PostMapping(value = "/clinic")
     String clinic(Model model,
                   @RequestParam(value = "dataId", required = false) String dataId,
                   @RequestParam(value = "peptideRef", required = false) String peptideRef,

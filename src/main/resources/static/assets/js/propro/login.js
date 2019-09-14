@@ -141,7 +141,7 @@ var SnippetLogin = function() {
                     signInForm.clearForm();
                     signInForm.validate().resetForm();
 
-                    showErrorMsg(signInForm, 'success', 'Thank you for applying, please wait for 1-2 days, Propro will contact with you. 申请成功,请等候1-2个工作日,Propro会主动联系您');
+                    showErrorMsg(signInForm, 'success', 'Thank you for applying, please wait for 1-2 days, Propro will contact you. 申请成功,请等候1-2个工作日,Propro会主动联系您');
                 }
             });
         });

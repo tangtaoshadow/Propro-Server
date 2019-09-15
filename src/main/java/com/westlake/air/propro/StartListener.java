@@ -14,6 +14,7 @@ import java.util.Set;
 
 public class StartListener implements ApplicationListener<ContextRefreshedEvent> {
 
+    //应用启动时根据配置文件生成一个初始的管理员用户账号,如果同名账号已经存在,则直接跳过
     @Override
     public void onApplicationEvent(ContextRefreshedEvent contextRefreshedEvent) {
         UserService userService = contextRefreshedEvent.getApplicationContext().getBean(UserService.class);

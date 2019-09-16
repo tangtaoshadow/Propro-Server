@@ -92,13 +92,13 @@ public class AnalyseController extends BaseController {
      * @param expId
      * @param currentPage
      * @param pageSize
-     * @return
+     * @return 成功 0 失败 <-1
      */
     @PostMapping(value = "/list")
     String overviewList(
             @RequestParam(value = "expId", required = false) String expId,
             @RequestParam(value = "currentPage", required = false, defaultValue = "1") Integer currentPage,
-            @RequestParam(value = "pageSize", required = false, defaultValue = "500") Integer pageSize) {
+            @RequestParam(value = "pageSize", required = false, defaultValue = "1000") Integer pageSize) {
 
         Map<String, Object> map = new HashMap<String, Object>();
         // 状态标记
@@ -275,14 +275,17 @@ public class AnalyseController extends BaseController {
             model.addAttribute("overviewIdB", overviewIdB);
             overviewIds.add(overviewIdB);
         }
+
         if (StringUtils.isNotEmpty(overviewIdC)) {
             model.addAttribute("overviewIdC", overviewIdC);
             overviewIds.add(overviewIdC);
         }
+
         if (StringUtils.isNotEmpty(overviewIdD)) {
             model.addAttribute("overviewIdD", overviewIdD);
             overviewIds.add(overviewIdD);
         }
+
 
         if (overviewIds.size() <= 1) {
             Map<String, Object> map = model.asMap();

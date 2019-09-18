@@ -155,13 +155,13 @@ public class AnalyseController extends BaseController {
     }
 
     /***
-     * @Update tangtao 2019-9-18 11:04:09
+     * @UpdateTime 2019-9-18 20:14:08
+     * @UpdateAuthor tangtao https://www.promiselee.cn/tao
      * @param id 查询的分析详情 id
      * @return 成功 0
      */
     @PostMapping(value = "/detail")
     String detail(@RequestParam("id") String id) {
-
 
         Map<String, Object> map = new HashMap<String, Object>();
         // 状态标记

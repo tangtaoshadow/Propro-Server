@@ -35,7 +35,27 @@
 
 # 分析概览
 
+**作者：**`唐涛`
+
+**创建**：`2019-9-18 20:10:39`
+
+**修改**：`2019-9-18 20:12:39`
+
 ![](http://cdn.promiselee.cn/share_static/files/propro/propro-analysis-20190918104213.png)
+
+
+
+# 分析详情
+
+**作者：**`唐涛`  [Home](https:www.promiselee.cn/tao)
+
+**创建**：`2019-9-18 20:11:59`
+
+**修改**：`2019-9-18 20:12:32`
+
+![](http://cdn.promiselee.cn/share_static/files/propro/propro-analysis-detail-20190918200624.png)
+
+
 
 
 

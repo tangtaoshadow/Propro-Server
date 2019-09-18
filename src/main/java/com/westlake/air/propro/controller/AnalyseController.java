@@ -154,32 +154,58 @@ public class AnalyseController extends BaseController {
 
     }
 
-    @PostMapping(value = "/overview/detail/{id}")
-    String overviewDetail(Model model, @PathVariable("id") String id, RedirectAttributes redirectAttributes) {
+    /***
+     * @Update tangtao 2019-9-18 11:04:09
+     * @param id 查询的分析详情 id
+     * @return 成功 0
+     */
+    @PostMapping(value = "/detail")
+    String detail(@RequestParam("id") String id) {
 
-        ResultDO<AnalyseOverviewDO> resultDO = analyseOverviewService.getById(id);
-        AnalyseOverviewDO overview = resultDO.getModel();
-        PermissionUtil.check(resultDO.getModel());
 
-        LibraryDO library = libraryService.getById(overview.getLibraryId());
+        Map<String, Object> map = new HashMap<String, Object>();
+        // 状态标记
+        int status = -1;
 
-        AnalyseDataQuery query = new AnalyseDataQuery(id);
-        query.setIsDecoy(false);
-        query.setFdrEnd(0.01);
-        query.setPageSize(10000);
-        List<AnalyseDataRT> rts = analyseDataService.getRtList(query);
-        query.setFdrStart(0.01);
-        query.setFdrEnd(1.0);
-        List<AnalyseDataRT> badRts = analyseDataService.getRtList(query);
-        model.addAttribute("library", library);
-        model.addAttribute("rts", rts);
-        model.addAttribute("badRts", badRts);
-        model.addAttribute("overview", resultDO.getModel());
-        model.addAttribute("slope", resultDO.getModel().getSlope());
-        model.addAttribute("intercept", resultDO.getModel().getIntercept());
-        model.addAttribute("targetMap", overview.getTargetDistributions());
-        model.addAttribute("decoyMap", overview.getDecoyDistributions());
-        return "analyse/overview/detail";
+        Map<String, Object> data = new HashMap<String, Object>();
+
+        do {
+
+            ResultDO<AnalyseOverviewDO> resultDO = analyseOverviewService.getById(id);
+            AnalyseOverviewDO overview = resultDO.getModel();
+            PermissionUtil.check(resultDO.getModel());
+
+            LibraryDO library = libraryService.getById(overview.getLibraryId());
+
+            AnalyseDataQuery query = new AnalyseDataQuery(id);
+            query.setIsDecoy(false);
+            query.setFdrEnd(0.01);
+            query.setPageSize(10000);
+            List<AnalyseDataRT> rts = analyseDataService.getRtList(query);
+            query.setFdrStart(0.01);
+            query.setFdrEnd(1.0);
+            List<AnalyseDataRT> badRts = analyseDataService.getRtList(query);
+            data.put("library", library);
+            data.put("rts", rts);
+            data.put("badRts", badRts);
+            data.put("overview", resultDO.getModel());
+            data.put("slope", resultDO.getModel().getSlope());
+            data.put("intercept", resultDO.getModel().getIntercept());
+            data.put("targetMap", overview.getTargetDistributions());
+            data.put("decoyMap", overview.getDecoyDistributions());
+
+            status = 0;
+
+        } while (false);
+
+        map.put("status", status);
+
+        // 将数据再打包一次 简化前端数据处理逻辑
+        map.put("data", data);
+
+        // 返回数据
+        return JSON.toJSONString(map, SerializerFeature.WriteNonStringKeyAsString);
+
     }
 
     @PostMapping(value = "/overview/export/{id}")

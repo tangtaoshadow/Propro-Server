@@ -336,39 +336,65 @@ public class AnalyseController extends BaseController {
         return "analyse/overview/comparison";
     }
 
+    /***
+     * @Archive 实现查询 xic 数据
+     * @UpdateTime 2019-9-20 16:12:01
+     * @UpdateAuthor tangtao
+     * @param overviewId
+     * @param peptideRef
+     * @param currentPage
+     * @param pageSize
+     * @return
+     */
     @PostMapping(value = "/data/list")
-    String dataList(Model model,
-                    @RequestParam(value = "overviewId", required = true) String overviewId,
-                    @RequestParam(value = "peptideRef", required = false) String peptideRef,
-                    @RequestParam(value = "currentPage", required = false, defaultValue = "1") Integer currentPage,
-                    @RequestParam(value = "pageSize", required = false, defaultValue = "50") Integer pageSize,
-                    RedirectAttributes redirectAttributes) {
+    String dataList(
+            @RequestParam(value = "overviewId") String overviewId,
+            @RequestParam(value = "peptideRef", required = false) String peptideRef,
+            @RequestParam(value = "currentPage", required = false, defaultValue = "1") Integer currentPage,
+            @RequestParam(value = "pageSize", required = false, defaultValue = "1000") Integer pageSize) {
 
-        model.addAttribute("pageSize", pageSize);
-        model.addAttribute("overviewId", overviewId);
-        model.addAttribute("peptideRef", peptideRef);
+        Map<String, Object> map = new HashMap<String, Object>();
+        // 状态标记
+        int status = -1;
 
-        ResultDO<AnalyseOverviewDO> overviewResult = analyseOverviewService.getById(overviewId);
+        Map<String, Object> data = new HashMap<String, Object>();
 
-        PermissionUtil.check(overviewResult.getModel());
-        model.addAttribute("overview", overviewResult.getModel());
+        do {
 
-        AnalyseDataQuery query = new AnalyseDataQuery();
-        query.setPageSize(pageSize);
-        query.setPageNo(currentPage);
+            data.put("pageSize", pageSize);
+            data.put("overviewId", overviewId);
+            data.put("peptideRef", peptideRef);
 
-        if (StringUtils.isNotEmpty(peptideRef)) {
-            query.setPeptideRef(peptideRef);
-        }
-        query.setOverviewId(overviewId);
-        ResultDO<List<AnalyseDataDO>> resultDO = analyseDataService.getList(query);
-        List<AnalyseDataDO> datas = resultDO.getModel();
-        model.addAttribute("datas", datas);
-        model.addAttribute("totalPage", resultDO.getTotalPage());
-        model.addAttribute("currentPage", currentPage);
-        model.addAttribute("totalNum", resultDO.getTotalNum());
+            ResultDO<AnalyseOverviewDO> overviewResult = analyseOverviewService.getById(overviewId);
 
-        return "analyse/data/list";
+            PermissionUtil.check(overviewResult.getModel());
+            data.put("overview", overviewResult.getModel());
+
+            AnalyseDataQuery query = new AnalyseDataQuery();
+            query.setPageSize(pageSize);
+            query.setPageNo(currentPage);
+
+            if (StringUtils.isNotEmpty(peptideRef)) {
+                query.setPeptideRef(peptideRef);
+            }
+            query.setOverviewId(overviewId);
+            ResultDO<List<AnalyseDataDO>> resultDO = analyseDataService.getList(query);
+            List<AnalyseDataDO> datas = resultDO.getModel();
+            data.put("datas", datas);
+            data.put("totalPage", resultDO.getTotalPage());
+            data.put("currentPage", currentPage);
+            data.put("totalNum", resultDO.getTotalNum());
+            status = 0;
+        } while (false);
+
+
+        map.put("status", status);
+
+        // 将数据再打包一次 简化前端数据处理逻辑
+        map.put("data", data);
+
+        // 返回数据
+        return JSON.toJSONString(map, SerializerFeature.WriteNonStringKeyAsString);
     }
 
     @PostMapping(value = "/clinic")

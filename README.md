@@ -21,7 +21,7 @@
 
 ## [PROPRO-HOME](http://www.proteomics.pro/)
 
-@Author：`唐涛`
+@Author：`唐涛`   [Home](https://www.promiselee.cn/tao)
 
 # 登录页面
 
@@ -39,7 +39,7 @@
 
 **创建**：`2019-9-18 20:10:39`
 
-**修改**：`2019-9-18 20:12:39`
+**修改**：`2019-9-18 20:18:54`
 
 ![](http://cdn.promiselee.cn/share_static/files/propro/propro-analysis-20190918104213.png)
 
@@ -47,7 +47,7 @@
 
 # 分析详情
 
-**作者：**`唐涛`  [Home](https:www.promiselee.cn/tao)
+**作者：**`唐涛`  [Home](https://www.promiselee.cn/tao)
 
 **创建**：`2019-9-18 20:11:59`
 

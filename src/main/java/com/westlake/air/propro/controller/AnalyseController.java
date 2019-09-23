@@ -346,7 +346,7 @@ public class AnalyseController extends BaseController {
      * @param pageSize
      * @return
      */
-    @PostMapping(value = "/data/list")
+    @PostMapping(value = "/dataList")
     String dataList(
             @RequestParam(value = "overviewId") String overviewId,
             @RequestParam(value = "peptideRef", required = false) String peptideRef,
@@ -354,6 +354,7 @@ public class AnalyseController extends BaseController {
             @RequestParam(value = "pageSize", required = false, defaultValue = "1000") Integer pageSize) {
 
         Map<String, Object> map = new HashMap<String, Object>();
+
         // 状态标记
         int status = -1;
 
@@ -377,14 +378,17 @@ public class AnalyseController extends BaseController {
             if (StringUtils.isNotEmpty(peptideRef)) {
                 query.setPeptideRef(peptideRef);
             }
+
             query.setOverviewId(overviewId);
             ResultDO<List<AnalyseDataDO>> resultDO = analyseDataService.getList(query);
             List<AnalyseDataDO> datas = resultDO.getModel();
+
             data.put("datas", datas);
             data.put("totalPage", resultDO.getTotalPage());
             data.put("currentPage", currentPage);
             data.put("totalNum", resultDO.getTotalNum());
             status = 0;
+
         } while (false);
 
 
@@ -395,6 +399,7 @@ public class AnalyseController extends BaseController {
 
         // 返回数据
         return JSON.toJSONString(map, SerializerFeature.WriteNonStringKeyAsString);
+
     }
 
     @PostMapping(value = "/clinic")

@@ -155,7 +155,7 @@ public class AnalyseController extends BaseController {
     }
 
     /***
-     * @UpdateTime 2019-9-18 20:14:08
+     * @UpdateTime 2019-9-24 00:29:15
      * @UpdateAuthor tangtao https://www.promiselee.cn/tao
      * @param id 查询的分析详情 id
      * @return 成功 0
@@ -195,7 +195,6 @@ public class AnalyseController extends BaseController {
             data.put("decoyMap", overview.getDecoyDistributions());
 
             status = 0;
-
         } while (false);
 
         map.put("status", status);
@@ -205,7 +204,6 @@ public class AnalyseController extends BaseController {
 
         // 返回数据
         return JSON.toJSONString(map, SerializerFeature.WriteNonStringKeyAsString);
-
     }
 
     @PostMapping(value = "/overview/export/{id}")

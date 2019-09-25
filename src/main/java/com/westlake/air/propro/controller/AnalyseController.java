@@ -13,7 +13,6 @@ import com.westlake.air.propro.algorithm.peak.GaussFilter;
 import com.westlake.air.propro.algorithm.peak.SignalToNoiseEstimator;
 import com.westlake.air.propro.constants.Constants;
 import com.westlake.air.propro.constants.ResidueType;
-import com.westlake.air.propro.constants.SuccessMsg;
 import com.westlake.air.propro.constants.enums.ResultCode;
 import com.westlake.air.propro.constants.enums.ScoreType;
 import com.westlake.air.propro.dao.ConfigDAO;
@@ -47,6 +46,8 @@ import java.util.*;
 /**
  * Created by James Lu MiaoShan
  * Time: 2018-07-19 16:50
+ * Update by tangtao
+ * UpdateTime：2019-9-25 10:27:35
  */
 @RestController
 @RequestMapping("analyse")
@@ -266,16 +267,37 @@ public class AnalyseController extends BaseController {
 
     }
 
-    @PostMapping(value = "/overview/delete/{id}")
-    String overviewDelete(Model model, @PathVariable("id") String id, RedirectAttributes redirectAttributes) {
+    /***
+     * @updateAuthor tangtao https://www.promiselee.cn/tao
+     * @updateTime 2019-9-25 10:31:48
+     * @Archive 根据 id 删除数据
+     * @param id 删除的 id
+     * @return 成功 status=0
+     */
+    @PostMapping(value = "delete")
+    String overviewDelete(@RequestParam("id") String id) {
+
+
+        Map<String, Object> map = new HashMap<String, Object>();
+        // 状态标记
+        int status = -1;
+
+        Map<String, Object> data = new HashMap<String, Object>();
+
 
         ResultDO<AnalyseOverviewDO> overviewResult = analyseOverviewService.getById(id);
         PermissionUtil.check(overviewResult.getModel());
         String expId = overviewResult.getModel().getExpId();
+        // 执行删除操作
         analyseOverviewService.delete(id);
-        redirectAttributes.addFlashAttribute(SUCCESS_MSG, SuccessMsg.DELETE_SUCCESS);
-        return "redirect:/analyse/overview/list?expId=" + expId;
+        status = 0;
+        data.put("expId", expId);
+        map.put("status", status);
+        map.put("data", data);
+        // 返回数据
+        return JSON.toJSONString(map, SerializerFeature.WriteNonStringKeyAsString);
     }
+
 
     @PostMapping(value = "/overview/select")
     String overviewSelect(Model model, RedirectAttributes redirectAttributes) {

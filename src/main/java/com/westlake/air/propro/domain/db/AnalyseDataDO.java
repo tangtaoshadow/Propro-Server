@@ -30,11 +30,11 @@ public class AnalyseDataDO extends BaseDO {
     public static Integer IDENTIFIED_STATUS_NOT_START = 3;
 
     @Id
-    @JSONField(serialize=false)
+    @JSONField(serialize = false)
     String id;
 
     @Indexed
-    @JSONField(serialize=false)
+    @JSONField(serialize = false)
     String overviewId;
 
     @Indexed
@@ -49,17 +49,17 @@ public class AnalyseDataDO extends BaseDO {
 
     //打分相关的字段
     @Indexed
-    @JSONField(serialize=false)
-    int identifiedStatus = IDENTIFIED_STATUS_NOT_START;
+    // @JSONField(serialize=false)
+            int identifiedStatus = IDENTIFIED_STATUS_NOT_START;
 
     //最终给出的FDR打分
     @Indexed
-    @JSONField(serialize=false)
+    @JSONField(serialize = false)
     Double fdr;
 
     //最终给出的qValue
     @Indexed
-    @JSONField(serialize=false)
+    @JSONField(serialize = false)
     Double qValue;
 
     String proteinName;
@@ -73,34 +73,34 @@ public class AnalyseDataDO extends BaseDO {
     Float mz;
 
     //对应的标准库的peptideId
-    @JSONField(serialize=false)
+    @JSONField(serialize = false)
     String peptideId;
 
     //key为cutInfo, value为对应的mz
     HashMap<String, Float> mzMap = new HashMap<>();
 
-    @JSONField(serialize=false)
+    // @JSONField(serialize = false)
     List<FeatureScores> featureScoresList;
 
     //最终选出的最佳峰
-    @JSONField(serialize=false)
+    @JSONField(serialize = false)
     Double bestRt;
 
-    @JSONField(serialize=false)
+    @JSONField(serialize = false)
     Double intensitySum;
 
     //最终的定量值
-    @JSONField(serialize=false)
+    @JSONField(serialize = false)
     String fragIntFeature;
 
     //*******************非数据库字段*******************************
     //排序后的rt,仅在解压缩的时候使用,不存入数据库
-    @JSONField(serialize=false)
+    @JSONField(serialize = false)
     @Transient
     Float[] rtArray;
 
     //key为cutInfo, value为对应的intensity值,仅在解压缩的时候使用,不存入数据库
-    @JSONField(serialize=false)
+    @JSONField(serialize = false)
     @Transient
     HashMap<String, Float[]> intensityMap = new HashMap<>();
 }

@@ -67,7 +67,7 @@ public class ScoreController extends BaseController {
             @RequestParam(value = "fdrStart", required = false) Double fdrStart,
             @RequestParam(value = "fdrEnd", required = false) Double fdrEnd,
             @RequestParam(value = "isIdentified", required = false) String isIdentified,
-            @RequestParam(value = "isDecoy", required = false) String isDecoy) {
+            @RequestParam(value = "isDecoy", required = false, defaultValue = "No") String isDecoy) {
 
         Map<String, Object> map = new HashMap<String, Object>();
 
@@ -143,6 +143,7 @@ public class ScoreController extends BaseController {
         } while (false);
 
         map.put("status", status);
+
         // 将数据再打包一次 简化前端数据处理逻辑
         map.put("data", data);
 

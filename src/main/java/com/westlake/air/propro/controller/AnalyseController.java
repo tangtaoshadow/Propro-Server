@@ -41,6 +41,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -277,13 +278,11 @@ public class AnalyseController extends BaseController {
     @PostMapping(value = "delete")
     String overviewDelete(@RequestParam("id") String id) {
 
-
         Map<String, Object> map = new HashMap<String, Object>();
         // 状态标记
         int status = -1;
 
         Map<String, Object> data = new HashMap<String, Object>();
-
 
         ResultDO<AnalyseOverviewDO> overviewResult = analyseOverviewService.getById(id);
         PermissionUtil.check(overviewResult.getModel());
@@ -291,9 +290,13 @@ public class AnalyseController extends BaseController {
         // 执行删除操作
         analyseOverviewService.delete(id);
         status = 0;
-        data.put("expId", expId);
+        Date d = new Date();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String time = sdf.format(d);
+        data.put("time", time);
         map.put("status", status);
         map.put("data", data);
+
         // 返回数据
         return JSON.toJSONString(map, SerializerFeature.WriteNonStringKeyAsString);
     }
@@ -371,8 +374,10 @@ public class AnalyseController extends BaseController {
             @RequestParam(value = "overviewId") String overviewId,
             @RequestParam(value = "peptideRef", required = false) String peptideRef,
             @RequestParam(value = "currentPage", required = false, defaultValue = "1") Integer currentPage,
-            @RequestParam(value = "pageSize", required = false, defaultValue = "1000") Integer pageSize) {
+            @RequestParam(value = "pageSize", required = false, defaultValue = "1000") String pageSizeString) {
 
+        int pageSize = Integer.parseInt(pageSizeString);
+        System.out.println("datalist" + pageSize);
         Map<String, Object> map = new HashMap<String, Object>();
 
         // 状态标记

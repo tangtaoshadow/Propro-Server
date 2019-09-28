@@ -46,8 +46,8 @@ public class ScoreController extends BaseController {
 
     /***
      *
-     * @UpdateAuthor 2019-9-27 10:45:21
-     * @UpdateTime 2019-9-27 10:45:12
+     * @UpdateAuthor tangtao
+     * @UpdateTime 2019-9-28 21:52:00
      * @param currentPage
      * @param pageSize
      * @param overviewId

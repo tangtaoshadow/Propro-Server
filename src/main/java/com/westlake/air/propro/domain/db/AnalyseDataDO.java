@@ -30,12 +30,12 @@ public class AnalyseDataDO extends BaseDO {
     public static Integer IDENTIFIED_STATUS_NOT_START = 3;
 
     @Id
-    @JSONField(serialize = false)
-    String id;
+    // @JSONField(serialize = false)
+            String id;
 
     @Indexed
-    @JSONField(serialize = false)
-    String overviewId;
+    // @JSONField(serialize = false)
+            String overviewId;
 
     @Indexed
     String peptideRef;
@@ -54,13 +54,13 @@ public class AnalyseDataDO extends BaseDO {
 
     //最终给出的FDR打分
     @Indexed
-    @JSONField(serialize = false)
-    Double fdr;
+    // @JSONField(serialize = false)
+            Double fdr;
 
     //最终给出的qValue
     @Indexed
-    @JSONField(serialize = false)
-    Double qValue;
+    // @JSONField(serialize = false)
+            Double qValue;
 
     String proteinName;
 
@@ -73,7 +73,7 @@ public class AnalyseDataDO extends BaseDO {
     Float mz;
 
     //对应的标准库的peptideId
-    @JSONField(serialize = false)
+    // @JSONField(serialize = false)
     String peptideId;
 
     //key为cutInfo, value为对应的mz
@@ -83,14 +83,14 @@ public class AnalyseDataDO extends BaseDO {
     List<FeatureScores> featureScoresList;
 
     //最终选出的最佳峰
-    @JSONField(serialize = false)
+    // @JSONField(serialize = false)
     Double bestRt;
 
-    @JSONField(serialize = false)
+    // @JSONField(serialize = false)
     Double intensitySum;
 
     //最终的定量值
-    @JSONField(serialize = false)
+    // @JSONField(serialize = false)
     String fragIntFeature;
 
     //*******************非数据库字段*******************************

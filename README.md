@@ -579,3 +579,109 @@ public class AnalyseDataDO extends BaseDO {
 
 ```
 
+
+
+### 页面响应很慢
+
+**创建：**`2019-9-29 15:53:04`
+
+**存在的问题：**前端发起请求时，即使只查询10条数据，也要很长时间才能响应
+
+```java
+package com.westlake.air.propro.controller;
+
+@PostMapping(value = "/resultList")
+    String resultList(
+            @RequestParam(value = "currentPage", required = false, defaultValue = "1") Integer currentPage,
+            @RequestParam(value = "pageSize", required = false, defaultValue = "10") Integer pageSize,
+            @RequestParam(value = "overviewId") String overviewId,
+            @RequestParam(value = "peptideRef", required = false) String peptideRef,
+            @RequestParam(value = "proteinName", required = false) String proteinName,
+            @RequestParam(value = "isIdentified", required = false) String isIdentified) {
+
+        Map<String, Object> map = new HashMap<String, Object>();
+
+        // 状态标记
+        int status = -1;
+
+        Map<String, Object> data = new HashMap<String, Object>();
+
+        do {
+
+            data.put("overviewId", overviewId);
+            data.put("proteinName", proteinName);
+            data.put("peptideRef", peptideRef);
+            data.put("pageSize", pageSize);
+            data.put("isIdentified", isIdentified);
+
+            ResultDO<AnalyseOverviewDO> overviewResult = analyseOverviewService.getById(overviewId);
+            PermissionUtil.check(overviewResult.getModel());
+
+            AnalyseDataQuery query = new AnalyseDataQuery();
+            query.setIsDecoy(false);
+
+            if (peptideRef != null && !peptideRef.isEmpty()) {
+                query.setPeptideRef(peptideRef);
+            }
+
+            if (proteinName != null && !proteinName.isEmpty()) {
+                query.setProteinName(proteinName);
+            }
+
+            if (isIdentified != null && isIdentified.equals("Yes")) {
+                query.addIndentifiedStatus(AnalyseDataDO.IDENTIFIED_STATUS_SUCCESS);
+            } else if (isIdentified != null && isIdentified.equals("No")) {
+                query.addIndentifiedStatus(AnalyseDataDO.IDENTIFIED_STATUS_NO_FIT);
+                query.addIndentifiedStatus(AnalyseDataDO.IDENTIFIED_STATUS_UNKNOWN);
+            }
+            query.setOverviewId(overviewId);
+
+            List<AnalyseDataDO> analyseDataDOList = analyseDataService.getAll(query);
+
+            if (peptideRef != null && peptideRef.length() > 0) {
+                query.setPeptideRef(null);
+                query.setProteinName(analyseDataDOList.get(0).getProteinName());
+                analyseDataDOList = analyseDataService.getAll(query);
+            }
+
+            HashMap<String, List<AnalyseDataDO>> proteinMap = new HashMap<>();
+            for (AnalyseDataDO dataDO : analyseDataDOList) {
+
+                if (proteinMap.containsKey(dataDO.getProteinName())) {
+                    proteinMap.get(dataDO.getProteinName()).add(dataDO);
+                } else {
+                    List<AnalyseDataDO> newList = new ArrayList<>();
+                    newList.add(dataDO);
+                    proteinMap.put(dataDO.getProteinName(), newList);
+                }
+            }
+
+            List<String> protList = new ArrayList<>(proteinMap.keySet());
+            int totalPage = (int) Math.ceil(protList.size() / (double) pageSize);
+            HashMap<String, List<AnalyseDataDO>> pageProtMap = new HashMap<>();
+
+            for (int i = pageSize * (currentPage - 1); i < protList.size() && i < pageSize * currentPage; i++) {
+                pageProtMap.put(protList.get(i), proteinMap.get(protList.get(i)));
+            }
+
+            data.put("protMap", pageProtMap);
+            data.put("overview", overviewResult.getModel());
+            data.put("totalPage", totalPage);
+            data.put("currentPage", currentPage);
+            data.put("totalNum", protList.size());
+
+            // 成功返回数据
+            status = 0;
+
+        } while (false);
+
+        map.put("status", status);
+
+        // 将数据再打包一次 简化前端数据处理逻辑
+        map.put("data", data);
+
+        // 返回数据
+        return JSON.toJSONString(map, SerializerFeature.WriteNonStringKeyAsString);
+    }
+
+```

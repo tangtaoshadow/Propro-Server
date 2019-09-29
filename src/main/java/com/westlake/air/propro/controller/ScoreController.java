@@ -152,71 +152,107 @@ public class ScoreController extends BaseController {
 
     }
 
-    @PostMapping(value = "/result/list")
-    String resultList(Model model,
-                      @RequestParam(value = "currentPage", required = false, defaultValue = "1") Integer currentPage,
-                      @RequestParam(value = "pageSize", required = false, defaultValue = "10") Integer pageSize,
-                      @RequestParam(value = "overviewId", required = true) String overviewId,
-                      @RequestParam(value = "peptideRef", required = false) String peptideRef,
-                      @RequestParam(value = "proteinName", required = false) String proteinName,
-                      @RequestParam(value = "isIdentified", required = false) String isIdentified,
-                      RedirectAttributes redirectAttributes) {
+    /***
+     * @UpdateAuthor tangtao https://www.promiselee.cn/tao
+     * @UpdateTime 2019-9-29 13:12:43
+     * @Archive 查询蛋白鉴定结果
+     * @param currentPage
+     * @param pageSize
+     * @param overviewId require
+     * @param peptideRef
+     * @param proteinName
+     * @param isIdentified
+     * @return
+     */
+    @PostMapping(value = "/resultList")
+    String resultList(
+            @RequestParam(value = "currentPage", required = false, defaultValue = "1") Integer currentPage,
+            @RequestParam(value = "pageSize", required = false, defaultValue = "10") Integer pageSize,
+            @RequestParam(value = "overviewId") String overviewId,
+            @RequestParam(value = "peptideRef", required = false) String peptideRef,
+            @RequestParam(value = "proteinName", required = false) String proteinName,
+            @RequestParam(value = "isIdentified", required = false) String isIdentified) {
 
-        model.addAttribute("overviewId", overviewId);
-        model.addAttribute("proteinName", proteinName);
-        model.addAttribute("peptideRef", peptideRef);
-        model.addAttribute("pageSize", pageSize);
-        model.addAttribute("isIdentified", isIdentified);
+        Map<String, Object> map = new HashMap<String, Object>();
 
-        ResultDO<AnalyseOverviewDO> overviewResult = analyseOverviewService.getById(overviewId);
-        PermissionUtil.check(overviewResult.getModel());
+        // 状态标记
+        int status = -1;
 
-        AnalyseDataQuery query = new AnalyseDataQuery();
-        query.setIsDecoy(false);
-        if (peptideRef != null && !peptideRef.isEmpty()) {
-            query.setPeptideRef(peptideRef);
-        }
-        if (proteinName != null && !proteinName.isEmpty()) {
-            query.setProteinName(proteinName);
-        }
-        if (isIdentified != null && isIdentified.equals("Yes")) {
-            query.addIndentifiedStatus(AnalyseDataDO.IDENTIFIED_STATUS_SUCCESS);
-        } else if (isIdentified != null && isIdentified.equals("No")) {
-            query.addIndentifiedStatus(AnalyseDataDO.IDENTIFIED_STATUS_NO_FIT);
-            query.addIndentifiedStatus(AnalyseDataDO.IDENTIFIED_STATUS_UNKNOWN);
-        }
-        query.setOverviewId(overviewId);
+        Map<String, Object> data = new HashMap<String, Object>();
 
-        List<AnalyseDataDO> analyseDataDOList = analyseDataService.getAll(query);
-        if (peptideRef != null && peptideRef.length() > 0) {
-            query.setPeptideRef(null);
-            query.setProteinName(analyseDataDOList.get(0).getProteinName());
-            analyseDataDOList = analyseDataService.getAll(query);
-        }
-        HashMap<String, List<AnalyseDataDO>> proteinMap = new HashMap<>();
-        for (AnalyseDataDO dataDO : analyseDataDOList) {
-            if (proteinMap.containsKey(dataDO.getProteinName())) {
-                proteinMap.get(dataDO.getProteinName()).add(dataDO);
-            } else {
-                List<AnalyseDataDO> newList = new ArrayList<>();
-                newList.add(dataDO);
-                proteinMap.put(dataDO.getProteinName(), newList);
+        do {
+
+            data.put("overviewId", overviewId);
+            data.put("proteinName", proteinName);
+            data.put("peptideRef", peptideRef);
+            data.put("pageSize", pageSize);
+            data.put("isIdentified", isIdentified);
+
+            ResultDO<AnalyseOverviewDO> overviewResult = analyseOverviewService.getById(overviewId);
+            PermissionUtil.check(overviewResult.getModel());
+
+            AnalyseDataQuery query = new AnalyseDataQuery();
+            query.setIsDecoy(false);
+
+            if (peptideRef != null && !peptideRef.isEmpty()) {
+                query.setPeptideRef(peptideRef);
             }
-        }
-        List<String> protList = new ArrayList<>(proteinMap.keySet());
-        int totalPage = (int) Math.ceil(protList.size() / (double) pageSize);
-        HashMap<String, List<AnalyseDataDO>> pageProtMap = new HashMap<>();
 
-        for (int i = pageSize * (currentPage - 1); i < protList.size() && i < pageSize * currentPage; i++) {
-            pageProtMap.put(protList.get(i), proteinMap.get(protList.get(i)));
-        }
+            if (proteinName != null && !proteinName.isEmpty()) {
+                query.setProteinName(proteinName);
+            }
 
-        model.addAttribute("protMap", pageProtMap);
-        model.addAttribute("overview", overviewResult.getModel());
-        model.addAttribute("totalPage", totalPage);
-        model.addAttribute("currentPage", currentPage);
-        model.addAttribute("totalNum", protList.size());
-        return "scores/result/list";
+            if (isIdentified != null && isIdentified.equals("Yes")) {
+                query.addIndentifiedStatus(AnalyseDataDO.IDENTIFIED_STATUS_SUCCESS);
+            } else if (isIdentified != null && isIdentified.equals("No")) {
+                query.addIndentifiedStatus(AnalyseDataDO.IDENTIFIED_STATUS_NO_FIT);
+                query.addIndentifiedStatus(AnalyseDataDO.IDENTIFIED_STATUS_UNKNOWN);
+            }
+            query.setOverviewId(overviewId);
+
+            List<AnalyseDataDO> analyseDataDOList = analyseDataService.getAll(query);
+
+            if (peptideRef != null && peptideRef.length() > 0) {
+                query.setPeptideRef(null);
+                query.setProteinName(analyseDataDOList.get(0).getProteinName());
+                analyseDataDOList = analyseDataService.getAll(query);
+            }
+
+            HashMap<String, List<AnalyseDataDO>> proteinMap = new HashMap<>();
+            for (AnalyseDataDO dataDO : analyseDataDOList) {
+
+                if (proteinMap.containsKey(dataDO.getProteinName())) {
+                    proteinMap.get(dataDO.getProteinName()).add(dataDO);
+                } else {
+                    List<AnalyseDataDO> newList = new ArrayList<>();
+                    newList.add(dataDO);
+                    proteinMap.put(dataDO.getProteinName(), newList);
+                }
+            }
+
+            List<String> protList = new ArrayList<>(proteinMap.keySet());
+            int totalPage = (int) Math.ceil(protList.size() / (double) pageSize);
+            HashMap<String, List<AnalyseDataDO>> pageProtMap = new HashMap<>();
+
+            for (int i = pageSize * (currentPage - 1); i < protList.size() && i < pageSize * currentPage; i++) {
+                pageProtMap.put(protList.get(i), proteinMap.get(protList.get(i)));
+            }
+
+            data.put("protMap", pageProtMap);
+            data.put("overview", overviewResult.getModel());
+            data.put("totalPage", totalPage);
+            data.put("currentPage", currentPage);
+            data.put("totalNum", protList.size());
+
+        } while (false);
+
+        map.put("status", status);
+
+        // 将数据再打包一次 简化前端数据处理逻辑
+        map.put("data", data);
+
+        // 返回数据
+        return JSON.toJSONString(map, SerializerFeature.WriteNonStringKeyAsString);
     }
 
     @PostMapping(value = "/detail")

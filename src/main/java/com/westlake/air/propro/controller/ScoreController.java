@@ -244,6 +244,9 @@ public class ScoreController extends BaseController {
             data.put("currentPage", currentPage);
             data.put("totalNum", protList.size());
 
+            // 成功返回数据
+            status = 0;
+
         } while (false);
 
         map.put("status", status);

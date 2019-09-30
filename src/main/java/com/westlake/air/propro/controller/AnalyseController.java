@@ -366,7 +366,7 @@ public class AnalyseController extends BaseController {
      * @param overviewId
      * @param peptideRef
      * @param currentPage
-     * @param pageSize
+     * @param pageSizeString
      * @return
      */
     @PostMapping(value = "/dataList")

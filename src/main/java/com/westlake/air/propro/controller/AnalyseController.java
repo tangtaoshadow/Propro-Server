@@ -180,6 +180,7 @@ public class AnalyseController extends BaseController {
             LibraryDO library = libraryService.getById(overview.getLibraryId());
 
             AnalyseDataQuery query = new AnalyseDataQuery(id);
+
             query.setIsDecoy(false);
             query.setFdrEnd(0.01);
             query.setPageSize(10000);

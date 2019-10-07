@@ -134,6 +134,7 @@ public class ExperimentController extends BaseController {
             data.put("experiments", resultDO.getModel());
             data.put("analyseOverviewDOMap", analyseOverviewDOMap);
             data.put("totalPage", resultDO.getTotalPage());
+            data.put("totalNum", resultDO.getTotalNum());
             data.put("currentPage", currentPage);
             // tangtao : 获取数据成功
             status = 0;

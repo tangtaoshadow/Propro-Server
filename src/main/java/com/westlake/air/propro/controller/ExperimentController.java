@@ -1,13 +1,15 @@
 package com.westlake.air.propro.controller;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.westlake.air.propro.algorithm.extract.Extractor;
 import com.westlake.air.propro.config.VMProperties;
 import com.westlake.air.propro.constants.Constants;
+import com.westlake.air.propro.constants.SuccessMsg;
 import com.westlake.air.propro.constants.enums.ResultCode;
 import com.westlake.air.propro.constants.enums.ScoreType;
-import com.westlake.air.propro.constants.SuccessMsg;
 import com.westlake.air.propro.constants.enums.TaskTemplate;
 import com.westlake.air.propro.domain.ResultDO;
 import com.westlake.air.propro.domain.bean.aird.WindowRange;
@@ -25,7 +27,6 @@ import com.westlake.air.propro.service.*;
 import com.westlake.air.propro.utils.PermissionUtil;
 import com.westlake.air.propro.utils.ScoreUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -37,7 +38,7 @@ import java.util.*;
  * Created by James Lu MiaoShan
  * Time: 2018-07-04 10:00
  */
-@Controller
+@RestController
 @RequestMapping("experiment")
 public class ExperimentController extends BaseController {
 
@@ -60,7 +61,19 @@ public class ExperimentController extends BaseController {
     @Autowired
     VMProperties vmProperties;
 
-    @RequestMapping(value = "/list")
+    /***
+     * @UpdateAuthor tangtao https://www.promiselee.cn/tao
+     * @UpadteTime 2019-10-7 21:31:02
+     * @Archieve 实验数据列表
+     * @param model
+     * @param currentPage
+     * @param pageSize
+     * @param projectName
+     * @param type
+     * @param expName
+     * @return
+     */
+    @PostMapping(value = "/list")
     String list(Model model,
                 @RequestParam(value = "currentPage", required = false, defaultValue = "1") Integer currentPage,
                 @RequestParam(value = "pageSize", required = false, defaultValue = "50") Integer pageSize,
@@ -68,50 +81,72 @@ public class ExperimentController extends BaseController {
                 @RequestParam(value = "type", required = false) String type,
                 @RequestParam(value = "expName", required = false) String expName) {
 
-        model.addAttribute("expName", expName);
-        model.addAttribute("projectName", projectName);
-        model.addAttribute("pageSize", pageSize);
-        model.addAttribute("type", type);
-        ExperimentQuery query = new ExperimentQuery();
-        if (expName != null && !expName.isEmpty()) {
-            query.setName(expName);
-        }
-        if (projectName != null && !projectName.isEmpty()) {
-            ProjectDO project = projectService.getByName(projectName);
-            if (project == null) {
-                return "experiment/list";
-            } else {
-                query.setProjectId(project.getId());
-            }
-            pageSize = Integer.MAX_VALUE;//如果是根据项目名称进行搜索的,直接全部展示出来
-        }
+        Map<String, Object> map = new HashMap<String, Object>();
+        // 状态标记
+        int status = -1;
 
-        if (type != null && !type.isEmpty()) {
-            query.setType(type);
-        }
-        if (!isAdmin()) {
-            query.setOwnerName(getCurrentUsername());
-        }
-        query.setPageSize(pageSize);
-        query.setPageNo(currentPage);
-        ResultDO<List<ExperimentDO>> resultDO = experimentService.getList(query);
-        HashMap<String, AnalyseOverviewDO> analyseOverviewDOMap = new HashMap<>();
-        for (ExperimentDO experimentDO : resultDO.getModel()) {
-            List<AnalyseOverviewDO> analyseOverviewDOList = analyseOverviewService.getAllByExpId(experimentDO.getId());
-            if (analyseOverviewDOList.isEmpty()) {
-                continue;
-            }
-            analyseOverviewDOMap.put(experimentDO.getId(), analyseOverviewDOList.get(0));
-        }
+        Map<String, Object> data = new HashMap<String, Object>();
 
-        model.addAttribute("experiments", resultDO.getModel());
-        model.addAttribute("analyseOverviewDOMap", analyseOverviewDOMap);
-        model.addAttribute("totalPage", resultDO.getTotalPage());
-        model.addAttribute("currentPage", currentPage);
-        return "experiment/list";
+        do {
+
+            data.put("expName", expName);
+            data.put("projectName", projectName);
+            data.put("pageSize", pageSize);
+            data.put("type", type);
+
+            ExperimentQuery query = new ExperimentQuery();
+            if (expName != null && !expName.isEmpty()) {
+                query.setName(expName);
+            }
+
+            if (projectName != null && !projectName.isEmpty()) {
+                ProjectDO project = projectService.getByName(projectName);
+                if (project == null) {
+                    // 项目不存在
+                    status = -2;
+                    break;
+                } else {
+                    query.setProjectId(project.getId());
+                }
+                pageSize = Integer.MAX_VALUE;//如果是根据项目名称进行搜索的,直接全部展示出来
+            }
+
+            if (type != null && !type.isEmpty()) {
+                query.setType(type);
+            }
+
+            if (!isAdmin()) {
+                query.setOwnerName(getCurrentUsername());
+            }
+
+            query.setPageSize(pageSize);
+            query.setPageNo(currentPage);
+            ResultDO<List<ExperimentDO>> resultDO = experimentService.getList(query);
+            HashMap<String, AnalyseOverviewDO> analyseOverviewDOMap = new HashMap<>();
+            for (ExperimentDO experimentDO : resultDO.getModel()) {
+                List<AnalyseOverviewDO> analyseOverviewDOList = analyseOverviewService.getAllByExpId(experimentDO.getId());
+                if (analyseOverviewDOList.isEmpty()) {
+                    continue;
+                }
+                analyseOverviewDOMap.put(experimentDO.getId(), analyseOverviewDOList.get(0));
+            }
+
+            data.put("experiments", resultDO.getModel());
+            data.put("analyseOverviewDOMap", analyseOverviewDOMap);
+            data.put("totalPage", resultDO.getTotalPage());
+            data.put("currentPage", currentPage);
+            // tangtao : 获取数据成功
+            status = 0;
+        } while (false);
+
+        map.put("status", status);
+        map.put("data", data);
+
+        // 返回数据
+        return JSON.toJSONString(map, SerializerFeature.WriteNonStringKeyAsString);
     }
 
-    @RequestMapping(value = "/listByExpId")
+    @PostMapping(value = "/listByExpId")
     String listByExpId(Model model,
                        @RequestParam(value = "expId", required = true) String expId) {
 
@@ -124,12 +159,12 @@ public class ExperimentController extends BaseController {
         return "redirect:/experiment/list?projectName=" + exp.getProjectName();
     }
 
-    @RequestMapping(value = "/create")
+    @PostMapping(value = "/create")
     String create(Model model) {
         return "experiment/create";
     }
 
-    @RequestMapping(value = "/batchcreate")
+    @PostMapping(value = "/batchcreate")
     String batchCreate(Model model,
                        @RequestParam(value = "projectName", required = false) String projectName,
                        RedirectAttributes redirectAttributes) {
@@ -144,7 +179,7 @@ public class ExperimentController extends BaseController {
         return "experiment/batchcreate";
     }
 
-    @RequestMapping(value = "/edit/{id}")
+    @PostMapping(value = "/edit/{id}")
     String edit(Model model, @PathVariable("id") String id, RedirectAttributes redirectAttributes) {
 
         ResultDO<ExperimentDO> resultDO = experimentService.getById(id);
@@ -158,7 +193,7 @@ public class ExperimentController extends BaseController {
         }
     }
 
-    @RequestMapping(value = "/detail/{id}")
+    @PostMapping(value = "/detail/{id}")
     String detail(Model model, @PathVariable("id") String id, RedirectAttributes redirectAttributes) {
         ResultDO<ExperimentDO> resultDO = experimentService.getById(id);
         if (resultDO.isSuccess()) {
@@ -172,7 +207,7 @@ public class ExperimentController extends BaseController {
         }
     }
 
-    @RequestMapping(value = "/update", method = RequestMethod.POST)
+    @PostMapping(value = "/update")
     String update(Model model,
                   @RequestParam(value = "id", required = true) String id,
                   @RequestParam(value = "name") String name,
@@ -222,7 +257,7 @@ public class ExperimentController extends BaseController {
 
     }
 
-    @RequestMapping(value = "/delete/{id}")
+    @PostMapping(value = "/delete/{id}")
     String delete(Model model, @PathVariable("id") String id, RedirectAttributes redirectAttributes) {
         ResultDO<ExperimentDO> exp = experimentService.getById(id);
         PermissionUtil.check(exp.getModel());
@@ -235,7 +270,7 @@ public class ExperimentController extends BaseController {
         return "redirect:/experiment/list";
     }
 
-    @RequestMapping(value = "/deleteAll/{id}")
+    @PostMapping(value = "/deleteAll/{id}")
     String deleteAll(Model model, @PathVariable("id") String id,
                      RedirectAttributes redirectAttributes) {
         ResultDO<ExperimentDO> exp = experimentService.getById(id);
@@ -245,7 +280,7 @@ public class ExperimentController extends BaseController {
         return "redirect:/experiment/list";
     }
 
-    @RequestMapping(value = "/extractor")
+    @PostMapping(value = "/extractor")
     String extractor(Model model,
                      @RequestParam(value = "id", required = true) String id,
                      RedirectAttributes redirectAttributes) {
@@ -271,7 +306,7 @@ public class ExperimentController extends BaseController {
         return "experiment/extractor";
     }
 
-    @RequestMapping(value = "/doextract")
+    @PostMapping(value = "/doextract")
     String doExtract(Model model,
                      @RequestParam(value = "id", required = true) String id,
                      @RequestParam(value = "libraryId", required = true) String libraryId,
@@ -331,7 +366,7 @@ public class ExperimentController extends BaseController {
         return "redirect:/task/detail/" + taskDO.getId();
     }
 
-    @RequestMapping(value = "/irt")
+    @PostMapping(value = "/irt")
     String irt(Model model,
                @RequestParam(value = "id", required = true) String id,
                RedirectAttributes redirectAttributes) {
@@ -355,7 +390,7 @@ public class ExperimentController extends BaseController {
         return "experiment/irt";
     }
 
-    @RequestMapping(value = "/doirt")
+    @PostMapping(value = "/doirt")
     String doIrt(Model model,
                  @RequestParam(value = "id", required = true) String id,
                  @RequestParam(value = "iRtLibraryId", required = false) String iRtLibraryId,
@@ -391,7 +426,7 @@ public class ExperimentController extends BaseController {
         return "redirect:/task/detail/" + taskDO.getId();
     }
 
-    @RequestMapping(value = "/irtresult")
+    @PostMapping(value = "/irtresult")
     @ResponseBody
     ResultDO<JSONObject> irtResult(Model model,
                                    @RequestParam(value = "expId", required = false) String expId) {
@@ -431,7 +466,7 @@ public class ExperimentController extends BaseController {
         return resultDO;
     }
 
-    @RequestMapping(value = "/getWindows")
+    @PostMapping(value = "/getWindows")
     @ResponseBody
     ResultDO<JSONObject> getWindows(Model model, @RequestParam(value = "expId", required = true) String expId) {
 
@@ -457,7 +492,7 @@ public class ExperimentController extends BaseController {
         return resultDO;
     }
 
-    @RequestMapping(value = "/getPrmWindows")
+    @PostMapping(value = "/getPrmWindows")
     @ResponseBody
     ResultDO<JSONObject> getPrmWindows(Model model, @RequestParam(value = "expId", required = true) String expId) {
 
@@ -482,7 +517,7 @@ public class ExperimentController extends BaseController {
         return resultDO;
     }
 
-    @RequestMapping(value = "/getPrmDensity")
+    @PostMapping(value = "/getPrmDensity")
     @ResponseBody
     ResultDO<JSONObject> getPrmDensity(Model model, @RequestParam(value = "expId", required = true) String expId) {
 

@@ -95,11 +95,14 @@ public class ExperimentController extends BaseController {
             data.put("type", type);
 
             ExperimentQuery query = new ExperimentQuery();
+
             if (expName != null && !expName.isEmpty()) {
                 query.setName(expName);
             }
 
+
             if (projectName != null && !projectName.isEmpty()) {
+
                 ProjectDO project = projectService.getByName(projectName);
                 if (project == null) {
                     // 项目不存在
@@ -121,14 +124,20 @@ public class ExperimentController extends BaseController {
 
             query.setPageSize(pageSize);
             query.setPageNo(currentPage);
+
             ResultDO<List<ExperimentDO>> resultDO = experimentService.getList(query);
             HashMap<String, AnalyseOverviewDO> analyseOverviewDOMap = new HashMap<>();
+
             for (ExperimentDO experimentDO : resultDO.getModel()) {
                 List<AnalyseOverviewDO> analyseOverviewDOList = analyseOverviewService.getAllByExpId(experimentDO.getId());
+
+                data.put("get-id", experimentDO.getId());
+
                 if (analyseOverviewDOList.isEmpty()) {
                     continue;
                 }
                 analyseOverviewDOMap.put(experimentDO.getId(), analyseOverviewDOList.get(0));
+                // analyseOverviewDOMap.put(experimentDO.getId(), analyseOverviewDOList.get(0));
             }
 
             data.put("experiments", resultDO.getModel());
@@ -136,7 +145,9 @@ public class ExperimentController extends BaseController {
             data.put("totalPage", resultDO.getTotalPage());
             data.put("totalNum", resultDO.getTotalNum());
             data.put("currentPage", currentPage);
+
             // tangtao : 获取数据成功
+
             status = 0;
         } while (false);
 
@@ -180,18 +191,45 @@ public class ExperimentController extends BaseController {
         return "experiment/batchcreate";
     }
 
-    @PostMapping(value = "/edit/{id}")
-    String edit(Model model, @PathVariable("id") String id, RedirectAttributes redirectAttributes) {
 
-        ResultDO<ExperimentDO> resultDO = experimentService.getById(id);
-        if (resultDO.isFailed()) {
-            redirectAttributes.addFlashAttribute(ERROR_MSG, resultDO.getMsgInfo());
-            return "redirect:/experiment/list";
-        } else {
-            PermissionUtil.check(resultDO.getModel());
-            model.addAttribute("experiment", resultDO.getModel());
-            return "experiment/edit";
-        }
+    @PostMapping(value = "/edit")
+    String edit(@RequestParam(value = "id") String id) {
+
+        Map<String, Object> map = new HashMap<String, Object>();
+        // 状态标记
+        int status = -1;
+
+        Map<String, Object> data = new HashMap<String, Object>();
+
+        do {
+
+            ResultDO<ExperimentDO> resultDO = experimentService.getById(id);
+            if (resultDO.isFailed()) {
+                status = -2;
+                data.put("errorMsg", resultDO.getMsgInfo());
+                break;
+            }
+
+            // 检查 model
+            try {
+                PermissionUtil.check(resultDO.getModel());
+                data.put("experiment", resultDO.getModel());
+            } catch (Exception e) {
+                status = -3;
+                break;
+            }
+
+            // 提取成功
+            status = 0;
+
+        } while (false);
+
+        map.put("status", status);
+        map.put("data", data);
+
+        // 返回数据
+        return JSON.toJSONString(map, SerializerFeature.WriteNonStringKeyAsString);
+
     }
 
     @PostMapping(value = "/detail/{id}")

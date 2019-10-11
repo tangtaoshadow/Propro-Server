@@ -131,7 +131,6 @@ public class ExperimentController extends BaseController {
             for (ExperimentDO experimentDO : resultDO.getModel()) {
                 List<AnalyseOverviewDO> analyseOverviewDOList = analyseOverviewService.getAllByExpId(experimentDO.getId());
 
-                data.put("get-id", experimentDO.getId());
 
                 if (analyseOverviewDOList.isEmpty()) {
                     continue;
@@ -192,6 +191,13 @@ public class ExperimentController extends BaseController {
     }
 
 
+    /***
+     * @UpdateTime 2019-10-11 13:22:19
+     * @updateAuthor tangtao https://www.promiselee.cn/tao
+     * @Archive 编辑实验列表数据
+     * @param id 传入查询的实验列表的id
+     * @return 0 succes
+     */
     @PostMapping(value = "/edit")
     String edit(@RequestParam(value = "id") String id) {
 
@@ -246,53 +252,97 @@ public class ExperimentController extends BaseController {
         }
     }
 
+    /***
+     * @UpdateAuthor tangtao https://www.promiselee.cn/tao
+     * @UpadteTime 2019-10-11 16:16:20
+     * @Archieve 更新实验数据列表
+     * @param id
+     * @param name
+     * @param type
+     * @param iRtLibraryId
+     * @param slope
+     * @param intercept
+     * @param description
+     * @param projectName
+     * @return 0 success
+     */
     @PostMapping(value = "/update")
-    String update(Model model,
-                  @RequestParam(value = "id", required = true) String id,
-                  @RequestParam(value = "name") String name,
-                  @RequestParam(value = "type") String type,
-                  @RequestParam(value = "iRtLibraryId") String iRtLibraryId,
-                  @RequestParam(value = "slope") Double slope,
-                  @RequestParam(value = "intercept") Double intercept,
-                  @RequestParam(value = "description") String description,
-                  @RequestParam(value = "projectName") String projectName,
-                  RedirectAttributes redirectAttributes) {
+    String update(
+            @RequestParam(value = "id") String id,
+            @RequestParam(value = "name") String name,
+            @RequestParam(value = "type") String type,
+            @RequestParam(value = "iRtLibraryId") String iRtLibraryId,
+            @RequestParam(value = "slope") Double slope,
+            @RequestParam(value = "intercept") Double intercept,
+            @RequestParam(value = "description") String description,
+            @RequestParam(value = "projectName") String projectName) {
 
-        ResultDO<ExperimentDO> resultDO = experimentService.getById(id);
-        if (resultDO.isFailed()) {
-            redirectAttributes.addFlashAttribute(ERROR_MSG, resultDO.getMsgInfo());
-            return "redirect:/experiment/list";
-        }
-        ExperimentDO experimentDO = resultDO.getModel();
-        PermissionUtil.check(resultDO.getModel());
+        Map<String, Object> map = new HashMap<String, Object>();
+        // 状态标记
+        int status = -1;
 
-        ProjectDO project = projectService.getByName(projectName);
-        if (project == null) {
-            redirectAttributes.addFlashAttribute(ERROR_MSG, resultDO.getMsgInfo());
-            return "redirect:/experiment/list";
-        }
-        try {
-            PermissionUtil.check(project);
-        } catch (UnauthorizedAccessException e) {
-            redirectAttributes.addFlashAttribute(ERROR_MSG, ResultCode.UNAUTHORIZED_ACCESS.getMessage());
-            return "redirect:/experiment/list";
-        }
+        Map<String, Object> data = new HashMap<String, Object>();
 
-        experimentDO.setName(name);
-        experimentDO.setType(type);
-        experimentDO.setProjectName(projectName);
-        experimentDO.setProjectId(project.getId());
-        experimentDO.setDescription(description);
-        experimentDO.setIRtLibraryId(iRtLibraryId);
-        IrtResult irtResult = experimentDO.getIrtResult();
-        irtResult.setSi(new SlopeIntercept(slope, intercept));
-        experimentDO.setIrtResult(irtResult);
-        ResultDO result = experimentService.update(experimentDO);
-        if (result.isFailed()) {
-            model.addAttribute(ERROR_MSG, result.getMsgInfo());
-            return "redirect:/experiment/list";
-        }
-        return "redirect:/experiment/list";
+        do {
+
+            ResultDO<ExperimentDO> resultDO = experimentService.getById(id);
+            if (resultDO.isFailed()) {
+                status = -2;
+                data.put("errorMsg", resultDO.getMsgInfo());
+                break;
+            }
+
+            ExperimentDO experimentDO = resultDO.getModel();
+            try {
+                PermissionUtil.check(resultDO.getModel());
+
+            } catch (Exception e) {
+                status = -3;
+                break;
+            }
+
+            ProjectDO project = projectService.getByName(projectName);
+            if (project == null) {
+                status = -4;
+                data.put("errorMsg", resultDO.getMsgInfo());
+                break;
+            }
+
+            try {
+                PermissionUtil.check(project);
+            } catch (UnauthorizedAccessException e) {
+                status = -5;
+                data.put("errorMsg", ResultCode.UNAUTHORIZED_ACCESS.getMessage());
+                break;
+            }
+
+            experimentDO.setName(name);
+            experimentDO.setType(type);
+            experimentDO.setProjectName(projectName);
+            experimentDO.setProjectId(project.getId());
+            experimentDO.setDescription(description);
+            experimentDO.setIRtLibraryId(iRtLibraryId);
+            IrtResult irtResult = experimentDO.getIrtResult();
+            irtResult.setSi(new SlopeIntercept(slope, intercept));
+            experimentDO.setIrtResult(irtResult);
+            ResultDO result = experimentService.update(experimentDO);
+
+            if (result.isFailed()) {
+                status = -6;
+                data.put("errorMsg", result.getMsgInfo());
+                break;
+            }
+
+            // 更新成功
+            status = 0;
+
+        } while (false);
+
+        map.put("status", status);
+        map.put("data", data);
+
+        // 返回数据
+        return JSON.toJSONString(map, SerializerFeature.WriteNonStringKeyAsString);
 
     }
 

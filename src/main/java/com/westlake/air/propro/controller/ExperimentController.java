@@ -238,18 +238,54 @@ public class ExperimentController extends BaseController {
 
     }
 
-    @PostMapping(value = "/detail/{id}")
-    String detail(Model model, @PathVariable("id") String id, RedirectAttributes redirectAttributes) {
-        ResultDO<ExperimentDO> resultDO = experimentService.getById(id);
-        if (resultDO.isSuccess()) {
+    /***
+     * @updateTime 2019-10-11 16:34:15
+     * @Archive 查看实验列表详情
+     * @param id
+     * @return 0 success
+     */
+    @PostMapping(value = "/detail")
+    String detail(@RequestParam(value = "id") String id) {
+
+
+        Map<String, Object> map = new HashMap<String, Object>();
+        // 状态标记
+        int status = -1;
+
+        Map<String, Object> data = new HashMap<String, Object>();
+
+        do {
+
+            ResultDO<ExperimentDO> resultDO = experimentService.getById(id);
+            if (true != resultDO.isSuccess()) {
+                status = -2;
+                data.put("errorMsg", resultDO.getMsgInfo());
+                break;
+
+            }
+
             ExperimentDO exp = resultDO.getModel();
-            PermissionUtil.check(exp);
-            model.addAttribute("experiment", exp);
-            return "experiment/detail";
-        } else {
-            redirectAttributes.addFlashAttribute(ERROR_MSG, resultDO.getMsgInfo());
-            return "redirect:/experiment/list";
-        }
+
+            try {
+
+                PermissionUtil.check(exp);
+            } catch (Exception e) {
+
+                status = -3;
+                break;
+            }
+            data.put("experiment", exp);
+            // 成功
+            status = 0;
+
+        } while (false);
+
+        map.put("status", status);
+        map.put("data", data);
+
+        // 返回数据
+        return JSON.toJSONString(map, SerializerFeature.WriteNonStringKeyAsString);
+
     }
 
     /***

@@ -238,6 +238,7 @@ public class ExperimentController extends BaseController {
 
     }
 
+
     /***
      * @updateTime 2019-10-11 16:34:15
      * @Archive 查看实验列表详情
@@ -258,10 +259,10 @@ public class ExperimentController extends BaseController {
 
             ResultDO<ExperimentDO> resultDO = experimentService.getById(id);
             if (true != resultDO.isSuccess()) {
+
                 status = -2;
                 data.put("errorMsg", resultDO.getMsgInfo());
                 break;
-
             }
 
             ExperimentDO exp = resultDO.getModel();
@@ -287,6 +288,7 @@ public class ExperimentController extends BaseController {
         return JSON.toJSONString(map, SerializerFeature.WriteNonStringKeyAsString);
 
     }
+
 
     /***
      * @UpdateAuthor tangtao https://www.promiselee.cn/tao

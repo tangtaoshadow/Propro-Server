@@ -100,7 +100,6 @@ public class ExperimentController extends BaseController {
                 query.setName(expName);
             }
 
-
             if (projectName != null && !projectName.isEmpty()) {
 
                 ProjectDO project = projectService.getByName(projectName);
@@ -130,7 +129,6 @@ public class ExperimentController extends BaseController {
 
             for (ExperimentDO experimentDO : resultDO.getModel()) {
                 List<AnalyseOverviewDO> analyseOverviewDOList = analyseOverviewService.getAllByExpId(experimentDO.getId());
-
 
                 if (analyseOverviewDOList.isEmpty()) {
                     continue;
@@ -384,17 +382,50 @@ public class ExperimentController extends BaseController {
 
     }
 
-    @PostMapping(value = "/delete/{id}")
-    String delete(Model model, @PathVariable("id") String id, RedirectAttributes redirectAttributes) {
-        ResultDO<ExperimentDO> exp = experimentService.getById(id);
-        PermissionUtil.check(exp.getModel());
-        experimentService.delete(id);
-        swathIndexService.deleteAllByExpId(id);
-        analyseOverviewService.deleteAllByExpId(id);
 
-        redirectAttributes.addFlashAttribute("projectName", exp.getModel().getProjectName());
-        redirectAttributes.addFlashAttribute(SUCCESS_MSG, SuccessMsg.DELETE_SUCCESS);
-        return "redirect:/experiment/list";
+    /***
+     * @updateTime 2019-10-13 00:32:53 tangtao
+     * @Archive 删除指定id的实验列表数据
+     * @param id 删除的id
+     * @return success 0
+     */
+    @PostMapping(value = "/delete")
+    String delete(@RequestParam("id") String id) {
+
+        Map<String, Object> map = new HashMap<String, Object>();
+        // 状态标记
+        int status = -1;
+
+        Map<String, Object> data = new HashMap<String, Object>();
+
+        do {
+
+            try {
+
+                ResultDO<ExperimentDO> exp = experimentService.getById(id);
+                PermissionUtil.check(exp.getModel());
+                experimentService.delete(id);
+                swathIndexService.deleteAllByExpId(id);
+                analyseOverviewService.deleteAllByExpId(id);
+                data.put("projectName", exp.getModel().getProjectName());
+
+            } catch (Exception e) {
+                status = -2;
+                break;
+            }
+
+
+            status = 0;
+
+        } while (false);
+
+
+        map.put("status", status);
+        map.put("data", data);
+
+        // 返回数据
+        return JSON.toJSONString(map, SerializerFeature.WriteNonStringKeyAsString);
+
     }
 
     @PostMapping(value = "/deleteAll/{id}")

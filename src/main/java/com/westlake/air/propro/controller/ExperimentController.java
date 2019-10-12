@@ -400,6 +400,12 @@ public class ExperimentController extends BaseController {
 
         do {
 
+            // test
+            if (true) {
+                status = 0;
+                break;
+            }
+
             try {
 
                 ResultDO<ExperimentDO> exp = experimentService.getById(id);

@@ -155,17 +155,44 @@ public class ExperimentController extends BaseController {
         return JSON.toJSONString(map, SerializerFeature.WriteNonStringKeyAsString);
     }
 
+    /***
+     * @updateTime 2019-10-13 17:26:51 tangtao
+     * @Archive 根据 expId 查找对应的 projectName
+     * @param expId
+     * @return -2 查询失败 0 success
+     */
     @PostMapping(value = "/listByExpId")
-    String listByExpId(Model model,
-                       @RequestParam(value = "expId", required = true) String expId) {
+    String listByExpId(
+            @RequestParam("expId") String expId) {
 
-        ResultDO<ExperimentDO> expResult = experimentService.getById(expId);
-        if (expResult.isFailed()) {
-            return "redirect:/experiment/list";
-        }
+        Map<String, Object> map = new HashMap<String, Object>();
 
-        ExperimentDO exp = expResult.getModel();
-        return "redirect:/experiment/list?projectName=" + exp.getProjectName();
+        // 状态标记
+        int status = -1;
+
+        Map<String, Object> data = new HashMap<String, Object>();
+
+        do {
+
+            ResultDO<ExperimentDO> expResult = experimentService.getById(expId);
+
+            if (expResult.isFailed()) {
+                status = -2;
+                break;
+            }
+
+            ExperimentDO exp = expResult.getModel();
+            data.put("projectName", exp.getProjectName());
+
+            status = 0;
+
+        } while (false);
+
+        map.put("status", status);
+        map.put("data", data);
+
+        // 返回数据
+        return JSON.toJSONString(map, SerializerFeature.WriteNonStringKeyAsString);
     }
 
     @PostMapping(value = "/create")

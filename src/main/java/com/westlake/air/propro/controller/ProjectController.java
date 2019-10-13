@@ -1,5 +1,7 @@
 package com.westlake.air.propro.controller;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.westlake.air.propro.component.ChunkUploader;
 import com.westlake.air.propro.config.VMProperties;
 import com.westlake.air.propro.constants.Constants;
@@ -66,30 +68,61 @@ public class ProjectController extends BaseController {
     @Autowired
     ChunkUploader chunkUploader;
 
+    /***
+     * @UpdateTime 2019-10-13 18:52:38 tangtao
+     * @Archive 查询项目列表
+     * @param currentPage
+     * @param pageSize
+     * @param name
+     * @return
+     */
     @RequestMapping(value = "/list")
-    String list(Model model,
-                @RequestParam(value = "currentPage", required = false, defaultValue = "1") Integer currentPage,
-                @RequestParam(value = "pageSize", required = false, defaultValue = "50") Integer pageSize,
-                @RequestParam(value = "name", required = false) String name) {
-        model.addAttribute("name", name);
-        model.addAttribute("pageSize", pageSize);
-        ProjectQuery query = new ProjectQuery();
-        if (name != null && !name.isEmpty()) {
-            query.setName(name);
-        }
+    String list(
+            @RequestParam(value = "currentPage", required = false, defaultValue = "1") Integer currentPage,
+            @RequestParam(value = "pageSize", required = false, defaultValue = "500") Integer pageSize,
+            @RequestParam(value = "name", required = false) String name) {
 
-        if (!isAdmin()) {
-            query.setOwnerName(getCurrentUsername());
-        }
-        query.setPageSize(pageSize);
-        query.setPageNo(currentPage);
-        ResultDO<List<ProjectDO>> resultDO = projectService.getList(query);
+        Map<String, Object> map = new HashMap<String, Object>();
 
-        model.addAttribute("repository", RepositoryUtil.getRepo());
-        model.addAttribute("projectList", resultDO.getModel());
-        model.addAttribute("totalPage", resultDO.getTotalPage());
-        model.addAttribute("currentPage", currentPage);
-        return "project/list";
+        // 状态标记
+        int status = -1;
+
+        Map<String, Object> data = new HashMap<String, Object>();
+
+        do {
+
+            data.put("name", name);
+            data.put("pageSize", pageSize);
+
+            ProjectQuery query = new ProjectQuery();
+
+            if (name != null && !name.isEmpty()) {
+                query.setName(name);
+            }
+
+            if (!isAdmin()) {
+                query.setOwnerName(getCurrentUsername());
+            }
+
+            query.setPageSize(pageSize);
+            query.setPageNo(currentPage);
+            ResultDO<List<ProjectDO>> resultDO = projectService.getList(query);
+
+            data.put("repository", RepositoryUtil.getRepo());
+            data.put("projectList", resultDO.getModel());
+            data.put("totalPage", resultDO.getTotalPage());
+            data.put("totalNumbers", resultDO.getTotalNum());
+            data.put("currentPage", currentPage);
+
+            status = 0;
+
+        } while (false);
+
+        map.put("status", status);
+        map.put("data", data);
+
+        // 返回数据
+        return JSON.toJSONString(map, SerializerFeature.WriteNonStringKeyAsString);
     }
 
     @RequestMapping(value = "/create")
@@ -701,10 +734,10 @@ public class ProjectController extends BaseController {
 
     @RequestMapping(value = "/doWriteToFile", method = RequestMethod.POST)
     void doWriteToFile(Model model,
-                         @RequestParam(value = "projectId", required = true) String projectId,
-                         HttpServletRequest request,
-                         HttpServletResponse response,
-                         RedirectAttributes redirectAttributes) {
+                       @RequestParam(value = "projectId", required = true) String projectId,
+                       HttpServletRequest request,
+                       HttpServletResponse response,
+                       RedirectAttributes redirectAttributes) {
 
         ProjectDO projectDO = projectService.getById(projectId);
         PermissionUtil.check(projectDO);
@@ -718,7 +751,7 @@ public class ProjectController extends BaseController {
             if (checkState != null && checkState.equals("on")) {
                 //取每一个实验的第一个分析结果进行分析
                 AnalyseOverviewDO analyseOverview = analyseOverviewService.getFirstAnalyseOverviewByExpId(simpleExp.getId());
-                if(analyseOverview == null){
+                if (analyseOverview == null) {
                     continue;
                 }
                 List<PeptideIntensity> peptideIntensityList = analyseDataService.getPeptideIntensityByOverviewId(analyseOverview.getId());
@@ -759,8 +792,8 @@ public class ProjectController extends BaseController {
             response.setHeader("content-type", "application/octet-stream");
             response.setContentType("application/octet-stream");
             response.setCharacterEncoding("gbk");
-            response.setHeader("Cache-Control","max-age=60");
-            response.setHeader("Content-Disposition","attachment;filename="+ URLEncoder.encode(projectDO.getName()+".tsv", "gbk"));
+            response.setHeader("Cache-Control", "max-age=60");
+            response.setHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(projectDO.getName() + ".tsv", "gbk"));
             os.write(sb.toString().getBytes("gbk"));
             os.flush();
         } catch (Exception e) {

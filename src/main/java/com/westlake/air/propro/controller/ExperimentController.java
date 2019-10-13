@@ -76,7 +76,7 @@ public class ExperimentController extends BaseController {
     @PostMapping(value = "/list")
     String list(Model model,
                 @RequestParam(value = "currentPage", required = false, defaultValue = "1") Integer currentPage,
-                @RequestParam(value = "pageSize", required = false, defaultValue = "50") Integer pageSize,
+                @RequestParam(value = "pageSize", required = false, defaultValue = "500") Integer pageSize,
                 @RequestParam(value = "projectName", required = false) String projectName,
                 @RequestParam(value = "type", required = false) String type,
                 @RequestParam(value = "expName", required = false) String expName) {

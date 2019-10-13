@@ -28,7 +28,6 @@ import com.westlake.air.propro.utils.*;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -47,7 +46,7 @@ import java.util.stream.Collectors;
  * Created by James Lu MiaoShan
  * Time: 2018-07-04 10:00
  */
-@Controller
+@RestController
 @RequestMapping("project")
 public class ProjectController extends BaseController {
 
@@ -76,7 +75,7 @@ public class ProjectController extends BaseController {
      * @param name
      * @return
      */
-    @RequestMapping(value = "/list")
+    @PostMapping(value = "/list")
     String list(
             @RequestParam(value = "currentPage", required = false, defaultValue = "1") Integer currentPage,
             @RequestParam(value = "pageSize", required = false, defaultValue = "500") Integer pageSize,
@@ -123,9 +122,10 @@ public class ProjectController extends BaseController {
 
         // 返回数据
         return JSON.toJSONString(map, SerializerFeature.WriteNonStringKeyAsString);
+
     }
 
-    @RequestMapping(value = "/create")
+    @PostMapping(value = "/create")
     String create(Model model) {
 
         model.addAttribute("libraries", getLibraryList(0, true));
@@ -134,7 +134,7 @@ public class ProjectController extends BaseController {
         return "project/create";
     }
 
-    @RequestMapping(value = "/add")
+    @PostMapping(value = "/add")
     String add(Model model,
                @RequestParam(value = "name", required = true) String name,
                @RequestParam(value = "description", required = false) String description,
@@ -185,7 +185,7 @@ public class ProjectController extends BaseController {
         return "redirect:/project/list";
     }
 
-    @RequestMapping(value = "/edit/{id}")
+    @PostMapping(value = "/edit/{id}")
     String edit(Model model, @PathVariable("id") String id,
                 RedirectAttributes redirectAttributes) {
 
@@ -204,7 +204,7 @@ public class ProjectController extends BaseController {
         }
     }
 
-    @RequestMapping(value = "/update", method = RequestMethod.POST)
+    @PostMapping(value = "/update")
     String update(Model model, @RequestParam("id") String id,
                   @RequestParam(value = "description", required = false) String description,
                   @RequestParam(value = "type", required = true) String type,
@@ -238,7 +238,7 @@ public class ProjectController extends BaseController {
         return "redirect:/project/list";
     }
 
-    @RequestMapping(value = "/filemanager")
+    @PostMapping(value = "/filemanager")
     String fileManager(Model model, @RequestParam(value = "name", required = true) String name,
                        RedirectAttributes redirectAttributes) {
 
@@ -264,8 +264,7 @@ public class ProjectController extends BaseController {
 
     }
 
-    @RequestMapping(value = "/doupload", method = RequestMethod.POST)
-    @ResponseBody
+    @PostMapping(value = "/doupload")
     ResultDO doUpload(Model model,
                       @RequestParam(value = "projectName", required = true) String projectName,
                       @RequestParam("file") MultipartFile file,
@@ -278,14 +277,13 @@ public class ProjectController extends BaseController {
         return new ResultDO(true);
     }
 
-    @RequestMapping(value = "/check", method = RequestMethod.POST)
-    @ResponseBody
+    @PostMapping(value = "/check")
     public Object check(FileBlockVO block,
                         @RequestParam(value = "projectName", required = true) String projectName) {
         return chunkUploader.check(block, projectName);
     }
 
-    @RequestMapping(value = "/scan")
+    @PostMapping(value = "/scan")
     String scan(Model model,
                 @RequestParam(value = "projectId", required = true) String projectId,
                 RedirectAttributes redirectAttributes) {
@@ -336,7 +334,7 @@ public class ProjectController extends BaseController {
         return "redirect:/task/detail/" + taskDO.getId();
     }
 
-    @RequestMapping(value = "/irt")
+    @PostMapping(value = "/irt")
     String irt(Model model,
                @RequestParam(value = "id", required = true) String id,
                RedirectAttributes redirectAttributes) {
@@ -353,7 +351,7 @@ public class ProjectController extends BaseController {
         return "project/irt";
     }
 
-    @RequestMapping(value = "/doirt")
+    @PostMapping(value = "/doirt")
     String doIrt(Model model,
                  @RequestParam(value = "id", required = true) String id,
                  @RequestParam(value = "iRtLibraryId", required = false) String iRtLibraryId,
@@ -386,7 +384,7 @@ public class ProjectController extends BaseController {
         return "redirect:/task/list";
     }
 
-    @RequestMapping(value = "/setPublic/{id}")
+    @PostMapping(value = "/setPublic/{id}")
     String setPublic(@PathVariable("id") String id,
                      RedirectAttributes redirectAttributes) {
         ProjectDO project = projectService.getById(id);
@@ -403,7 +401,7 @@ public class ProjectController extends BaseController {
         return "redirect:/project/list";
     }
 
-    @RequestMapping(value = "/deleteirt/{id}")
+    @PostMapping(value = "/deleteirt/{id}")
     String deleteIrt(@PathVariable("id") String id,
                      RedirectAttributes redirectAttributes) {
 
@@ -424,7 +422,7 @@ public class ProjectController extends BaseController {
         return "redirect:/project/list";
     }
 
-    @RequestMapping(value = "/deleteAll/{id}")
+    @PostMapping(value = "/deleteAll/{id}")
     String deleteAll(@PathVariable("id") String id,
                      RedirectAttributes redirectAttributes) {
         ProjectDO project = projectService.getById(id);
@@ -443,7 +441,7 @@ public class ProjectController extends BaseController {
         return "redirect:/project/list";
     }
 
-    @RequestMapping(value = "/deleteAnalyse/{id}")
+    @PostMapping(value = "/deleteAnalyse/{id}")
     String deleteAnalyse(@PathVariable("id") String id,
                          RedirectAttributes redirectAttributes) {
 
@@ -459,7 +457,7 @@ public class ProjectController extends BaseController {
         return "redirect:/project/list";
     }
 
-    @RequestMapping(value = "/extractor")
+    @PostMapping(value = "/extractor")
     String extractor(Model model,
                      @RequestParam(value = "id", required = true) String id,
                      RedirectAttributes redirectAttributes) {
@@ -484,7 +482,7 @@ public class ProjectController extends BaseController {
         return "project/extractor";
     }
 
-    @RequestMapping(value = "/doextract")
+    @PostMapping(value = "/doextract")
     String doExtract(Model model,
                      @RequestParam(value = "id", required = true) String id,
                      @RequestParam(value = "iRtLibraryId", required = false) String iRtLibraryId,
@@ -575,7 +573,7 @@ public class ProjectController extends BaseController {
         return "redirect:/task/list";
     }
 
-    @RequestMapping(value = "/portionSelector")
+    @PostMapping(value = "/portionSelector")
     String portionSelector(Model model,
                            @RequestParam(value = "id", required = true) String id,
                            RedirectAttributes redirectAttributes) {
@@ -594,7 +592,7 @@ public class ProjectController extends BaseController {
         return "project/portionSelector";
     }
 
-    @RequestMapping(value = "/overview")
+    @PostMapping(value = "/overview")
     String overview(Model model,
                     @RequestParam(value = "id", required = true) String projectId,
                     @RequestParam(value = "peptideRefInfo", required = false) String peptideRefInfo,
@@ -716,7 +714,7 @@ public class ProjectController extends BaseController {
         return "project/overview";
     }
 
-    @RequestMapping(value = "/writeToFile")
+    @PostMapping(value = "/writeToFile")
     String writeToFile(Model model,
                        @RequestParam(value = "id", required = true) String id,
                        RedirectAttributes redirectAttributes) {
@@ -732,7 +730,7 @@ public class ProjectController extends BaseController {
         return "project/outputSelector";
     }
 
-    @RequestMapping(value = "/doWriteToFile", method = RequestMethod.POST)
+    @PostMapping(value = "/doWriteToFile")
     void doWriteToFile(Model model,
                        @RequestParam(value = "projectId", required = true) String projectId,
                        HttpServletRequest request,

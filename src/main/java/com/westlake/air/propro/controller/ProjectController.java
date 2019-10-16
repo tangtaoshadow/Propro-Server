@@ -283,55 +283,80 @@ public class ProjectController extends BaseController {
         return chunkUploader.check(block, projectName);
     }
 
+
     @PostMapping(value = "/scan")
-    String scan(Model model,
-                @RequestParam(value = "projectId", required = true) String projectId,
-                RedirectAttributes redirectAttributes) {
-        ProjectDO project = projectService.getById(projectId);
-        PermissionUtil.check(project);
+    String scan(
+            @RequestParam(value = "projectId") String projectId) {
 
-        List<File> fileList = FileUtil.scanFiles(project.getName());
-        List<File> newFileList = new ArrayList<>();
-        List<ExperimentDO> exps = experimentService.getAllByProjectId(projectId);
-        List<String> existedExpNames = new ArrayList<>();
-        for (ExperimentDO exp : exps) {
-            existedExpNames.add(exp.getName());
-        }
-        //过滤文件
-        for (File file : fileList) {
-            if (file.isFile() && file.getName().toLowerCase().endsWith(SuffixConst.JSON) && !existedExpNames.contains(FilenameUtils.getBaseName(file.getName()))) {
-                newFileList.add(file);
+        Map<String, Object> map = new HashMap<String, Object>();
+        // 状态标记
+        int status = -1;
+
+        Map<String, Object> data = new HashMap<String, Object>();
+
+
+        do {
+
+            ProjectDO project = projectService.getById(projectId);
+            PermissionUtil.check(project);
+
+            List<File> fileList = FileUtil.scanFiles(project.getName());
+            List<File> newFileList = new ArrayList<>();
+            List<ExperimentDO> exps = experimentService.getAllByProjectId(projectId);
+            List<String> existedExpNames = new ArrayList<>();
+
+            for (ExperimentDO exp : exps) {
+                existedExpNames.add(exp.getName());
             }
-        }
-        if (newFileList.isEmpty()) {
-            redirectAttributes.addFlashAttribute(ERROR_MSG, ResultCode.NO_NEW_EXPERIMENTS.getMessage());
-            return "redirect:/project/list";
-        }
 
-        TaskDO taskDO = new TaskDO(TaskTemplate.SCAN_AND_UPDATE_EXPERIMENTS, project.getName());
-        taskDO.addLog(newFileList.size() + " total");
-        taskService.insert(taskDO);
-        List<ExperimentDO> expsToUpdate = new ArrayList<>();
-        for (File file : newFileList) {
-            ExperimentDO exp = new ExperimentDO();
-            exp.setName(FilenameUtils.getBaseName(file.getName()));
-            exp.setOwnerName(project.getOwnerName());
-            exp.setProjectId(project.getId());
-            exp.setProjectName(project.getName());
-            exp.setType(project.getType());
-            ResultDO result = experimentService.insert(exp);
-            if (result.isFailed()) {
-                taskDO.addLog("ERROR-" + exp.getId() + "-" + exp.getName());
-                taskDO.addLog(result.getMsgInfo());
-                taskService.update(taskDO);
+            //过滤文件
+            for (File file : fileList) {
+                if (file.isFile() && file.getName().toLowerCase().endsWith(SuffixConst.JSON) && !existedExpNames.contains(FilenameUtils.getBaseName(file.getName()))) {
+                    newFileList.add(file);
+                }
             }
-            expsToUpdate.add(exp);
-        }
+
+            if (newFileList.isEmpty()) {
+                data.put("errorMsg", ResultCode.NO_NEW_EXPERIMENTS.getMessage());
+                status = -2;
+                break;
+            }
+
+            TaskDO taskDO = new TaskDO(TaskTemplate.SCAN_AND_UPDATE_EXPERIMENTS, project.getName());
+            taskDO.addLog(newFileList.size() + " total");
+            taskService.insert(taskDO);
+            List<ExperimentDO> expsToUpdate = new ArrayList<>();
+
+            for (File file : newFileList) {
+                ExperimentDO exp = new ExperimentDO();
+                exp.setName(FilenameUtils.getBaseName(file.getName()));
+                exp.setOwnerName(project.getOwnerName());
+                exp.setProjectId(project.getId());
+                exp.setProjectName(project.getName());
+                exp.setType(project.getType());
+                ResultDO result = experimentService.insert(exp);
+                if (result.isFailed()) {
+                    taskDO.addLog("ERROR-" + exp.getId() + "-" + exp.getName());
+                    taskDO.addLog(result.getMsgInfo());
+                    taskService.update(taskDO);
+                }
+                expsToUpdate.add(exp);
+            }
 
 
-        experimentTask.uploadAird(expsToUpdate, taskDO);
+            experimentTask.uploadAird(expsToUpdate, taskDO);
+            status = 0;
 
-        return "redirect:/task/detail/" + taskDO.getId();
+        } while (false);
+        // return "redirect:/task/detail/" + taskDO.getId();
+
+        map.put("status", status);
+        map.put("data", data);
+
+        // 返回数据
+        return JSON.toJSONString(map, SerializerFeature.WriteNonStringKeyAsString);
+
+
     }
 
     @PostMapping(value = "/irt")

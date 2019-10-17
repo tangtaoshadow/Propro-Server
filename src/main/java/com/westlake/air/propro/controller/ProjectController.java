@@ -185,23 +185,49 @@ public class ProjectController extends BaseController {
         return "redirect:/project/list";
     }
 
-    @PostMapping(value = "/edit/{id}")
-    String edit(Model model, @PathVariable("id") String id,
-                RedirectAttributes redirectAttributes) {
 
-        ProjectDO project = projectService.getById(id);
-        if (project == null) {
-            redirectAttributes.addFlashAttribute(ERROR_MSG, ResultCode.PROJECT_NOT_EXISTED.getMessage());
-            return "redirect:/project/list";
-        } else {
+    /***
+     *
+     * @updateTime 2019-10-17 23:52:22 tangtao
+     * @archive 编辑 project list
+     * @param id
+     * @return 0 success
+     */
+    @PostMapping(value = "/edit")
+    String edit(@RequestParam("id") String id) {
+        Map<String, Object> map = new HashMap<String, Object>();
+        // 状态标记
+        int status = -1;
+
+        Map<String, Object> data = new HashMap<String, Object>();
+
+
+        do {
+            ProjectDO project = projectService.getById(id);
+            if (project == null) {
+                status = -2;
+                break;
+                // redirectAttributes.addFlashAttribute(ERROR_MSG, ResultCode.PROJECT_NOT_EXISTED.getMessage());
+                // return "redirect:/project/list";
+            }
+
             PermissionUtil.check(project);
-            model.addAttribute("libraryId", project.getLibraryId());
-            model.addAttribute("iRtLibraryId", project.getIRtLibraryId());
-            model.addAttribute("libraries", getLibraryList(0, true));
-            model.addAttribute("iRtLibraries", getLibraryList(1, true));
-            model.addAttribute("project", project);
-            return "project/edit";
-        }
+            data.put("libraryId", project.getLibraryId());
+            data.put("iRtLibraryId", project.getIRtLibraryId());
+            data.put("libraries", getLibraryList(0, true));
+            data.put("iRtLibraries", getLibraryList(1, true));
+            data.put("project", project);
+
+            status = 0;
+        } while (false);
+
+
+        map.put("status", status);
+        map.put("data", data);
+
+        // 返回数据
+        return JSON.toJSONString(map, SerializerFeature.WriteNonStringKeyAsString);
+
     }
 
     @PostMapping(value = "/update")
@@ -294,7 +320,6 @@ public class ProjectController extends BaseController {
 
         Map<String, Object> data = new HashMap<String, Object>();
 
-
         do {
 
             ProjectDO project = projectService.getById(projectId);
@@ -317,6 +342,7 @@ public class ProjectController extends BaseController {
             }
 
             if (newFileList.isEmpty()) {
+                // 没有扫描到新实验
                 data.put("errorMsg", ResultCode.NO_NEW_EXPERIMENTS.getMessage());
                 status = -2;
                 break;
@@ -348,15 +374,12 @@ public class ProjectController extends BaseController {
             status = 0;
 
         } while (false);
-        // return "redirect:/task/detail/" + taskDO.getId();
 
         map.put("status", status);
         map.put("data", data);
 
         // 返回数据
         return JSON.toJSONString(map, SerializerFeature.WriteNonStringKeyAsString);
-
-
     }
 
     @PostMapping(value = "/irt")

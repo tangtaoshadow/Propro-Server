@@ -264,29 +264,56 @@ public class ProjectController extends BaseController {
         return "redirect:/project/list";
     }
 
+    /***
+     * @Archive 文件管理 tangtao 2019-10-18 13:21:09
+     * @param name
+     * @return 0 status
+     */
     @PostMapping(value = "/filemanager")
-    String fileManager(Model model, @RequestParam(value = "name", required = true) String name,
-                       RedirectAttributes redirectAttributes) {
+    String fileManager(@RequestParam(value = "projectName", required = true) String name) {
 
-        ProjectDO project = projectService.getByName(name);
-        PermissionUtil.check(project);
+        Map<String, Object> map = new HashMap<String, Object>();
+        // 状态标记
+        int status = -1;
 
-        List<File> fileList = FileUtil.scanFiles(name);
-        List<FileVO> fileVOList = new ArrayList<>();
-        for (File file : fileList) {
-            FileVO fileVO = new FileVO();
-            fileVO.setName(file.getName());
-            fileVO.setSize(file.length());
-            if (file.length() / 1024 / 1024 > 0) {
-                fileVO.setSizeStr(file.length() / 1024 / 1024 + " MB");
-            } else {
-                fileVO.setSizeStr(file.length() / 1024 + " KB");
+        Map<String, Object> data = new HashMap<String, Object>();
+
+        do {
+            ProjectDO project = projectService.getByName(name);
+            try {
+                PermissionUtil.check(project);
+
+            } catch (Exception e) {
+                status = -2;
+                break;
             }
-            fileVOList.add(fileVO);
-        }
-        model.addAttribute("project", project);
-        model.addAttribute("fileList", fileVOList);
-        return "project/file_manager";
+
+            List<File> fileList = FileUtil.scanFiles(name);
+            List<FileVO> fileVOList = new ArrayList<>();
+
+            for (File file : fileList) {
+                FileVO fileVO = new FileVO();
+                fileVO.setName(file.getName());
+                fileVO.setSize(file.length());
+                if (file.length() / 1024 / 1024 > 0) {
+                    fileVO.setSizeStr(file.length() / 1024 / 1024 + " MB");
+                } else {
+                    fileVO.setSizeStr(file.length() / 1024 + " KB");
+                }
+                fileVOList.add(fileVO);
+            }
+
+            data.put("project", project);
+            data.put("fileList", fileVOList);
+
+            status = 0;
+        } while (false);
+
+        map.put("status", status);
+        map.put("data", data);
+
+        // 返回数据
+        return JSON.toJSONString(map, SerializerFeature.WriteNonStringKeyAsString);
 
     }
 

@@ -230,6 +230,16 @@ public class ProjectController extends BaseController {
 
     }
 
+    /***
+     * @archive 更新项目列表
+     * @update tangtao 2019-10-23 12:40:21
+     * @param id
+     * @param description
+     * @param type
+     * @param libraryId
+     * @param iRtLibraryId
+     * @return
+     */
     @PostMapping(value = "/update")
     String update(@RequestParam("id") String id,
                   @RequestParam(value = "description", required = false) String description,

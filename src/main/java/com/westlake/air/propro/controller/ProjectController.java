@@ -464,7 +464,14 @@ public class ProjectController extends BaseController {
         do {
 
             ProjectDO project = projectService.getById(id);
-            PermissionUtil.check(project);
+            try {
+
+                PermissionUtil.check(project);
+
+            } catch (Exception e) {
+                status = -2;
+                break;
+            }
             List<ExperimentDO> expList = experimentService.getAllByProjectName(project.getName());
 
             data.put("exps", expList);
@@ -472,6 +479,8 @@ public class ProjectController extends BaseController {
             data.put("iRtLibraryId", project.getIRtLibraryId());
             data.put("libraries", getLibraryList(1, true));
 
+            // success
+            status = 0;
         } while (false);
 
         map.put("status", status);

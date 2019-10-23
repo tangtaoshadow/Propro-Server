@@ -445,21 +445,41 @@ public class ProjectController extends BaseController {
         return JSON.toJSONString(map, SerializerFeature.WriteNonStringKeyAsString);
     }
 
+    /***
+     * @archive 批量计算irt
+     * @update tangtao at 2019-10-23 13:35:30 https://www.promiselee.cn/tao
+     * @param id
+     * @return
+     */
     @PostMapping(value = "/irt")
-    String irt(Model model,
-               @RequestParam(value = "id", required = true) String id,
-               RedirectAttributes redirectAttributes) {
+    String irt(
+            @RequestParam(value = "id") String id) {
 
-        ProjectDO project = projectService.getById(id);
-        PermissionUtil.check(project);
-        List<ExperimentDO> expList = experimentService.getAllByProjectName(project.getName());
+        Map<String, Object> map = new HashMap<String, Object>();
+        // 状态标记
+        int status = -1;
 
-        model.addAttribute("exps", expList);
-        model.addAttribute("project", project);
-        model.addAttribute("iRtLibraryId", project.getIRtLibraryId());
-        model.addAttribute("libraries", getLibraryList(1, true));
+        Map<String, Object> data = new HashMap<String, Object>();
 
-        return "project/irt";
+        do {
+
+            ProjectDO project = projectService.getById(id);
+            PermissionUtil.check(project);
+            List<ExperimentDO> expList = experimentService.getAllByProjectName(project.getName());
+
+            data.put("exps", expList);
+            data.put("project", project);
+            data.put("iRtLibraryId", project.getIRtLibraryId());
+            data.put("libraries", getLibraryList(1, true));
+
+        } while (false);
+
+        map.put("status", status);
+        map.put("data", data);
+
+        // 返回数据
+        return JSON.toJSONString(map, SerializerFeature.WriteNonStringKeyAsString);
+
     }
 
     @PostMapping(value = "/doirt")

@@ -477,7 +477,7 @@ public class ProjectController extends BaseController {
             data.put("exps", expList);
             data.put("project", project);
             data.put("iRtLibraryId", project.getIRtLibraryId());
-            data.put("libraries", getLibraryList(1, true));
+            data.put("iRtLibraries", getLibraryList(1, true));
 
             // success
             status = 0;

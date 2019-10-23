@@ -239,29 +239,48 @@ public class ProjectController extends BaseController {
                   RedirectAttributes redirectAttributes) {
 
 
-        ProjectDO project = projectService.getById(id);
-        PermissionUtil.check(project);
+        Map<String, Object> map = new HashMap<String, Object>();
+        // 状态标记
+        int status = -1;
 
-        project.setDescription(description);
-        project.setType(type);
-        LibraryDO lib = libraryService.getById(libraryId);
-        if (lib != null) {
-            project.setLibraryId(lib.getId());
-            project.setLibraryName(lib.getName());
-        }
+        Map<String, Object> data = new HashMap<String, Object>();
 
-        LibraryDO iRtLib = libraryService.getById(iRtLibraryId);
-        if (iRtLib != null) {
-            project.setIRtLibraryId(iRtLib.getId());
-            project.setIRtLibraryName(iRtLib.getName());
-        }
 
-        ResultDO result = projectService.update(project);
-        if (result.isFailed()) {
-            model.addAttribute(ERROR_MSG, result.getMsgInfo());
-            return "project/create";
-        }
-        return "redirect:/project/list";
+        do {
+
+            ProjectDO project = projectService.getById(id);
+            PermissionUtil.check(project);
+
+            project.setDescription(description);
+            project.setType(type);
+            LibraryDO lib = libraryService.getById(libraryId);
+            if (lib != null) {
+                project.setLibraryId(lib.getId());
+                project.setLibraryName(lib.getName());
+            }
+
+            LibraryDO iRtLib = libraryService.getById(iRtLibraryId);
+            if (iRtLib != null) {
+                project.setIRtLibraryId(iRtLib.getId());
+                project.setIRtLibraryName(iRtLib.getName());
+            }
+
+            ResultDO result = projectService.update(project);
+            if (result.isFailed()) {
+                data.put(ERROR_MSG, result.getMsgInfo());
+                return "project/create";
+            }
+
+        } while (false);
+
+
+        map.put("status", status);
+        map.put("data", data);
+
+        // 返回数据
+        return JSON.toJSONString(map, SerializerFeature.WriteNonStringKeyAsString);
+        
+
     }
 
     /***

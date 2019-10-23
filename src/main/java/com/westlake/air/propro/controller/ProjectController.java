@@ -231,12 +231,11 @@ public class ProjectController extends BaseController {
     }
 
     @PostMapping(value = "/update")
-    String update(Model model, @RequestParam("id") String id,
+    String update(@RequestParam("id") String id,
                   @RequestParam(value = "description", required = false) String description,
-                  @RequestParam(value = "type", required = true) String type,
+                  @RequestParam(value = "type") String type,
                   @RequestParam(value = "libraryId", required = false) String libraryId,
-                  @RequestParam(value = "iRtLibraryId", required = false) String iRtLibraryId,
-                  RedirectAttributes redirectAttributes) {
+                  @RequestParam(value = "iRtLibraryId", required = false) String iRtLibraryId) {
 
 
         Map<String, Object> map = new HashMap<String, Object>();

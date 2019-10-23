@@ -249,7 +249,13 @@ public class ProjectController extends BaseController {
         do {
 
             ProjectDO project = projectService.getById(id);
-            PermissionUtil.check(project);
+            try {
+                PermissionUtil.check(project);
+
+            } catch (Exception e) {
+                status = -2;
+                break;
+            }
 
             project.setDescription(description);
             project.setType(type);
@@ -267,10 +273,12 @@ public class ProjectController extends BaseController {
 
             ResultDO result = projectService.update(project);
             if (result.isFailed()) {
-                data.put(ERROR_MSG, result.getMsgInfo());
-                return "project/create";
+                data.put("errorMsg", result.getMsgInfo());
+                status = -3;
+                break;
             }
 
+            status = 0;
         } while (false);
 
 
@@ -279,7 +287,7 @@ public class ProjectController extends BaseController {
 
         // 返回数据
         return JSON.toJSONString(map, SerializerFeature.WriteNonStringKeyAsString);
-        
+
 
     }
 

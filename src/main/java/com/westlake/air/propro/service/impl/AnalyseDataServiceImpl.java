@@ -221,10 +221,13 @@ public class AnalyseDataServiceImpl implements AnalyseDataService {
     }
 
     @Override
-    public int countProteins(String overviewId) {
+    public int countIdentifiedProteins(String overviewId) {
         AnalyseDataQuery query = new AnalyseDataQuery();
         query.setOverviewId(overviewId);
         query.setIsDecoy(false);
+        List<Integer> status = new ArrayList<>();
+        status.add(AnalyseDataDO.IDENTIFIED_STATUS_SUCCESS);
+        query.setIdentifiedStatus(status);
         List<ProteinPeptide> ppList = analyseDataDAO.getAll(query, ProteinPeptide.class);
         HashSet<String> proteins = new HashSet<>();
         for (ProteinPeptide pp : ppList) {

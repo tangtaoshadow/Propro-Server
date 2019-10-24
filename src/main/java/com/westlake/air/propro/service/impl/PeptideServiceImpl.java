@@ -2,7 +2,6 @@ package com.westlake.air.propro.service.impl;
 
 import com.westlake.air.propro.algorithm.formula.FormulaCalculator;
 import com.westlake.air.propro.algorithm.formula.FragmentFactory;
-import com.westlake.air.propro.constants.Constants;
 import com.westlake.air.propro.constants.ResidueType;
 import com.westlake.air.propro.constants.enums.ResultCode;
 import com.westlake.air.propro.dao.LibraryDAO;
@@ -14,6 +13,7 @@ import com.westlake.air.propro.domain.db.LibraryDO;
 import com.westlake.air.propro.domain.db.PeptideDO;
 import com.westlake.air.propro.domain.db.simple.Protein;
 import com.westlake.air.propro.domain.db.simple.SimplePeptide;
+import com.westlake.air.propro.domain.params.CoordinateBuildingParams;
 import com.westlake.air.propro.domain.query.PeptideQuery;
 import com.westlake.air.propro.service.ExperimentService;
 import com.westlake.air.propro.service.PeptideService;
@@ -29,6 +29,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.regex.Pattern;
+
+import static com.westlake.air.propro.constants.ExpTypeConst.*;
 
 /**
  * Created by James Lu MiaoShan
@@ -223,34 +225,38 @@ public class PeptideServiceImpl implements PeptideService {
     }
 
     @Override
-    public List<SimplePeptide> buildMS2Coordinates(LibraryDO library, SlopeIntercept slopeIntercept, float rtExtractionWindows, WindowRange mzRange, Float[] rtRange, String type, boolean uniqueCheck, Boolean noDecoy) {
+    public List<SimplePeptide> buildCoordinates(LibraryDO library, WindowRange mzRange, CoordinateBuildingParams params) {
 
         long start = System.currentTimeMillis();
         PeptideQuery query = new PeptideQuery(library.getId());
         float precursorMz = mzRange.getMz();
-        if (type.equals(Constants.EXP_TYPE_PRM)) {
-            //TODO: PRM
-            query.setMzStart(precursorMz - 0.0006d);
-            query.setMzEnd(precursorMz + 0.0006d);
-        } else {
-            query.setMzStart((double) mzRange.getStart());
-            query.setMzEnd((double) mzRange.getEnd());
-        }
-        if (uniqueCheck) {
-            query.setIsUnique(true);
-        }
-
-        List<SimplePeptide> targetList = peptideDAO.getSPAll(query);
-        if (type.equals(Constants.EXP_TYPE_PRM)) {
-            prmFilter(targetList, rtExtractionWindows, slopeIntercept, rtRange, precursorMz);
+        switch (params.getType()){
+            case PRM:
+                query.setMzStart(precursorMz - 0.0006d);
+                query.setMzEnd(precursorMz + 0.0006d);
+                break;
+            case DIA_SWATH:
+            case SCANNING_SWATH:
+                query.setMzStart((double) mzRange.getStart());
+                query.setMzEnd((double) mzRange.getEnd());
+                break;
+            default:
+                break;
         }
 
-        long readDB = System.currentTimeMillis() - start;
-        if (rtExtractionWindows != -1) {
+        query.setIsUnique(params.isUniqueCheck()?true:null);
+
+        List<SimplePeptide> targetList = peptideDAO.getSPAll(query, params.getLimit());
+        if (params.getType().equals(PRM)) {
+            prmFilter(targetList, params.getRtExtractionWindows(), params.getSlopeIntercept(), params.getRtRange(), precursorMz);
+        }
+
+        long dbReadTime = System.currentTimeMillis() - start;
+        if (-1 != params.getRtExtractionWindows()) {
             for (SimplePeptide simplePeptide : targetList) {
-                float iRt = (simplePeptide.getRt() - slopeIntercept.getIntercept().floatValue()) / slopeIntercept.getSlope().floatValue();
-                simplePeptide.setRtStart(iRt - rtExtractionWindows / 2.0f);
-                simplePeptide.setRtEnd(iRt + rtExtractionWindows / 2.0f);
+                float iRt = (simplePeptide.getRt() - params.getSlopeIntercept().getIntercept().floatValue()) / params.getSlopeIntercept().getSlope().floatValue();
+                simplePeptide.setRtStart(iRt - params.getRtExtractionWindows() / 2.0f);
+                simplePeptide.setRtEnd(iRt + params.getRtExtractionWindows() / 2.0f);
             }
         } else {
             for (SimplePeptide simplePeptide : targetList) {
@@ -259,7 +265,7 @@ public class PeptideServiceImpl implements PeptideService {
             }
         }
 
-        logger.info("构建提取XIC的MS2坐标,总计" + targetList.size() + "条记录,读取标准库耗时:" + readDB + "毫秒");
+        logger.info("构建提取XIC的MS2坐标,总计" + targetList.size() + "条记录,读取标准库耗时:" + dbReadTime + "毫秒");
         return targetList;
     }
 

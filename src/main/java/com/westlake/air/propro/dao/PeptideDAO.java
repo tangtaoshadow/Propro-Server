@@ -95,8 +95,11 @@ public class PeptideDAO extends BaseDAO<PeptideDO, PeptideQuery>{
         return mongoTemplate.findOne(query, SimplePeptide.class, CollectionName);
     }
 
-    public List<SimplePeptide> getSPAll(PeptideQuery query) {
+    public List<SimplePeptide> getSPAll(PeptideQuery query, Integer limit) {
         Query q = buildQueryWithoutPage(query);
+        if(limit != null){
+            q.limit(limit);
+        }
         q.withHint("{'libraryId':1}");//使用libraryId作为第一优先索引
         return mongoTemplate.find(q, SimplePeptide.class, CollectionName);
     }

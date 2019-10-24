@@ -80,7 +80,7 @@ public class ScoreServiceImpl implements ScoreService {
     @Override
     public void scoreForOne(AnalyseDataDO dataDO, SimplePeptide peptide, TreeMap<Float, MzIntensityPairs> rtMap, WorkflowParams input) {
 
-        if (dataDO.getIntensityMap() == null || dataDO.getIntensityMap().size() <= peptide.getFragmentMap().size()/2) {
+        if (dataDO.getIntensityMap() == null || dataDO.getIntensityMap().size() <= peptide.getFragmentMap().size() / 2) {
             dataDO.setIdentifiedStatus(AnalyseDataDO.IDENTIFIED_STATUS_NO_FIT);
             return;
         }
@@ -131,9 +131,9 @@ public class ScoreServiceImpl implements ScoreService {
             chromatographicScorer.calculateChromatographicScores(peakGroupFeature, normedLibIntMap, featureScores, input.getScoreTypes());
             Double shapeScore = featureScores.get(ScoreType.XcorrShape, input.getScoreTypes());
             Double shapeScoreWeighted = featureScores.get(ScoreType.XcorrShapeWeighted, input.getScoreTypes());
-            if(!dataDO.getIsDecoy()
+            if (!dataDO.getIsDecoy()
                     && ((shapeScoreWeighted != null && shapeScoreWeighted < input.getXcorrShapeWeightThreshold())
-                        || (shapeScore != null && shapeScore < input.getXcorrShapeThreshold()))){
+                    || (shapeScore != null && shapeScore < input.getXcorrShapeThreshold()))) {
                 continue;
             }
             //根据RT时间和前体MZ获取最近的一个原始谱图
@@ -181,7 +181,7 @@ public class ScoreServiceImpl implements ScoreService {
     }
 
     @Override
-    public void strictScoreForOne(AnalyseDataDO dataDO, SimplePeptide peptide, TreeMap<Float, MzIntensityPairs> rtMap) {
+    public void strictScoreForOne(AnalyseDataDO dataDO, SimplePeptide peptide, TreeMap<Float, MzIntensityPairs> rtMap, float shapeScoreThreshold) {
         if (dataDO.getIntensityMap() == null || dataDO.getIntensityMap().size() < peptide.getFragmentMap().size()) {
             dataDO.setIdentifiedStatus(AnalyseDataDO.IDENTIFIED_STATUS_NO_FIT);
             return;
@@ -201,8 +201,8 @@ public class ScoreServiceImpl implements ScoreService {
             scoreTypes.add(ScoreType.XcorrShape.getTypeName());
             scoreTypes.add(ScoreType.XcorrShapeWeighted.getTypeName());
             chromatographicScorer.calculateChromatographicScores(peakGroupFeature, normedLibIntMap, featureScores, scoreTypes);
-            if(featureScores.get(ScoreType.XcorrShapeWeighted.getTypeName(), scoreTypes) < 0.95
-                    || featureScores.get(ScoreType.XcorrShape.getTypeName(), scoreTypes) < 0.95){
+            if (featureScores.get(ScoreType.XcorrShapeWeighted.getTypeName(), scoreTypes) < shapeScoreThreshold
+                    || featureScores.get(ScoreType.XcorrShape.getTypeName(), scoreTypes) < shapeScoreThreshold) {
                 continue;
             }
             featureScores.setRt(peakGroupFeature.getApexRt());
@@ -224,7 +224,7 @@ public class ScoreServiceImpl implements ScoreService {
      * @param minCoverage limit of picking
      * @return pairsCorrected
      */
-    private List<Pair<Double,Double>> removeOutlierIterative(List<Pair<Double,Double>> pairs, double minRsq, double minCoverage, double delta) {
+    private List<Pair<Double, Double>> removeOutlierIterative(List<Pair<Double, Double>> pairs, double minRsq, double minCoverage, double delta) {
 
         int pairsSize = pairs.size();
         if (pairsSize < 3) {
@@ -238,7 +238,7 @@ public class ScoreServiceImpl implements ScoreService {
         WeightedObservedPoints obs = new WeightedObservedPoints();
         while (pairs.size() >= pairsSize * minCoverage && rsq < minRsq) {
             obs.clear();
-            for (Pair<Double,Double> rtPair : pairs) {
+            for (Pair<Double, Double> rtPair : pairs) {
                 obs.add(rtPair.getRight(), rtPair.getLeft());
             }
             PolynomialCurveFitter fitter = PolynomialCurveFitter.create(1);
@@ -278,12 +278,12 @@ public class ScoreServiceImpl implements ScoreService {
      * @param minBinsFilled     需要满足↑条件的bin的数量
      * @return boolean 是否覆盖
      */
-    private boolean computeBinnedCoverage(double[] rtRange, List<Pair<Double,Double>> pairsCorrected, int rtBins, int minPeptidesPerBin, int minBinsFilled) {
+    private boolean computeBinnedCoverage(double[] rtRange, List<Pair<Double, Double>> pairsCorrected, int rtBins, int minPeptidesPerBin, int minBinsFilled) {
         int[] binCounter = new int[rtBins];
         double rtDistance = rtRange[1] - rtRange[0];
 
         //获得theorRt部分的分布
-        for (Pair<Double,Double> pair : pairsCorrected) {
+        for (Pair<Double, Double> pair : pairsCorrected) {
             double percent = (pair.getLeft() - rtRange[0]) / rtDistance;
             int bin = (int) (percent * rtBins);
             if (bin >= rtBins) {
@@ -295,15 +295,15 @@ public class ScoreServiceImpl implements ScoreService {
         //判断分布是否覆盖
         int binFilled = 0;
         for (int binCount : binCounter) {
-            if(binCount >= minPeptidesPerBin) {
+            if (binCount >= minPeptidesPerBin) {
                 binFilled++;
             }
         }
         return binFilled >= minBinsFilled;
     }
 
-    private List<FeatureScores> getFilteredScore(List<FeatureScores> featureScoresList, int topN, String scoreName, List<String> scoreTypes){
-        if (featureScoresList.size() < topN){
+    private List<FeatureScores> getFilteredScore(List<FeatureScores> featureScoresList, int topN, String scoreName, List<String> scoreTypes) {
+        if (featureScoresList.size() < topN) {
             return featureScoresList;
         }
         List<FeatureScores> filteredScoreList = SortUtil.sortBySelectedScore(featureScoresList, scoreName, true, scoreTypes);

@@ -2,7 +2,7 @@ package com.westlake.air.propro.algorithm.learner.classifier;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
-import com.westlake.air.propro.constants.Constants;
+import com.westlake.air.propro.constants.ExpTypeConst;
 import com.westlake.air.propro.constants.enums.ScoreType;
 import com.westlake.air.propro.domain.bean.learner.*;
 import com.westlake.air.propro.domain.bean.score.FeatureScores;
@@ -47,7 +47,7 @@ public class Lda extends AbstractClassifier {
             score(scores, ldaLearnData.getWeightsMap(), scoreTypes);
             List<SimpleFeatureScores> featureScoresList = AirusUtil.findTopFeatureScores(scores, ScoreType.WeightedTotalScore.getTypeName(), scoreTypes, false);
             int count = 0;
-            if (learningParams.getType().equals(Constants.EXP_TYPE_PRM)) {
+            if (learningParams.getType().equals(ExpTypeConst.PRM)) {
                 double maxDecoy = Double.MIN_VALUE;
                 for (SimpleFeatureScores simpleFeatureScores : featureScoresList) {
                     if (simpleFeatureScores.getIsDecoy() && simpleFeatureScores.getMainScore() > maxDecoy) {

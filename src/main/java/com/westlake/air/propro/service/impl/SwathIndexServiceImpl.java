@@ -8,11 +8,13 @@ import com.westlake.air.propro.domain.db.SwathIndexDO;
 import com.westlake.air.propro.domain.query.SwathIndexQuery;
 import com.westlake.air.propro.service.SwathIndexService;
 import com.westlake.air.propro.utils.ConvolutionUtil;
+import com.westlake.air.propro.utils.SortUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeMap;
 
@@ -56,10 +58,10 @@ public class SwathIndexServiceImpl implements SwathIndexService {
         rtMap.keySet().toArray(fArray);
         int rightIndex = ConvolutionUtil.findRightIndex(fArray, rt.floatValue());
         int finalIndex = rightIndex;
-        if (rightIndex == -1){
+        if (rightIndex == -1) {
             //Max value in fArray is less than rt. The max index of fArray is the nearest index.
             finalIndex = fArray.length - 1;
-        }else if(rightIndex != 0 && (fArray[rightIndex] - rt) > (fArray[rightIndex-1] - rt)){
+        } else if (rightIndex != 0 && (fArray[rightIndex] - rt) > (fArray[rightIndex - 1] - rt)) {
             //if rightIndex == 0, finalIndex == 0
             finalIndex = rightIndex - 1;
         }
@@ -78,6 +80,36 @@ public class SwathIndexServiceImpl implements SwathIndexService {
         query.setMz(mz);
         return swathIndexDAO.getOne(query);
     }
+
+    /**
+     * 本函数用于ScanningSwath的数据解析,deltaMz是ScanningSwath的窗口宽度,CollectedNumber是需要获取的相邻的Swath窗口的数目
+     * 例如CollectedNumber=3,则意味着需要获取向上向下各3个窗口的数据,总计额外获取6个窗口的数据
+     *
+     * @param expId
+     * @param mz
+     * @param deltaMz
+     * @param collectedNumber
+     * @return
+     */
+    @Override
+    public List<SwathIndexDO> getLinkedSwathIndex(String expId, Float mz, Float deltaMz, Integer collectedNumber) {
+        List<SwathIndexDO> swathList = new ArrayList<>();
+        SwathIndexDO index0 = getSwathIndex(expId, mz);
+        swathList.add(index0);
+        for (int i = 1; i <= collectedNumber; i++) {
+            SwathIndexDO index1 = getSwathIndex(expId, mz - deltaMz * i);
+            if (index1 != null) {
+                swathList.add(index1);
+            }
+            SwathIndexDO index2 = getSwathIndex(expId, mz + deltaMz * i);
+            if (index2 != null) {
+                swathList.add(index2);
+            }
+        }
+
+        return swathList;
+    }
+
     @Override
     public SwathIndexDO getPrmIndex(String expId, Float mz) {
         SwathIndexQuery query = new SwathIndexQuery(expId, 2);
@@ -85,9 +117,9 @@ public class SwathIndexServiceImpl implements SwathIndexService {
         List<SwathIndexDO> swathIndexDOList = swathIndexDAO.getAll(query);
         double minDeltaMz = Double.MAX_VALUE;
         int minIndex = 0;
-        for (int i=0; i<swathIndexDOList.size(); i++){
+        for (int i = 0; i < swathIndexDOList.size(); i++) {
             double deltaMz = Math.abs(swathIndexDOList.get(i).getRange().getMz() - mz);
-            if (deltaMz < minDeltaMz){
+            if (deltaMz < minDeltaMz) {
                 minDeltaMz = deltaMz;
                 minIndex = i;
             }

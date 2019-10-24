@@ -102,7 +102,7 @@ public class TestController extends BaseController {
                     continue;
                 }
                 for (AnalyseOverviewDO overview : overviews){
-                    int count = analyseDataService.countProteins(overview.getId());
+                    int count = analyseDataService.countIdentifiedProteins(overview.getId());
                     overview.setMatchedProteinCount(count);
                     analyseOverviewService.update(overview);
                     logger.info(overview.getName()+"更新完毕,鉴定蛋白数目:"+count);
@@ -114,13 +114,9 @@ public class TestController extends BaseController {
 
     @RequestMapping("test6")
     @ResponseBody
-    List<String> test6(Model model, RedirectAttributes redirectAttributes) throws IOException {
-        List<PeptideDO> peptides = peptideService.getAllByLibraryId("5c754e9ddfdfdd68309f0fce");
-        List<String> realList = new ArrayList<>();
-        for (PeptideDO peptide : peptides) {
-            realList.add(peptide.getSequence());
-        }
-        return realList;
+    int test6(Model model, RedirectAttributes redirectAttributes) throws IOException {
+        int count = analyseDataService.countIdentifiedProteins("5d1e0d5d779a044021bba99b");
+        return count;
     }
 
     @RequestMapping("hyeTest")

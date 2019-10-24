@@ -10,6 +10,8 @@ public class IrtResult {
 
     SlopeIntercept si;
 
+    List<String> peptideRef;
+
     List<Double[]> selectedPairs;
 
     List<Double[]> unselectedPairs;

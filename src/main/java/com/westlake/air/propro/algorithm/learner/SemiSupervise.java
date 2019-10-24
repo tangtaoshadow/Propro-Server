@@ -2,7 +2,7 @@ package com.westlake.air.propro.algorithm.learner;
 
 import com.westlake.air.propro.algorithm.learner.classifier.Lda;
 import com.westlake.air.propro.algorithm.learner.classifier.Xgboost;
-import com.westlake.air.propro.constants.Constants;
+import com.westlake.air.propro.constants.ExpTypeConst;
 import com.westlake.air.propro.constants.enums.ResultCode;
 import com.westlake.air.propro.constants.enums.ScoreType;
 import com.westlake.air.propro.domain.ResultDO;
@@ -79,7 +79,7 @@ public class SemiSupervise {
             finalResult.setErrorInfo(resultDO.getMsgInfo());
             return finalResult;
         }
-        if (learningParams.getType().equals(Constants.EXP_TYPE_PRM)) {
+        if (learningParams.getType().equals(ExpTypeConst.PRM)) {
             cleanScore(scores, overviewDO.getScoreTypes());
         }
 
@@ -102,7 +102,7 @@ public class SemiSupervise {
 
         List<SimpleFeatureScores> featureScoresList = AirusUtil.findTopFeatureScores(scores, ScoreType.WeightedTotalScore.getTypeName(), overviewDO.getScoreTypes(), false);
         int count = 0;
-        if (learningParams.getType().equals(Constants.EXP_TYPE_PRM)) {
+        if (learningParams.getType().equals(ExpTypeConst.PRM)) {
             double maxDecoy = Double.MIN_VALUE;
             for (SimpleFeatureScores simpleFeatureScores : featureScoresList) {
                 if (simpleFeatureScores.getIsDecoy() && simpleFeatureScores.getMainScore() > maxDecoy) {
@@ -134,8 +134,8 @@ public class SemiSupervise {
         logger.info("更新数据" + featureScoresList.size() + "条一共用时：" + (System.currentTimeMillis() - start)+"毫秒");
 
         logger.info("最终鉴定肽段数目为:" + count + ",打分反馈更新完毕");
-        int matchedProteinsCount = analyseDataService.countProteins(overviewId);
-        logger.info("最终鉴定蛋白数目为:"+matchedProteinsCount);
+        int matchedProteinsCount = analyseDataService.countIdentifiedProteins(overviewId);
+        logger.info("最终鉴定蛋白数目(包含非Unique)为:"+matchedProteinsCount);
         finalResult.setMatchedPeptideCount(count);
         finalResult.setMatchedProteinCount(matchedProteinsCount);
 

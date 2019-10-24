@@ -2,6 +2,7 @@ package com.westlake.air.propro.algorithm.extract;
 
 import com.westlake.air.propro.algorithm.parser.AirdFileParser;
 import com.westlake.air.propro.constants.Constants;
+import com.westlake.air.propro.constants.ExpTypeConst;
 import com.westlake.air.propro.constants.enums.ResultCode;
 import com.westlake.air.propro.domain.ResultDO;
 import com.westlake.air.propro.domain.bean.aird.Compressor;
@@ -9,6 +10,7 @@ import com.westlake.air.propro.domain.bean.aird.WindowRange;
 import com.westlake.air.propro.domain.bean.analyse.MzIntensityPairs;
 import com.westlake.air.propro.domain.db.*;
 import com.westlake.air.propro.domain.db.simple.SimplePeptide;
+import com.westlake.air.propro.domain.params.CoordinateBuildingParams;
 import com.westlake.air.propro.domain.params.ExtractParams;
 import com.westlake.air.propro.domain.params.WorkflowParams;
 import com.westlake.air.propro.domain.query.SwathIndexQuery;
@@ -16,6 +18,7 @@ import com.westlake.air.propro.service.*;
 import com.westlake.air.propro.utils.AnalyseUtil;
 import com.westlake.air.propro.utils.ConvolutionUtil;
 import com.westlake.air.propro.utils.FileUtil;
+import com.westlake.air.propro.utils.SortUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,7 +58,7 @@ public class Extractor {
      * 目前只支持MS2的XIC提取
      *
      * @param workflowParams 将XIC提取,选峰及打分合并在一个步骤中执行,可以完整的省去一次IO读取及解析,提升分析速度,
-     *                   需要experimentDO,libraryId,rtExtractionWindow,mzExtractionWindow,SlopeIntercept
+     *                       需要experimentDO,libraryId,rtExtractionWindow,mzExtractionWindow,SlopeIntercept
      */
     public ResultDO<AnalyseOverviewDO> extract(WorkflowParams workflowParams) {
         ResultDO<AnalyseOverviewDO> resultDO = new ResultDO(true);
@@ -85,6 +88,7 @@ public class Extractor {
 
     /**
      * 实时提取某一个PeptideRef的XIC图谱,即全时间段XIC提取
+     * 不适合用于大批量处理
      *
      * @param exp
      * @param peptide
@@ -104,19 +108,42 @@ public class Extractor {
             //Step1.获取窗口信息.
             SwathIndexQuery query = new SwathIndexQuery(exp.getId(), 2);
             query.setMz(peptide.getMz().floatValue());
-            SwathIndexDO swathIndexDO;
-            if (exp.getType().equals(Constants.EXP_TYPE_PRM)) {
-                swathIndexDO = swathIndexService.getPrmIndex(exp.getId(), peptide.getMz().floatValue());
-            } else {
-                swathIndexDO = swathIndexService.getSwathIndex(exp.getId(), peptide.getMz().floatValue());
+            SwathIndexDO swathIndexDO = null;
+            List<SwathIndexDO> swathIndexList = null;
+            TreeMap<Float, MzIntensityPairs> rtMap = new TreeMap<Float, MzIntensityPairs>();
+            switch (exp.getType()) {
+                case ExpTypeConst.PRM:
+                    swathIndexDO = swathIndexService.getPrmIndex(exp.getId(), peptide.getMz().floatValue());
+                    if (swathIndexDO == null) {
+                        return ResultDO.buildError(ResultCode.SWATH_INDEX_NOT_EXISTED);
+                    }
+                    break;
+                case ExpTypeConst.SCANNING_SWATH:
+//                    swathIndexDO = swathIndexService.getSwathIndex(exp.getId(), peptide.getMz().floatValue());
+//                    swathIndexList = new ArrayList<>();
+//                    swathIndexList.add(swathIndexDO);
+                    swathIndexList = swathIndexService.getLinkedSwathIndex(exp.getId(), peptide.getMz().floatValue(), exp.getDeltaMzRange(), Constants.SCANNING_SWATH_COLLECTED_NUMBER);
+                    break;
+                case ExpTypeConst.DIA_SWATH:
+                    swathIndexDO = swathIndexService.getSwathIndex(exp.getId(), peptide.getMz().floatValue());
+                    if (swathIndexDO == null) {
+                        return ResultDO.buildError(ResultCode.SWATH_INDEX_NOT_EXISTED);
+                    }
+                    break;
+                default:
+                    swathIndexDO = swathIndexService.getSwathIndex(exp.getId(), peptide.getMz().floatValue());
+                    break;
             }
-            //Step2.获取该窗口内的谱图Map,key值代表了RT
-            TreeMap<Float, MzIntensityPairs> rtMap;
 
-            if (swathIndexDO == null) {
-                return ResultDO.buildError(ResultCode.SWATH_INDEX_NOT_EXISTED);
+            //Step2.获取该窗口内的谱图Map,key值代表了RT
+            if (exp.getType().equals(ExpTypeConst.SCANNING_SWATH)) {
+                for (SwathIndexDO swathIndex : swathIndexList) {
+                    rtMap.putAll(airdFileParser.parseSwathBlockValues(raf, swathIndex, exp.fetchCompressor(Compressor.TARGET_MZ), exp.fetchCompressor(Compressor.TARGET_INTENSITY)));
+                }
+            } else {
+                rtMap = airdFileParser.parseSwathBlockValues(raf, swathIndexDO, exp.fetchCompressor(Compressor.TARGET_MZ), exp.fetchCompressor(Compressor.TARGET_INTENSITY));
             }
-            rtMap = airdFileParser.parseSwathBlockValues(raf, swathIndexDO, exp.fetchCompressor(Compressor.TARGET_MZ), exp.fetchCompressor(Compressor.TARGET_INTENSITY));
+
             SimplePeptide tp = new SimplePeptide(peptide);
             Double rt = peptide.getRt();
             if (extractParams.getRtExtractWindow() == -1) {
@@ -169,19 +196,22 @@ public class Extractor {
     public void extractForIrtWithLib(List<AnalyseDataDO> finalList, List<SimplePeptide> coordinates, TreeMap<Float, MzIntensityPairs> rtMap, String overviewId, ExtractParams extractParams) {
         long start = System.currentTimeMillis();
         int count = 0;
-        for (SimplePeptide tp : coordinates) {
+        for (int i = 0; i < coordinates.size(); i++) {
             if (count >= 1) {
                 break;
             }
-            AnalyseDataDO dataDO = extractForOne(tp, rtMap, extractParams, overviewId);
+            if (coordinates.get(i).getSequence().length() <= 13) {
+                continue;
+            }
+            AnalyseDataDO dataDO = extractForOne(coordinates.get(i), rtMap, extractParams, overviewId);
             if (dataDO == null) {
                 continue;
             }
-            scoreService.strictScoreForOne(dataDO, tp, rtMap);
+            scoreService.strictScoreForOne(dataDO, coordinates.get(i), rtMap, extractParams.getShapeScoreThreshold());
 
             if (dataDO.getFeatureScoresList() != null) {
                 finalList.add(dataDO);
-                logger.info("找到了:" + dataDO.getPeptideRef() + ",BestRT:" + dataDO.getFeatureScoresList().get(0).getRt() + "耗时:" + (System.currentTimeMillis() - start));
+                logger.info("第" + i + "次搜索找到了:" + dataDO.getPeptideRef() + ",BestRT:" + dataDO.getFeatureScoresList().get(0).getRt() + "耗时:" + (System.currentTimeMillis() - start));
                 count++;
             }
         }
@@ -267,7 +297,7 @@ public class Extractor {
     /**
      * 提取MS2 XIC图谱并且输出最终结果,不返回最终的XIC结果以减少内存的使用
      *
-     * @param raf  用于读取Aird文件
+     * @param raf            用于读取Aird文件
      * @param overviewDO
      * @param workflowParams
      */
@@ -282,7 +312,7 @@ public class Extractor {
         List<SwathIndexDO> swathIndexList = swathIndexService.getAll(query);
         HashMap<Float, Float[]> rtRangeMap = null;
 
-        if (workflowParams.getExperimentDO().getType().equals(Constants.EXP_TYPE_PRM)) {
+        if (workflowParams.getExperimentDO().getType().equals(ExpTypeConst.PRM)) {
             rtRangeMap = experimentService.getPrmRtWindowMap(swathIndexList);
             workflowParams.setRtRangeMap(rtRangeMap);
         }
@@ -293,8 +323,10 @@ public class Extractor {
         try {
             long peakCount = 0L;
             int dataCount = 0;
+            swathIndexList = SortUtil.sortSwathIndexByStartPtr(swathIndexList);
             for (SwathIndexDO index : swathIndexList) {
                 long start = System.currentTimeMillis();
+
                 List<AnalyseDataDO> dataList = doExtract(raf, index, overviewDO.getId(), workflowParams);
                 if (dataList != null) {
                     for (AnalyseDataDO dataDO : dataList) {
@@ -303,7 +335,7 @@ public class Extractor {
                     dataCount += dataList.size();
                 }
                 analyseDataService.insertAll(dataList, false);
-                taskService.update(task,"第" + count + "轮数据XIC提取完毕,有效肽段:" + (dataList == null ? 0 : dataList.size()) + "个,耗时:" + (System.currentTimeMillis() - start) / 1000 + "秒");
+                taskService.update(task, "第" + count + "轮数据XIC提取完毕,有效肽段:" + (dataList == null ? 0 : dataList.size()) + "个,耗时:" + (System.currentTimeMillis() - start) / 1000 + "秒");
                 count++;
             }
 
@@ -337,12 +369,20 @@ public class Extractor {
             rtRange = workflowParams.getRtRangeMap().get(precursorMz);
         }
         ExperimentDO exp = workflowParams.getExperimentDO();
-        coordinates = peptideService.buildMS2Coordinates(workflowParams.getLibrary(), workflowParams.getSlopeIntercept(), workflowParams.getExtractParams().getRtExtractWindow(), swathIndex.getRange(), rtRange, exp.getType(), workflowParams.isUniqueOnly(), false);
+        CoordinateBuildingParams params = new CoordinateBuildingParams();
+        params.setSlopeIntercept(workflowParams.getSlopeIntercept());
+        params.setRtExtractionWindows(workflowParams.getExtractParams().getRtExtractWindow());
+        params.setRtRange(rtRange);
+        params.setType(exp.getType());
+        params.setUniqueCheck(workflowParams.isUniqueOnly());
+        params.setNoDecoy(false);
+
+        coordinates = peptideService.buildCoordinates(workflowParams.getLibrary(), swathIndex.getRange(), params);
         if (coordinates.isEmpty()) {
             logger.warn("No Coordinates Found,Rang:" + swathIndex.getRange().getStart() + ":" + swathIndex.getRange().getEnd());
             return null;
         }
-        if (workflowParams.getExperimentDO().getType().equals(Constants.EXP_TYPE_PRM) && coordinates.size() != 2) {
+        if (workflowParams.getExperimentDO().getType().equals(ExpTypeConst.PRM) && coordinates.size() != 2) {
             logger.warn("coordinate size != 2,Rang:" + swathIndex.getRange().getStart() + ":" + swathIndex.getRange().getEnd());
         }
         //Step3.提取指定原始谱图

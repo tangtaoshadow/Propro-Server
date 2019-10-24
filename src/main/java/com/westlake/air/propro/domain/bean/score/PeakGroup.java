@@ -34,6 +34,8 @@ public class PeakGroup {
     //在算法选定的峰形范围内的Rt和Intensity对
     Double[] ionHullRt;
 
+    HashMap<Double, PeakGroup> childPeakGroup;
+
     HashMap<String,Double[]> ionHullInt;
 
     double signalToNoiseSum;

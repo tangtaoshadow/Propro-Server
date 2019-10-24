@@ -7,6 +7,7 @@ import com.westlake.air.propro.domain.db.LibraryDO;
 import com.westlake.air.propro.domain.db.PeptideDO;
 import com.westlake.air.propro.domain.db.simple.Protein;
 import com.westlake.air.propro.domain.db.simple.SimplePeptide;
+import com.westlake.air.propro.domain.params.CoordinateBuildingParams;
 import com.westlake.air.propro.domain.query.PeptideQuery;
 
 import java.util.List;
@@ -65,14 +66,14 @@ public interface PeptideService {
     Long countByUniqueProteinName(String libraryId);
 
     /**
-     * 创建MS2的坐标系
+     * 从标准库中构建符合条件的目标肽段
      *
      * @param library
-     * @param rtExtractionWindows
-     * @param range
+     * @param mzRange
+     * @param params 创建坐标需要的参数
      * @return
      */
-    List<SimplePeptide> buildMS2Coordinates(LibraryDO library, SlopeIntercept slopeIntercept, float rtExtractionWindows, WindowRange range, Float[] rtRange, String type, boolean uniqueCheck, Boolean noDecoy);
+    List<SimplePeptide> buildCoordinates(LibraryDO library, WindowRange mzRange, CoordinateBuildingParams params);
 
     /**
      * 根据PeptideRef生成一个全新的PeptideDO

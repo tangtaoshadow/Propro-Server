@@ -1,6 +1,6 @@
 package com.westlake.air.propro.controller;
 
-import com.westlake.air.propro.constants.Constants;
+import com.westlake.air.propro.constants.ExpTypeConst;
 import com.westlake.air.propro.constants.enums.TaskStatus;
 import com.westlake.air.propro.dao.ConfigDAO;
 import com.westlake.air.propro.domain.ResultDO;
@@ -56,9 +56,9 @@ public class HomeController extends BaseController {
         if (!isAdmin()) {
             experimentQuery.setOwnerName(username);
         }
-        experimentQuery.setType(Constants.EXP_TYPE_DIA_SWATH);
+        experimentQuery.setType(ExpTypeConst.DIA_SWATH);
         long expSWATHCount = experimentService.count(experimentQuery);
-        experimentQuery.setType(Constants.EXP_TYPE_PRM);
+        experimentQuery.setType(ExpTypeConst.PRM);
         long expPRMCount = experimentService.count(experimentQuery);
 
         AnalyseOverviewQuery analyseOverviewQuery = new AnalyseOverviewQuery();

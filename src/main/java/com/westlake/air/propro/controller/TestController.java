@@ -5,7 +5,7 @@ import com.westlake.air.propro.algorithm.feature.DIAScorer;
 import com.westlake.air.propro.algorithm.fitter.LinearFitter;
 import com.westlake.air.propro.algorithm.formula.FragmentFactory;
 import com.westlake.air.propro.algorithm.learner.SemiSupervise;
-import com.westlake.air.propro.algorithm.merger.ExpMerger;
+import com.westlake.air.propro.algorithm.merger.ProjectMerger;
 import com.westlake.air.propro.algorithm.parser.AirdFileParser;
 import com.westlake.air.propro.algorithm.parser.MsmsParser;
 import com.westlake.air.propro.constants.enums.ScoreType;
@@ -59,7 +59,7 @@ public class TestController extends BaseController {
     @Autowired
     AirdFileParser airdFileParser;
     @Autowired
-    ExpMerger expMerger;
+    ProjectMerger projectMerger;
     @Autowired
     MsmsParser msmsParser;
     @Autowired
@@ -159,7 +159,7 @@ public class TestController extends BaseController {
         analyseOverviewIdList64FixB.add("5d071007e0073c3f28bcc5ff");//4
         analyseOverviewIdList64FixB.add("5d0719cbe0073c3f28bf9323");//6
 
-        HashMap<String, Integer> proproPepRef = expMerger.parameterEstimation(analyseOverviewIdList64VarA, 0.01d);
+        HashMap<String, Integer> proproPepRef = projectMerger.parameterEstimation(analyseOverviewIdList64VarA, 0.01d);
 
 
         // HYE110_TTOF6600_64var    C:/E1603141345_feature_alignment.tsv

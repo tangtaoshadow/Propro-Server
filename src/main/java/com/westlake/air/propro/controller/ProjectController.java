@@ -491,37 +491,73 @@ public class ProjectController extends BaseController {
 
     }
 
+
+    /***
+     * @update tangtao at 2019-10-24 22:02:16
+     * @Archive 计算irt 计算成功后返回任务列表
+     * @param id
+     * @param iRtLibraryId
+     * @param sigma
+     * @param spacing
+     * @param mzExtractWindow
+     * @return 0 success -3 实验列表为空 -2 校验失败
+     */
     @PostMapping(value = "/doirt")
-    String doIrt(Model model,
-                 @RequestParam(value = "id", required = true) String id,
-                 @RequestParam(value = "iRtLibraryId", required = false) String iRtLibraryId,
-                 @RequestParam(value = "sigma", required = true, defaultValue = Constants.DEFAULT_SIGMA_STR) Float sigma,
-                 @RequestParam(value = "spacing", required = true, defaultValue = Constants.DEFAULT_SPACING_STR) Float spacing,
-                 @RequestParam(value = "mzExtractWindow", required = true, defaultValue = Constants.DEFAULT_MZ_EXTRACTION_WINDOW_STR) Float mzExtractWindow,
-                 RedirectAttributes redirectAttributes) {
+    String doIrt(
+            @RequestParam(value = "id") String id,
+            @RequestParam(value = "iRtLibraryId", required = false) String iRtLibraryId,
+            @RequestParam(value = "sigma", defaultValue = Constants.DEFAULT_SIGMA_STR) Float sigma,
+            @RequestParam(value = "spacing", defaultValue = Constants.DEFAULT_SPACING_STR) Float spacing,
+            @RequestParam(value = "mzExtractWindow", defaultValue = Constants.DEFAULT_MZ_EXTRACTION_WINDOW_STR) Float mzExtractWindow) {
 
-        ProjectDO project = projectService.getById(id);
-        PermissionUtil.check(project);
 
-        List<ExperimentDO> expList = experimentService.getAllByProjectId(id);
-        if (expList == null) {
-            redirectAttributes.addFlashAttribute(SUCCESS_MSG, ResultCode.NO_EXPERIMENT_UNDER_PROJECT);
-            return "redirect:/project/list";
-        }
+        Map<String, Object> map = new HashMap<String, Object>();
+        // 状态标记
+        int status = -1;
 
-        TaskDO taskDO = new TaskDO(TaskTemplate.IRT, project.getName() + ":" + iRtLibraryId + "-Num:" + expList.size());
-        taskService.insert(taskDO);
-        SigmaSpacing sigmaSpacing = new SigmaSpacing(sigma, spacing);
+        Map<String, Object> data = new HashMap<String, Object>();
 
-        //支持直接使用标准库进行irt预测,在这里进行库的类型的检测,已进入不同的流程渠道
-        LibraryDO lib = libraryService.getById(iRtLibraryId);
-        IrtParams irtParams = new IrtParams();
-        irtParams.setLibrary(lib);
-        irtParams.setMzExtractWindow(mzExtractWindow);
-        irtParams.setSigmaSpacing(sigmaSpacing);
-        experimentTask.irt(taskDO, expList, irtParams);
+        do {
 
-        return "redirect:/task/list";
+            ProjectDO project = projectService.getById(id);
+            try {
+                PermissionUtil.check(project);
+
+            } catch (Exception e) {
+
+                status = -2;
+                break;
+            }
+
+            List<ExperimentDO> expList = experimentService.getAllByProjectId(id);
+            if (expList == null) {
+                // 该项目实验数据为空
+                status = -3;
+                data.put("info", ResultCode.NO_EXPERIMENT_UNDER_PROJECT);
+                break;
+            }
+
+            TaskDO taskDO = new TaskDO(TaskTemplate.IRT, project.getName() + ":" + iRtLibraryId + "-Num:" + expList.size());
+            taskService.insert(taskDO);
+            SigmaSpacing sigmaSpacing = new SigmaSpacing(sigma, spacing);
+
+            //支持直接使用标准库进行irt预测,在这里进行库的类型的检测,已进入不同的流程渠道
+            LibraryDO lib = libraryService.getById(iRtLibraryId);
+            IrtParams irtParams = new IrtParams();
+            irtParams.setLibrary(lib);
+            irtParams.setMzExtractWindow(mzExtractWindow);
+            irtParams.setSigmaSpacing(sigmaSpacing);
+            experimentTask.irt(taskDO, expList, irtParams);
+
+            // success
+            status = 0;
+        } while (false);
+
+        map.put("status", status);
+        map.put("data", data);
+
+        // 返回数据  前端接收到数据之后应该定向到 task/list
+        return JSON.toJSONString(map, SerializerFeature.WriteNonStringKeyAsString);
     }
 
     @PostMapping(value = "/setPublic/{id}")

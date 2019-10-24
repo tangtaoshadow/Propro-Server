@@ -493,7 +493,7 @@ public class ProjectController extends BaseController {
 
 
     /***
-     * @update tangtao at 2019-10-24 22:02:16
+     * @update tangtao at 2019-10-24 23:18:42
      * @Archive 计算irt 计算成功后返回任务列表
      * @param id
      * @param iRtLibraryId
@@ -514,7 +514,6 @@ public class ProjectController extends BaseController {
         Map<String, Object> map = new HashMap<String, Object>();
         // 状态标记
         int status = -1;
-
         Map<String, Object> data = new HashMap<String, Object>();
 
         do {
@@ -522,9 +521,7 @@ public class ProjectController extends BaseController {
             ProjectDO project = projectService.getById(id);
             try {
                 PermissionUtil.check(project);
-
             } catch (Exception e) {
-
                 status = -2;
                 break;
             }
@@ -541,7 +538,7 @@ public class ProjectController extends BaseController {
             taskService.insert(taskDO);
             SigmaSpacing sigmaSpacing = new SigmaSpacing(sigma, spacing);
 
-            //支持直接使用标准库进行irt预测,在这里进行库的类型的检测,已进入不同的流程渠道
+            // 支持直接使用标准库进行irt预测,在这里进行库的类型的检测,已进入不同的流程渠道
             LibraryDO lib = libraryService.getById(iRtLibraryId);
             IrtParams irtParams = new IrtParams();
             irtParams.setLibrary(lib);
@@ -551,6 +548,7 @@ public class ProjectController extends BaseController {
 
             // success
             status = 0;
+
         } while (false);
 
         map.put("status", status);
@@ -558,6 +556,7 @@ public class ProjectController extends BaseController {
 
         // 返回数据  前端接收到数据之后应该定向到 task/list
         return JSON.toJSONString(map, SerializerFeature.WriteNonStringKeyAsString);
+
     }
 
     @PostMapping(value = "/setPublic/{id}")

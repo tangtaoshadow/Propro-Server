@@ -36,7 +36,7 @@ public class AnalyseOverviewDO extends BaseDO {
     //对应实验的名称
     String expName;
 
-    //0:SWATH_DIA 1:PRM
+    //0:SWATH_DIA 1:PRM 2:SCANNING_SWATH
     String type;
 
     //分析代号

@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -87,7 +88,9 @@ public class PeptideController extends BaseController {
         query.setPageNo(currentPage);
         ResultDO<List<PeptideDO>> resultDO = peptideService.getList(query);
 
-        model.addAttribute("peptideList", resultDO.getModel());
+        List<PeptideDO> peptideList = resultDO.getModel();
+
+        model.addAttribute("peptideList", peptideList);
         model.addAttribute("totalPage", resultDO.getTotalPage());
         model.addAttribute("currentPage", currentPage);
         StringBuilder builder = new StringBuilder();

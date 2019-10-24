@@ -37,7 +37,7 @@ public class AirXStream extends XStream {
     @PostConstruct
     public void init(){
         addPermission(new AnyTypePermission());
-        AirXStream.setupDefaultSecurity(this);
+//        AirXStream.setupDefaultSecurity(this);
     }
 
     //XML的声明

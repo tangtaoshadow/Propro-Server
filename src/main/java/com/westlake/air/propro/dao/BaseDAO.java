@@ -72,7 +72,7 @@ public abstract class BaseDAO<T, Q extends PageQuery> {
         query.limit(targetQuery.getPageSize());
         if (allowSort()) {
             if (targetQuery.getSortColumn() != null && targetQuery.getOrderBy() != null) {
-                query.with(new Sort(targetQuery.getOrderBy(), targetQuery.getSortColumn()));
+                query.with(Sort.by(targetQuery.getOrderBy(), targetQuery.getSortColumn()));
             }
         }
         return query;

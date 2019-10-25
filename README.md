@@ -149,6 +149,18 @@
 
 
 
+# 项目列表：计算irt
+
+**作者**：[`唐涛`](https://www.promiselee.cn/tao)
+
+**创建**：`2019-10-25 10:30:46`
+
+**修改**：`2019-10-25 10:32:17`
+
+![tangtao](http://cdn.promiselee.cn/share_static/files/propro/propro-project-irt-20191025102705.png)
+
+
+
 # 待完善的功能
 
 - 标准库设置为public和private `2019-8-30 14:14:21`

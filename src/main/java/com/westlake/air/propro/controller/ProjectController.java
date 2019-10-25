@@ -510,7 +510,6 @@ public class ProjectController extends BaseController {
             @RequestParam(value = "spacing", defaultValue = Constants.DEFAULT_SPACING_STR) Float spacing,
             @RequestParam(value = "mzExtractWindow", defaultValue = Constants.DEFAULT_MZ_EXTRACTION_WINDOW_STR) Float mzExtractWindow) {
 
-
         Map<String, Object> map = new HashMap<String, Object>();
         // 状态标记
         int status = -1;
@@ -553,6 +552,7 @@ public class ProjectController extends BaseController {
 
         map.put("status", status);
         map.put("data", data);
+
 
         // 返回数据  前端接收到数据之后应该定向到 task/list
         return JSON.toJSONString(map, SerializerFeature.WriteNonStringKeyAsString);

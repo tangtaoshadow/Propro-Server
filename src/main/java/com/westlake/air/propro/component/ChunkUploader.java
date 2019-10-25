@@ -80,6 +80,7 @@ public class ChunkUploader {
             logger.error("分片上传出错", e);
             return ResultDO.buildError(ResultCode.FILE_CHUNK_UPLOAD_FAILED);
         }
+
         // 合并分片
         Long chunkSize = uploadVO.getChunkSize();
         long seek = 0;

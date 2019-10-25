@@ -205,19 +205,28 @@ public class ProjectController extends BaseController {
         return "redirect:/project/list";
     }
 
+
     @RequestMapping(value = "/filemanager")
     String fileManager(Model model, @RequestParam(value = "name", required = true) String name,
                        RedirectAttributes redirectAttributes) {
 
+        // 根据项目 name 找到项目
         ProjectDO project = projectService.getByName(name);
         PermissionUtil.check(project);
 
+        // 扫描项目列表
         List<File> fileList = FileUtil.scanFiles(name);
+        // 文件列表
         List<FileVO> fileVOList = new ArrayList<>();
+        // 遍历扫描到的文件列表 fileList
         for (File file : fileList) {
+
             FileVO fileVO = new FileVO();
+
+            //
             fileVO.setName(file.getName());
             fileVO.setSize(file.length());
+            // 转换为易于阅读的格式
             if (file.length() / 1024 / 1024 > 0) {
                 fileVO.setSizeStr(file.length() / 1024 / 1024 + " MB");
             } else {
@@ -225,6 +234,7 @@ public class ProjectController extends BaseController {
             }
             fileVOList.add(fileVO);
         }
+        // 返回前端数据
         model.addAttribute("project", project);
         model.addAttribute("fileList", fileVOList);
         return "project/file_manager";
@@ -234,7 +244,7 @@ public class ProjectController extends BaseController {
     @RequestMapping(value = "/doupload", method = RequestMethod.POST)
     @ResponseBody
     ResultDO doUpload(Model model,
-                      @RequestParam(value = "projectName", required = true) String projectName,
+                      @RequestParam(value = "projectName") String projectName,
                       @RequestParam("file") MultipartFile file,
                       @FormParam("form-data") UploadVO uploadVO) {
 
@@ -248,7 +258,7 @@ public class ProjectController extends BaseController {
     @RequestMapping(value = "/check", method = RequestMethod.POST)
     @ResponseBody
     public Object check(FileBlockVO block,
-                        @RequestParam(value = "projectName", required = true) String projectName) {
+                        @RequestParam(value = "projectName") String projectName) {
         return chunkUploader.check(block, projectName);
     }
 

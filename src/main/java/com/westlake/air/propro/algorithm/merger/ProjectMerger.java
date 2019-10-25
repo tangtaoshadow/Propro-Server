@@ -1,5 +1,6 @@
 package com.westlake.air.propro.algorithm.merger;
 
+import com.westlake.air.propro.constants.Constants;
 import com.westlake.air.propro.domain.db.AnalyseDataDO;
 import com.westlake.air.propro.domain.query.AnalyseDataQuery;
 import com.westlake.air.propro.service.AnalyseDataService;
@@ -43,8 +44,8 @@ public class ProjectMerger {
         HashMap<String, HashMap<String, AnalyseDataDO>> peptideMatrix = getMatrix(analyseOverviewIdList, peakGroupFdr);
 
         // 2) get peptide fdr by peptideAllRun fdr
-        double decoyFrac = getDecoyFrac(peptideMatrix);
-        double peptideFdrCalculated = findPeptideFdr(peptideMatrix, decoyFrac, 0);
+        double decoyRatio = getDecoyRatio(peptideMatrix);
+        double peptideFdrCalculated = findPeptideFdr(peptideMatrix, decoyRatio, 0);
         if (peptideFdrCalculated > peakGroupFdr) {
             peptideMatrix = getMatrix(analyseOverviewIdList, peptideFdrCalculated);
         }
@@ -61,21 +62,30 @@ public class ProjectMerger {
         return pepRefMap;
     }
 
+    /**
+     * 将OverviewList中的所有分析结果以 HashMap<String, HashMap<String, AnalyseDataDO>> 的内存结构保留
+     * Key为DECOY_PeptideRef或者是PeptideRef(前者为伪肽段,后者为真实肽段)
+     * Value为另外一个Map,这个Map的Key是AnalyseOverviewId
+     *
+     * @param analyseOverviewIdList
+     * @param fdrLimit
+     * @return
+     */
     private HashMap<String, HashMap<String, AnalyseDataDO>> getMatrix(List<String> analyseOverviewIdList, double fdrLimit) {
         HashMap<String, HashMap<String, AnalyseDataDO>> peptideMatrix = new HashMap<>();
         AnalyseDataQuery query = new AnalyseDataQuery();
         query.setQValueEnd(fdrLimit);
         for (String overviewId : analyseOverviewIdList) {
             query.setOverviewId(overviewId);
-            List<AnalyseDataDO> analyseDataDOList = analyseDataService.getAll(query);
-            for (AnalyseDataDO analyseDataDO : analyseDataDOList) {
+            List<AnalyseDataDO> analyseDataList = analyseDataService.getAll(query);
+            for (AnalyseDataDO analyseDataDO : analyseDataList) {
                 if (analyseDataDO.getIsDecoy()) {
-                    if (peptideMatrix.containsKey("DECOY_" + analyseDataDO.getPeptideRef())) {
-                        peptideMatrix.get("DECOY_" + analyseDataDO.getPeptideRef()).put(overviewId, analyseDataDO);
+                    if (peptideMatrix.containsKey(Constants.DECOY_PREFIX + analyseDataDO.getPeptideRef())) {
+                        peptideMatrix.get(Constants.DECOY_PREFIX + analyseDataDO.getPeptideRef()).put(overviewId, analyseDataDO);
                     } else {
                         HashMap<String, AnalyseDataDO> runMap = new HashMap<>();
                         runMap.put(overviewId, analyseDataDO);
-                        peptideMatrix.put("DECOY_" + analyseDataDO.getPeptideRef(), runMap);
+                        peptideMatrix.put(Constants.DECOY_PREFIX + analyseDataDO.getPeptideRef(), runMap);
                     }
                 } else {
                     if (peptideMatrix.containsKey(analyseDataDO.getPeptideRef())) {
@@ -91,64 +101,85 @@ public class ProjectMerger {
         return peptideMatrix;
     }
 
-    private float getDecoyFrac(HashMap<String, HashMap<String, AnalyseDataDO>> peptideMatrix) {
+    /**
+     * 统计所有的实验分析结果中伪肽段的数目占总体数目的比例
+     *
+     * @param peptideMatrix
+     * @return Decoy/(Decoy+Target)
+     */
+    private float getDecoyRatio(HashMap<String, HashMap<String, AnalyseDataDO>> peptideMatrix) {
         Long targetCount = 0L, decoyCount = 0L;
-        for (HashMap<String, AnalyseDataDO> map : peptideMatrix.values()) {
-            for (AnalyseDataDO analyseDataDO : map.values()) {
-                if (analyseDataDO.getIsDecoy()) {
-                    decoyCount++;
-                } else {
-                    targetCount++;
-                }
+        //统计多个分析结果中真伪肽段的数目,通过统计Key值中是否包含DECOY_特征字符来统计真伪肽段数目,提升速度.--陆妙善
+        for (String peptideRef : peptideMatrix.keySet()) {
+            if(peptideRef.startsWith(Constants.DECOY_PREFIX)){
+                decoyCount+=peptideMatrix.get(peptideRef).size();
+            }else{
+                targetCount+=peptideMatrix.get(peptideRef).size();
             }
         }
+
+//        for (HashMap<String, AnalyseDataDO> map : peptideMatrix.values()) {
+//            for (AnalyseDataDO analyseDataDO : map.values()) {
+//                if (analyseDataDO.getIsDecoy()) {
+//                    decoyCount++;
+//                } else {
+//                    targetCount++;
+//                }
+//            }
+//        }
+        //返回伪肽段所占的比例
         return (float) decoyCount / (targetCount + decoyCount);
     }
 
     /**
-     * high utilization rate, Pay attention to performance
-     *
+     * 统计所有的实验分析结果中符合FDR条件的伪肽段的数目占符合FDR条件的总体数目的比例
+     * 多次实验中只要有一个肽段的FDR小于指定值那么就认为该肽段为鉴定成功的肽段
+     * 相当于同时增加了Decoy和Target的数目
      * @param peptideMatrix
      * @param fdr
-     * @return
+     * @return Decoy/(Decoy+Target)
      */
-    private double getPeptideLevelDecoyFrac(HashMap<String, HashMap<String, AnalyseDataDO>> peptideMatrix, double fdr) {
+    private double getSelectedUniqueDecoyRatio(HashMap<String, HashMap<String, AnalyseDataDO>> peptideMatrix, double fdr) {
 
         Long decoyCount = 0L, targetCount = 0L;
         for (HashMap<String, AnalyseDataDO> map : peptideMatrix.values()) {
-            boolean selected = false;
-            boolean isDecoy = false;
             for (AnalyseDataDO analyseDataDO : map.values()) {
                 if (analyseDataDO.getQValue() < fdr) {
-                    selected = true;
-                    isDecoy = analyseDataDO.getIsDecoy();
+                    if (analyseDataDO.getIsDecoy()) {
+                        decoyCount++;
+                    } else {
+                        targetCount++;
+                    }
                     break;
-                }
-            }
-            if (selected) {
-                if (isDecoy) {
-                    decoyCount++;
-                } else {
-                    targetCount++;
                 }
             }
         }
         return (double) decoyCount / (targetCount + decoyCount);
     }
 
-    private double findPeptideFdr(HashMap<String, HashMap<String, AnalyseDataDO>> peptideMatrix, double decoyFrac, int recursion) {
+    /**
+     *
+     * @param peptideMatrix
+     * @param decoyRatio
+     * @param recursion
+     * @return
+     */
+    private double findPeptideFdr(HashMap<String, HashMap<String, AnalyseDataDO>> peptideMatrix, double decoyRatio, int recursion) {
         double startFdr = 0.0005d / Math.pow(10, recursion);
         double endFdr = 0.01d / Math.pow(10, recursion);
         double step = startFdr;
-        double decoyFrac001 = getPeptideLevelDecoyFrac(peptideMatrix, startFdr + step);
-        double decoyFrac01 = getPeptideLevelDecoyFrac(peptideMatrix, endFdr);
-        if (recursion == 0 && Math.abs(decoyFrac01 - decoyFrac) < 1e-6) {
+        double decoyRatio001 = getSelectedUniqueDecoyRatio(peptideMatrix, startFdr + step);
+        double decoyRatio01 = getSelectedUniqueDecoyRatio(peptideMatrix, endFdr);
+        //如果还没有进行递归,并且合并后的FDR值与累加FDR值几乎一样(差的绝对值小于10^-6),那么我们直接将0.01最为最终的FDR值
+        if (recursion == 0 && Math.abs(decoyRatio01 - decoyRatio) < 1e-6) {
             return endFdr;
         }
-        if (decoyFrac < decoyFrac001) {
-            return findPeptideFdr(peptideMatrix, decoyFrac, recursion + 1);
+        //如果累加FDR值小于0.001, 那么进行递归,比如第一轮startFdr和endFdr同时除以10,变为0.0005和0.001, step为0.0005
+        if (decoyRatio < decoyRatio001) {
+            return findPeptideFdr(peptideMatrix, decoyRatio, recursion + 1);
         }
-        if (decoyFrac > decoyFrac01) {
+        //如果累加FDR值大于0.01,即累加后伪肽段增多
+        if (decoyRatio > decoyRatio01) {
             startFdr = 0.005d;
             endFdr = 1d;
             step = 0.005d;
@@ -156,17 +187,17 @@ public class ProjectMerger {
         double prevFrac = 0d, tempFrac = 0d;
         double tempFdr = 0d;
         for (double fdr = startFdr; fdr <= endFdr + step; fdr += step) {
-            tempFrac = getPeptideLevelDecoyFrac(peptideMatrix, fdr);
+            tempFrac = getSelectedUniqueDecoyRatio(peptideMatrix, fdr);
             tempFdr = fdr;
-            if (tempFrac > decoyFrac) {
+            if (tempFrac > recursion) {
                 break;
             }
-            if (Math.abs(tempFrac - decoyFrac) < 1e-6) {
+            if (Math.abs(tempFrac - recursion) < 1e-6) {
                 break;
             }
             prevFrac = tempFrac;
         }
-        return tempFdr - step * (tempFrac - decoyFrac) / (tempFrac - prevFrac);
+        return tempFdr - step * (tempFrac - recursion) / (tempFrac - prevFrac);
     }
 
     private String detemineBestRun(List<String> analyseOverviewIdList, double bestRunFdr) {

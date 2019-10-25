@@ -100,4 +100,6 @@ public class Constants {
 
     public static final Integer LIBRARY_TYPE_STANDARD = 0;
     public static final Integer LIBRARY_TYPE_IRT = 1;
+
+    public static final String DECOY_PREFIX = "DECOY_";
 }

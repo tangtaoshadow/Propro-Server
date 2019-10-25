@@ -632,29 +632,57 @@ public class ProjectController extends BaseController {
         return "redirect:/project/list";
     }
 
+    /***
+     * @updateTime tangtao at 2019-10-25 10:42:03
+     * @archive 对应前端 批量执行完整流程
+     * @param id
+     * @return -3 不存在项目 0 success -2 project 没有通过校验 抛出了异常
+     */
     @PostMapping(value = "/extractor")
-    String extractor(Model model,
-                     @RequestParam(value = "id", required = true) String id,
-                     RedirectAttributes redirectAttributes) {
+    String extractor(
+            @RequestParam(value = "id") String id) {
 
+        Map<String, Object> map = new HashMap<String, Object>();
+        // 状态标记
+        int status = -1;
+        Map<String, Object> data = new HashMap<String, Object>();
 
-        ProjectDO project = projectService.getById(id);
-        PermissionUtil.check(project);
-        if (project == null) {
-            redirectAttributes.addFlashAttribute(ERROR_MSG, ResultCode.PROJECT_NOT_EXISTED.getMessage());
-            return "redirect:/project/list";
-        }
+        do {
+            ProjectDO project = projectService.getById(id);
+            try {
+                PermissionUtil.check(project);
 
-        List<ExperimentDO> expList = experimentService.getAllByProjectName(project.getName());
-        model.addAttribute("libraryId", project.getLibraryId());
-        model.addAttribute("iRtLibraryId", project.getIRtLibraryId());
-        model.addAttribute("exps", expList);
-        model.addAttribute("libraries", getLibraryList(0, true));
-        model.addAttribute("iRtLibraries", getLibraryList(1, true));
-        model.addAttribute("project", project);
-        model.addAttribute("scoreTypes", ScoreType.getShownTypes());
+            } catch (Exception e) {
+                status = -2;
+                break;
+            }
+            if (project == null) {
+                // 项目为空
+                status = -3;
+                data.put("errorMsg", ResultCode.PROJECT_NOT_EXISTED.getMessage());
+                break;
+            }
 
-        return "project/extractor";
+            List<ExperimentDO> expList = experimentService.getAllByProjectName(project.getName());
+            data.put("libraryId", project.getLibraryId());
+            data.put("iRtLibraryId", project.getIRtLibraryId());
+            data.put("exps", expList);
+            data.put("libraries", getLibraryList(0, true));
+            data.put("iRtLibraries", getLibraryList(1, true));
+            data.put("project", project);
+            data.put("scoreTypes", ScoreType.getShownTypes());
+
+            // success
+            status = 0;
+
+        } while (false);
+
+        map.put("status", status);
+        map.put("data", data);
+
+        // 返回数据
+        return JSON.toJSONString(map, SerializerFeature.WriteNonStringKeyAsString);
+
     }
 
     @PostMapping(value = "/doextract")

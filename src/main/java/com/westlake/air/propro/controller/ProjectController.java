@@ -667,7 +667,7 @@ public class ProjectController extends BaseController {
             data.put("libraryId", project.getLibraryId());
             data.put("iRtLibraryId", project.getIRtLibraryId());
             data.put("exps", expList);
-            data.put("libraries", getLibraryList(0, true));
+            data.put("librariedoextracts", getLibraryList(0, true));
             data.put("iRtLibraries", getLibraryList(1, true));
             data.put("project", project);
             data.put("scoreTypes", ScoreType.getShownTypes());
@@ -685,95 +685,150 @@ public class ProjectController extends BaseController {
 
     }
 
+    /***
+     * @archive 提取数据
+     * @update tangtao at 2019-10-26 17:37:45
+     * @param id
+     * @param iRtLibraryId
+     * @param libraryId
+     * @param rtExtractWindow
+     * @param mzExtractWindow
+     * @param note
+     * @param fdr
+     * @param sigma
+     * @param spacing
+     * @param shapeScoreThreshold
+     * @param shapeWeightScoreThreshold
+     * @param request
+     * @return
+     */
     @PostMapping(value = "/doextract")
-    String doExtract(Model model,
-                     @RequestParam(value = "id", required = true) String id,
-                     @RequestParam(value = "iRtLibraryId", required = false) String iRtLibraryId,
-                     @RequestParam(value = "libraryId", required = true) String libraryId,
-                     @RequestParam(value = "rtExtractWindow", required = true, defaultValue = Constants.DEFAULT_RT_EXTRACTION_WINDOW_STR) Float rtExtractWindow,
-                     @RequestParam(value = "mzExtractWindow", required = true, defaultValue = Constants.DEFAULT_MZ_EXTRACTION_WINDOW_STR) Float mzExtractWindow,
-                     @RequestParam(value = "note", required = false) String note,
-                     @RequestParam(value = "fdr", required = true, defaultValue = Constants.DEFAULT_FDR_STR) Double fdr,
-                     //打分相关的入参
-                     @RequestParam(value = "sigma", required = false, defaultValue = Constants.DEFAULT_SIGMA_STR) Float sigma,
-                     @RequestParam(value = "spacing", required = false, defaultValue = Constants.DEFAULT_SPACING_STR) Float spacing,
-                     @RequestParam(value = "shapeScoreThreshold", required = false, defaultValue = Constants.DEFAULT_SHAPE_SCORE_THRESHOLD_STR) Float shapeScoreThreshold,
-                     @RequestParam(value = "shapeWeightScoreThreshold", required = false, defaultValue = Constants.DEFAULT_SHAPE_WEIGHT_SCORE_THRESHOLD_STR) Float shapeWeightScoreThreshold,
-                     HttpServletRequest request,
-                     RedirectAttributes redirectAttributes) {
+    String doExtract(
+            @RequestParam(value = "id") String id,
+            @RequestParam(value = "iRtLibraryId", required = false) String iRtLibraryId,
+            @RequestParam(value = "libraryId") String libraryId,
+            @RequestParam(value = "rtExtractWindow", defaultValue = Constants.DEFAULT_RT_EXTRACTION_WINDOW_STR) Float rtExtractWindow,
+            @RequestParam(value = "mzExtractWindow", defaultValue = Constants.DEFAULT_MZ_EXTRACTION_WINDOW_STR) Float mzExtractWindow,
+            @RequestParam(value = "note", required = false) String note,
+            @RequestParam(value = "fdr", defaultValue = Constants.DEFAULT_FDR_STR) Double fdr,
+            //打分相关的入参
+            @RequestParam(value = "sigma", required = false, defaultValue = Constants.DEFAULT_SIGMA_STR) Float sigma,
+            @RequestParam(value = "spacing", required = false, defaultValue = Constants.DEFAULT_SPACING_STR) Float spacing,
+            @RequestParam(value = "shapeScoreThreshold", required = false, defaultValue = Constants.DEFAULT_SHAPE_SCORE_THRESHOLD_STR) Float shapeScoreThreshold,
+            @RequestParam(value = "shapeWeightScoreThreshold", required = false, defaultValue = Constants.DEFAULT_SHAPE_WEIGHT_SCORE_THRESHOLD_STR) Float shapeWeightScoreThreshold,
+            HttpServletRequest request) {
 
-        ProjectDO project = projectService.getById(id);
-        if (project == null) {
-            redirectAttributes.addFlashAttribute(ERROR_MSG, ResultCode.PROJECT_NOT_EXISTED.getMessage());
-            return "redirect:/project/extractor?id=" + id;
-        }
-        PermissionUtil.check(project);
 
-        LibraryDO library = libraryService.getById(libraryId);
-        if (library == null) {
-            redirectAttributes.addFlashAttribute(ERROR_MSG, ResultCode.LIBRARY_NOT_EXISTED.getMessage());
-            return "redirect:/project/extractor?id=" + id;
-        }
+        Map<String, Object> map = new HashMap<String, Object>();
+        // 状态标记
+        int status = -1;
+        Map<String, Object> data = new HashMap<String, Object>();
 
-        boolean doIrt = false;
-        LibraryDO irtLibrary = null;
-        if (iRtLibraryId != null && !iRtLibraryId.isEmpty()) {
-            irtLibrary = libraryService.getById(iRtLibraryId);
-            if (irtLibrary == null) {
-                redirectAttributes.addFlashAttribute(ERROR_MSG, ResultCode.IRT_LIBRARY_NOT_EXISTED.getMessage());
-                return "redirect:/project/extractor?id=" + id;
-            }
-            doIrt = true;
-        }
+        do {
 
-        List<String> scoreTypes = ScoreUtil.getScoreTypes(request);
-
-        List<ExperimentDO> exps = experimentService.getAllByProjectId(id);
-        if (exps == null) {
-            redirectAttributes.addFlashAttribute(SUCCESS_MSG, ResultCode.NO_EXPERIMENT_UNDER_PROJECT.getMessage());
-            return "redirect:/project/list";
-        }
-        String errorInfo = "";
-        TaskTemplate template = null;
-        if (doIrt) {
-            template = TaskTemplate.IRT_EXTRACT_PEAKPICK_SCORE;
-        } else {
-            template = TaskTemplate.EXTRACT_PEAKPICK_SCORE;
-        }
-
-        for (ExperimentDO exp : exps) {
-            if (!doIrt && (exp.getIrtResult() == null)) {
-                errorInfo = errorInfo + ResultCode.IRT_FIRST + ":" + exp.getName() + "(" + exp.getId() + ")";
-                continue;
+            ProjectDO project = projectService.getById(id);
+            if (project == null) {
+                // 项目为空
+                data.put("errorMsg", ResultCode.PROJECT_NOT_EXISTED.getMessage());
+                status = -3;
+                break;
+                // return "redirect:/project/extractor?id=" + id;
             }
 
-            TaskDO taskDO = new TaskDO(template, exp.getName() + ":" + library.getName() + "(" + libraryId + ")");
-            taskService.insert(taskDO);
+            try {
+                PermissionUtil.check(project);
 
-            WorkflowParams input = new WorkflowParams();
-            SigmaSpacing ss = new SigmaSpacing(sigma, spacing);
-            input.setSigmaSpacing(ss);
-            input.setExperimentDO(exp);
-            input.setFdr(fdr);
+            } catch (Exception e) {
+                status = -2;
+                break;
+            }
+
+            LibraryDO library = libraryService.getById(libraryId);
+            if (library == null) {
+                status = -4;
+                data.put("errorMsg", ResultCode.LIBRARY_NOT_EXISTED.getMessage());
+                break;
+                // return "redirect:/project/extractor?id=" + id;
+            }
+
+            boolean doIrt = false;
+            LibraryDO irtLibrary = null;
+            if (iRtLibraryId != null && !iRtLibraryId.isEmpty()) {
+                irtLibrary = libraryService.getById(iRtLibraryId);
+                if (irtLibrary == null) {
+                    status = -5;
+                    data.put("errorMsg", ResultCode.IRT_LIBRARY_NOT_EXISTED.getMessage());
+                    // return "redirect:/project/extractor?id=" + id;
+                    break;
+                }
+
+                doIrt = true;
+            }
+
+            List<String> scoreTypes = ScoreUtil.getScoreTypes(request);
+
+            List<ExperimentDO> exps = experimentService.getAllByProjectId(id);
+            if (exps == null) {
+                // 实验为空
+                data.put("errorMsg", ResultCode.NO_EXPERIMENT_UNDER_PROJECT.getMessage());
+                status = 6;
+                break;
+                // return "redirect:/project/list";
+            }
+
+            String errorInfo = "";
+            TaskTemplate template = null;
             if (doIrt) {
-                input.setIRtLibrary(irtLibrary);
+                template = TaskTemplate.IRT_EXTRACT_PEAKPICK_SCORE;
             } else {
-                input.setSlopeIntercept(exp.getIrtResult().getSi());
+                template = TaskTemplate.EXTRACT_PEAKPICK_SCORE;
             }
-            input.setLibrary(library);
-            input.setOwnerName(getCurrentUsername());
-            input.setExtractParams(new ExtractParams(mzExtractWindow, rtExtractWindow));
-            input.setScoreTypes(scoreTypes);
 
-            input.setXcorrShapeThreshold(shapeScoreThreshold);
-            input.setXcorrShapeWeightThreshold(shapeWeightScoreThreshold);
-            experimentTask.extract(taskDO, input);
-        }
+            for (ExperimentDO exp : exps) {
+                if (!doIrt && (exp.getIrtResult() == null)) {
+                    errorInfo = errorInfo + ResultCode.IRT_FIRST + ":" + exp.getName() + "(" + exp.getId() + ")";
+                    continue;
+                }
 
-        if (StringUtils.isNotEmpty(errorInfo)) {
-            redirectAttributes.addFlashAttribute(ERROR_MSG, errorInfo);
-        }
-        return "redirect:/task/list";
+                TaskDO taskDO = new TaskDO(template, exp.getName() + ":" + library.getName() + "(" + libraryId + ")");
+                taskService.insert(taskDO);
+
+                WorkflowParams input = new WorkflowParams();
+                SigmaSpacing ss = new SigmaSpacing(sigma, spacing);
+                input.setSigmaSpacing(ss);
+                input.setExperimentDO(exp);
+                input.setFdr(fdr);
+                if (doIrt) {
+                    input.setIRtLibrary(irtLibrary);
+                } else {
+                    input.setSlopeIntercept(exp.getIrtResult().getSi());
+                }
+
+                input.setLibrary(library);
+                input.setOwnerName(getCurrentUsername());
+                input.setExtractParams(new ExtractParams(mzExtractWindow, rtExtractWindow));
+                input.setScoreTypes(scoreTypes);
+
+                input.setXcorrShapeThreshold(shapeScoreThreshold);
+                input.setXcorrShapeWeightThreshold(shapeWeightScoreThreshold);
+                experimentTask.extract(taskDO, input);
+            }
+
+            if (StringUtils.isNotEmpty(errorInfo)) {
+                data.put("errorMsg", errorInfo);
+            }
+
+            // success
+            status = 0;
+
+        } while (false);
+
+        map.put("status", status);
+        map.put("data", data);
+
+        // 返回数据 前端接收到后应跳转到任务列表
+        return JSON.toJSONString(map, SerializerFeature.WriteNonStringKeyAsString);
+        // return "redirect:/task/list";
     }
 
     @PostMapping(value = "/portionSelector")

@@ -1,5 +1,6 @@
 package com.westlake.air.propro.controller;
 
+import com.westlake.air.propro.algorithm.merger.ProjectMerger;
 import com.westlake.air.propro.component.ChunkUploader;
 import com.westlake.air.propro.config.VMProperties;
 import com.westlake.air.propro.constants.Constants;
@@ -12,8 +13,10 @@ import com.westlake.air.propro.constants.enums.TaskTemplate;
 import com.westlake.air.propro.domain.ResultDO;
 import com.westlake.air.propro.domain.bean.analyse.SigmaSpacing;
 import com.westlake.air.propro.domain.db.*;
+import com.westlake.air.propro.domain.db.simple.FdrInfo;
 import com.westlake.air.propro.domain.db.simple.PeptideIntensity;
 import com.westlake.air.propro.domain.db.simple.SimpleExperiment;
+import com.westlake.air.propro.domain.db.simple.SimpleProjectReport;
 import com.westlake.air.propro.domain.params.ExtractParams;
 import com.westlake.air.propro.domain.params.IrtParams;
 import com.westlake.air.propro.domain.params.WorkflowParams;
@@ -23,6 +26,7 @@ import com.westlake.air.propro.domain.vo.FileVO;
 import com.westlake.air.propro.domain.vo.UploadVO;
 import com.westlake.air.propro.service.*;
 import com.westlake.air.propro.utils.*;
+import io.swagger.models.auth.In;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,6 +69,10 @@ public class ProjectController extends BaseController {
     VMProperties vmProperties;
     @Autowired
     ChunkUploader chunkUploader;
+    @Autowired
+    ProjectMerger projectMerger;
+    @Autowired
+    ProjectReportService projectReportService;
 
     @RequestMapping(value = "/list")
     String list(Model model,
@@ -701,10 +709,10 @@ public class ProjectController extends BaseController {
 
     @RequestMapping(value = "/doWriteToFile", method = RequestMethod.POST)
     void doWriteToFile(Model model,
-                         @RequestParam(value = "projectId", required = true) String projectId,
-                         HttpServletRequest request,
-                         HttpServletResponse response,
-                         RedirectAttributes redirectAttributes) {
+                       @RequestParam(value = "projectId", required = true) String projectId,
+                       HttpServletRequest request,
+                       HttpServletResponse response,
+                       RedirectAttributes redirectAttributes) {
 
         ProjectDO projectDO = projectService.getById(projectId);
         PermissionUtil.check(projectDO);
@@ -718,7 +726,7 @@ public class ProjectController extends BaseController {
             if (checkState != null && checkState.equals("on")) {
                 //取每一个实验的第一个分析结果进行分析
                 AnalyseOverviewDO analyseOverview = analyseOverviewService.getFirstAnalyseOverviewByExpId(simpleExp.getId());
-                if(analyseOverview == null){
+                if (analyseOverview == null) {
                     continue;
                 }
                 List<PeptideIntensity> peptideIntensityList = analyseDataService.getPeptideIntensityByOverviewId(analyseOverview.getId());
@@ -759,12 +767,104 @@ public class ProjectController extends BaseController {
             response.setHeader("content-type", "application/octet-stream");
             response.setContentType("application/octet-stream");
             response.setCharacterEncoding("gbk");
-            response.setHeader("Cache-Control","max-age=60");
-            response.setHeader("Content-Disposition","attachment;filename="+ URLEncoder.encode(projectDO.getName()+".tsv", "gbk"));
+            response.setHeader("Cache-Control", "max-age=60");
+            response.setHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(projectDO.getName() + ".tsv", "gbk"));
             os.write(sb.toString().getBytes("gbk"));
             os.flush();
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+
+    @RequestMapping(value = "/merge")
+    String merge(Model model,
+                 @RequestParam(value = "id", required = true) String id,
+                 RedirectAttributes redirectAttributes) {
+
+        ProjectDO projectDO = projectService.getById(id);
+        PermissionUtil.check(projectDO);
+        List<ExperimentDO> experimentDOList = experimentService.getAllByProjectId(id);
+        model.addAttribute("expList", experimentDOList);
+        model.addAttribute("project", projectDO);
+        return "project/merge";
+    }
+
+    @RequestMapping(value = "/domerge")
+    String doMerge(Model model,
+                   @RequestParam(value = "projectId", required = true) String projectId,
+                   HttpServletRequest request,
+                   HttpServletResponse response,
+                   RedirectAttributes redirectAttributes) {
+
+        ProjectDO projectDO = projectService.getById(projectId);
+        PermissionUtil.check(projectDO);
+
+        List<SimpleExperiment> experimentList = experimentService.getAllSimpleExperimentByProjectId(projectId);
+        HashMap<String, HashMap<String, String>> intensityMap = new HashMap<>();//key为PeptideRef, value为另外一个Map,map的key为ExperimentName,value为intensity值
+        HashMap<String, String> pepToProt = new HashMap<>();//key为PeptideRef,value为ProteinName
+
+        List<String> overviewIds = new ArrayList<>();
+        HashMap<String, String> exps = new HashMap<>();
+        for (SimpleExperiment simpleExp : experimentList) {
+            String checkState = request.getParameter(simpleExp.getId());
+            if (checkState != null && checkState.equals("on")) {
+                //取每一个实验的第一个分析结果进行分析
+                AnalyseOverviewDO analyseOverview = analyseOverviewService.getFirstAnalyseOverviewByExpId(simpleExp.getId());
+                if (analyseOverview == null) {
+                    continue;
+                }
+                overviewIds.add(analyseOverview.getId());
+                exps.put(simpleExp.getId(), simpleExp.getName());
+            }
+        }
+
+        List<FdrInfo> results = projectMerger.getSelectedPeptideMatrix(overviewIds, 0.01);
+        List<String> dataRefs = new ArrayList<>();
+        for (FdrInfo fi : results) {
+            if (!fi.getIsDecoy()) {
+                dataRefs.add(fi.getDataRef());
+            }
+        }
+
+        ProjectReportDO reportDO = new ProjectReportDO();
+        reportDO.setProjectId(projectId);
+        reportDO.setProjectName(projectDO.getName());
+        reportDO.setCreator(getCurrentUsername());
+        reportDO.setExps(exps);
+        reportDO.setOverviewIds(overviewIds);
+        reportDO.setDataRefs(dataRefs);
+        projectReportService.insert(reportDO);
+
+        model.addAttribute(SUCCESS_MSG, dataRefs.size());
+        return "redirect:/project/reports?projectId=" + projectId;
+    }
+
+    @RequestMapping(value = "/reports")
+    String reports(Model model,
+                   @RequestParam(value = "projectId", required = true) String projectId,
+                   RedirectAttributes redirectAttributes) {
+
+        List<SimpleProjectReport> simpleProjectReports = projectReportService.getSimpleAll(projectId);
+        model.addAttribute("projectReports", simpleProjectReports);
+        return "project/reports";
+    }
+
+    @RequestMapping(value = "/reportDetail")
+    String reportDetail(Model model,
+                        @RequestParam(value = "reportId", required = true) String reportId,
+                        RedirectAttributes redirectAttributes) {
+
+        ProjectReportDO projectReportDO = projectReportService.getById(reportId);
+        model.addAttribute("projectReport", projectReportDO);
+        return "project/reportDetail";
+    }
+
+    @RequestMapping(value = "/deleteReport/{id}")
+    String deleteReport(Model model,
+                        @PathVariable("id") String reportId) {
+        ProjectReportDO reportDO = projectReportService.getById(reportId);
+        projectReportService.delete(reportId);
+        return "redirect:/project/reports?projectId=" + reportDO.getProjectId();
     }
 }

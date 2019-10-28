@@ -61,4 +61,6 @@ public class ProjectDO extends BaseDO {
 
     //最后修改日期
     Date lastModifiedDate;
+
+    List<String> dataRefs;
 }

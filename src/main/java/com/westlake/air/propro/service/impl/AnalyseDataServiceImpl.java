@@ -9,10 +9,7 @@ import com.westlake.air.propro.domain.ResultDO;
 import com.westlake.air.propro.domain.bean.analyse.AnalyseDataRT;
 import com.westlake.air.propro.domain.bean.score.SimpleFeatureScores;
 import com.westlake.air.propro.domain.db.AnalyseDataDO;
-import com.westlake.air.propro.domain.db.simple.MatchedPeptide;
-import com.westlake.air.propro.domain.db.simple.PeptideIntensity;
-import com.westlake.air.propro.domain.db.simple.PeptideScores;
-import com.westlake.air.propro.domain.db.simple.ProteinPeptide;
+import com.westlake.air.propro.domain.db.simple.*;
 import com.westlake.air.propro.domain.query.AnalyseDataQuery;
 import com.westlake.air.propro.service.AnalyseDataService;
 import com.westlake.air.propro.utils.AnalyseUtil;
@@ -188,6 +185,11 @@ public class AnalyseDataServiceImpl implements AnalyseDataService {
     @Override
     public List<AnalyseDataRT> getRtList(AnalyseDataQuery query) {
         return analyseDataDAO.getRtList(query);
+    }
+
+    @Override
+    public List<FdrInfo> getAllFdrInfo(AnalyseDataQuery query) {
+        return analyseDataDAO.getAllFdrInfo(query);
     }
 
     @Override

@@ -4,6 +4,7 @@ import com.westlake.air.propro.domain.ResultDO;
 import com.westlake.air.propro.domain.bean.analyse.AnalyseDataRT;
 import com.westlake.air.propro.domain.bean.score.SimpleFeatureScores;
 import com.westlake.air.propro.domain.db.AnalyseDataDO;
+import com.westlake.air.propro.domain.db.simple.FdrInfo;
 import com.westlake.air.propro.domain.db.simple.MatchedPeptide;
 import com.westlake.air.propro.domain.db.simple.PeptideIntensity;
 import com.westlake.air.propro.domain.db.simple.PeptideScores;
@@ -47,6 +48,8 @@ public interface AnalyseDataService {
     ResultDO<AnalyseDataDO> getById(String id);
 
     List<AnalyseDataRT> getRtList(AnalyseDataQuery query);
+
+    List<FdrInfo> getAllFdrInfo(AnalyseDataQuery query);
 
     void updateMulti(String overviewId, List<SimpleFeatureScores> simpleFeatureScoresList);
 

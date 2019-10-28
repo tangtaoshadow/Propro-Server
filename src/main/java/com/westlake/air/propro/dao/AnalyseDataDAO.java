@@ -3,10 +3,7 @@ package com.westlake.air.propro.dao;
 import com.westlake.air.propro.domain.bean.analyse.AnalyseDataRT;
 import com.westlake.air.propro.domain.bean.score.SimpleFeatureScores;
 import com.westlake.air.propro.domain.db.AnalyseDataDO;
-import com.westlake.air.propro.domain.db.simple.MatchedPeptide;
-import com.westlake.air.propro.domain.db.simple.PeptideIntensity;
-import com.westlake.air.propro.domain.db.simple.PeptideScores;
-import com.westlake.air.propro.domain.db.simple.Protein;
+import com.westlake.air.propro.domain.db.simple.*;
 import com.westlake.air.propro.domain.query.AnalyseDataQuery;
 import com.westlake.air.propro.domain.query.PeptideQuery;
 import com.westlake.air.propro.utils.AnalyseUtil;
@@ -111,6 +108,10 @@ public class AnalyseDataDAO extends BaseDAO<AnalyseDataDO, AnalyseDataQuery> {
 
     public List<AnalyseDataRT> getRtList(AnalyseDataQuery query) {
         return mongoTemplate.find(buildQuery(query), AnalyseDataRT.class, CollectionName);
+    }
+
+    public List<FdrInfo> getAllFdrInfo(AnalyseDataQuery query) {
+        return mongoTemplate.find(buildQueryWithoutPage(query), FdrInfo.class, CollectionName);
     }
 
     public void updateMulti(String overviewId, List<SimpleFeatureScores> simpleFeatureScoresList) {

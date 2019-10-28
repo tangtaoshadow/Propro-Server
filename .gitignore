@@ -23,3 +23,7 @@
 /dist/
 /nbdist/
 /.nb-gradle/
+/dbfile/AminoAcidData.json
+/dbfile/elementsWithWeight.json
+/dbfile/residues.json
+/dbfile/unimod.obo

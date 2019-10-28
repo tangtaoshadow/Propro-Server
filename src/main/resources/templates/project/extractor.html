@@ -14,7 +14,7 @@
 
     <!--<div class="alert alert-danger" role="alert" th:if="${error_msg}" th:text="${error_msg}"></div>-->
     <!--<div th:if="${errorList}" th:each="arrayS:${errorList}">-->
-        <!--<div class="alert alert-danger" role="alert" th:text="${arrayS}"></div>-->
+    <!--<div class="alert alert-danger" role="alert" th:text="${arrayS}"></div>-->
     <!--</div>-->
 
     <!--<div class="alert alert-success" role="alert" th:if="${success_msg}" th:text="${success_msg}"></div>-->
@@ -42,14 +42,16 @@
                         <input type="text" name="id" hidden="hidden" th:value="${project?.id}">
                         <div class="col-7 text-center">
                             <div class="form-group m-form__group row">
-                                <label for="name" class="col-md-2 col-form-label" th:text="#{label_project_name}"></label>
+                                <label for="name" class="col-md-2 col-form-label"
+                                       th:text="#{label_project_name}"></label>
                                 <div class="col-md-10">
                                     <input type="text" class="form-control m-input" id="name" readonly name="name"
                                            th:value="|${project?.name}(${project?.id})|">
                                 </div>
                             </div>
                             <div class="form-group m-form__group row">
-                                <label for="iRtLibraryId" class="col-md-2 col-form-label" th:text="#{label_irt_library}"></label>
+                                <label for="iRtLibraryId" class="col-md-2 col-form-label"
+                                       th:text="#{label_irt_library}"></label>
                                 <div class="col-md-10">
                                     <select class="form-control m-input" id="iRtLibraryId" name="iRtLibraryId">
                                         <option value="" th:text="#{label_no_irt}"></option>
@@ -62,6 +64,7 @@
                             <div class="form-group m-form__group row">
                                 <label for="library" class="col-md-2 col-form-label" th:text="#{label_library}"></label>
                                 <div class="col-md-10">
+                                    <input th:value="${libraryId}"/>
                                     <select class="form-control m-input" id="library" name="libraryId">
                                         <option th:each="library:${libraries}" th:value="${library.id}"
                                                 th:text="|${library.name}(${library.id})|"
@@ -71,7 +74,9 @@
                             </div>
                         </div>
                         <div class="m-accordion__item col-7 text-center mt-4">
-                            <div class="m-accordion__item-head collapsed" role="tab" id="m_accordion_1_item_1_head" data-toggle="collapse" href="#m_accordion_1_item_1_body" aria-expanded="    false" style=" background-color: darkgrey;height: 30px;line-height: 30px;">
+                            <div class="m-accordion__item-head collapsed" role="tab" id="m_accordion_1_item_1_head"
+                                 data-toggle="collapse" href="#m_accordion_1_item_1_body" aria-expanded="    false"
+                                 style=" background-color: darkgrey;height: 30px;line-height: 30px;">
                                 <div class="higher">
                                     <div class="m-demo-icon__preview">
                                         <span class="m-accordion__item-title">
@@ -82,90 +87,112 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="m-accordion__item-body collapse mt-3" id="m_accordion_1_item_1_body" role="tabpanel" aria-labelledby="m_accordion_1_item_1_head" data-parent="#m_accordion_1">
+                            <div class="m-accordion__item-body collapse mt-3" id="m_accordion_1_item_1_body"
+                                 role="tabpanel" aria-labelledby="m_accordion_1_item_1_head"
+                                 data-parent="#m_accordion_1">
                                 <div class="m-accordion__item-content">
-                                        <div class="form-group m-form__group row">
-                                            <label for="rtExtractWindow" class="col-md-2 col-form-label" th:text="#{label_rt_extract_window}"></label>
-                                            <div class="col-md-10">
-                                                <input type="text" class="form-control m-input" id="rtExtractWindow" name="rtExtractWindow" th:value="${rtExtractWindow}">
-                                                <span class="m-form__help" th:text="#{label_default_rt_extract_window}"></span>
-                                            </div>
+                                    <div class="form-group m-form__group row">
+                                        <label for="rtExtractWindow" class="col-md-2 col-form-label"
+                                               th:text="#{label_rt_extract_window}"></label>
+                                        <div class="col-md-10">
+                                            <input type="text" class="form-control m-input" id="rtExtractWindow"
+                                                   name="rtExtractWindow" th:value="${rtExtractWindow}">
+                                            <span class="m-form__help"
+                                                  th:text="#{label_default_rt_extract_window}"></span>
                                         </div>
-                                        <div class="form-group m-form__group row">
-                                            <label for="mzExtractWindow" class="col-md-2 col-form-label" th:text="#{label_mz_extract_window}">
-                                            </label>
-                                            <div class="col-md-10">
-                                                <input type="text" class="form-control m-input" id="mzExtractWindow" name="mzExtractWindow" th:value="${mzExtractWindow}">
-                                                <span class="m-form__help" th:text="#{label_default_mz_extract_window}"></span>
-                                            </div>
+                                    </div>
+                                    <div class="form-group m-form__group row">
+                                        <label for="mzExtractWindow" class="col-md-2 col-form-label"
+                                               th:text="#{label_mz_extract_window}">
+                                        </label>
+                                        <div class="col-md-10">
+                                            <input type="text" class="form-control m-input" id="mzExtractWindow"
+                                                   name="mzExtractWindow" th:value="${mzExtractWindow}">
+                                            <span class="m-form__help"
+                                                  th:text="#{label_default_mz_extract_window}"></span>
                                         </div>
-                                         <div class="form-group m-form__group row">
-                                             <label for="fdr" class="col-md-2 col-form-label">FDR</label>
-                                             <div class="col-md-10">
-                                                 <input type="text" class="form-control m-input" id="fdr" name="fdr"
-                                                        th:value="${fdr}">
-                                                 <span class="m-form__help"></span>
-                                             </div>
-                                         </div>
-                                        <div class="form-group m-form__group row">
-                                            <label for="note" class="col-md-2 col-form-label" th:text="#{label_note}"></label>
-                                            <div class="col-md-10">
-                                                <input type="text" class="form-control m-input" id="note" name="note"
-                                                       th:value="${note}">
-                                                <span class="m-form__help"></span>
-                                            </div>
+                                    </div>
+                                    <div class="form-group m-form__group row">
+                                        <label for="fdr" class="col-md-2 col-form-label">FDR</label>
+                                        <div class="col-md-10">
+                                            <input type="text" class="form-control m-input" id="fdr" name="fdr"
+                                                   th:value="${fdr}">
+                                            <span class="m-form__help"></span>
                                         </div>
-                                        <div class="form-group m-form__group row">
-                                            <label for="mzExtractWindow" class="col-md-2 col-form-label"
-                                                   th:text="|#{label_exps_count}(${exps.size()})|"></label>
-                                            <div class="col-md-10 row">
-                                                <label class="col-md-3 col-form-label" th:each="exp:${exps}"
-                                                       th:text="|${exp.name}(${exp.id})|"></label>
-                                            </div>
+                                    </div>
+                                    <div class="form-group m-form__group row">
+                                        <label for="note" class="col-md-2 col-form-label"
+                                               th:text="#{label_note}"></label>
+                                        <div class="col-md-10">
+                                            <input type="text" class="form-control m-input" id="note" name="note"
+                                                   th:value="${note}">
+                                            <span class="m-form__help"></span>
                                         </div>
-                                        <div class="form-group m-form__group row">
-                                            <label for="sigma" class="col-md-2 col-form-label" th:text="#{label_set_sigma}"></label>
-                                            <div class="col-md-10">
-                                                <input type="text" class="form-control m-input" id="sigma" name="sigma" th:value="${sigma}">
-                                                <span class="m-form__help" th:text="#{label_default_sigma}"></span>
-                                            </div>
+                                    </div>
+                                    <div class="form-group m-form__group row">
+                                        <label for="mzExtractWindow" class="col-md-2 col-form-label"
+                                               th:text="|#{label_exps_count}(${exps.size()})|"></label>
+                                        <div class="col-md-10 row">
+                                            <label class="col-md-3 col-form-label" th:each="exp:${exps}"
+                                                   th:text="|${exp.name}(${exp.id})|"></label>
                                         </div>
-                                        <div class="form-group m-form__group row">
-                                            <label for="spacing" class="col-md-2 col-form-label"  th:text="#{label_default_spacing}"></label>
-                                            <div class="col-md-10">
-                                                <input type="text" class="form-control m-input" id="spacing" name="spacing"
-                                                       th:value="${spacing}">
-                                                <span class="m-form__help" th:text="#{label_default_spacing}"></span>
-                                            </div>
+                                    </div>
+                                    <div class="form-group m-form__group row">
+                                        <label for="sigma" class="col-md-2 col-form-label"
+                                               th:text="#{label_set_sigma}"></label>
+                                        <div class="col-md-10">
+                                            <input type="text" class="form-control m-input" id="sigma" name="sigma"
+                                                   th:value="${sigma}">
+                                            <span class="m-form__help" th:text="#{label_default_sigma}"></span>
                                         </div>
-                                        <div class="form-group m-form__group row">
-                                            <label for="shapeScoreThreshold" class="col-md-2 col-form-label" th:text="#{label_threshold_for_shape}"></label>
-                                            <div class="col-md-10">
-                                                <input type="text" class="form-control m-input" id="shapeScoreThreshold" name="shapeScoreThreshold" th:value="${shapeScoreThreshold}">
-                                                <span class="m-form__help" th:text="#{label_default_shape_threshold}"></span>
-                                            </div>
+                                    </div>
+                                    <div class="form-group m-form__group row">
+                                        <label for="spacing" class="col-md-2 col-form-label"
+                                               th:text="#{label_default_spacing}"></label>
+                                        <div class="col-md-10">
+                                            <input type="text" class="form-control m-input" id="spacing" name="spacing"
+                                                   th:value="${spacing}">
+                                            <span class="m-form__help" th:text="#{label_default_spacing}"></span>
                                         </div>
-                                        <div class="form-group m-form__group row">
-                                            <label for="shapeWeightScoreThreshold" class="col-md-2 col-form-label" th:text="#{label_threshold_for_shape_weight}"></label>
-                                            <div class="col-md-10">
-                                                <input type="text" class="form-control m-input" id="shapeWeightScoreThreshold" name="shapeWeightScoreThreshold" th:value="${shapeWeightScoreThreshold}">
-                                                <span class="m-form__help" th:text="#{label_default_shape_weight_threshold}"></span>
-                                            </div>
+                                    </div>
+                                    <div class="form-group m-form__group row">
+                                        <label for="shapeScoreThreshold" class="col-md-2 col-form-label"
+                                               th:text="#{label_threshold_for_shape}"></label>
+                                        <div class="col-md-10">
+                                            <input type="text" class="form-control m-input" id="shapeScoreThreshold"
+                                                   name="shapeScoreThreshold" th:value="${shapeScoreThreshold}">
+                                            <span class="m-form__help"
+                                                  th:text="#{label_default_shape_threshold}"></span>
                                         </div>
-                                        <div class="m-form__group form-group row">
-                                            <label class="col-md-2" th:text="#{label_choose_feature_score_algorithms}">
-                                            </label>
-                                            <div class="col-md-10">
-                                                <div class="row ml-md-2">
-                                                    <div class="m-checkbox-list col-md-6" th:each="scoreType:${scoreTypes}">
-                                                        <label th:if="${scoreType.isUsed}" class="m-checkbox m-checkbox--state-success">
-                                                            <input type="checkbox" th:checked="checked" th:name="${scoreType.typeName}" th:text="${scoreType.typeName}">
-                                                            <span></span>
-                                                        </label>
-                                                    </div>
+                                    </div>
+                                    <div class="form-group m-form__group row">
+                                        <label for="shapeWeightScoreThreshold" class="col-md-2 col-form-label"
+                                               th:text="#{label_threshold_for_shape_weight}"></label>
+                                        <div class="col-md-10">
+                                            <input type="text" class="form-control m-input"
+                                                   id="shapeWeightScoreThreshold" name="shapeWeightScoreThreshold"
+                                                   th:value="${shapeWeightScoreThreshold}">
+                                            <span class="m-form__help"
+                                                  th:text="#{label_default_shape_weight_threshold}"></span>
+                                        </div>
+                                    </div>
+                                    <div class="m-form__group form-group row">
+                                        <label class="col-md-2" th:text="#{label_choose_feature_score_algorithms}">
+                                        </label>
+                                        <div class="col-md-10">
+                                            <div class="row ml-md-2">
+                                                <div class="m-checkbox-list col-md-6" th:each="scoreType:${scoreTypes}">
+                                                    <label th:if="${scoreType.isUsed}"
+                                                           class="m-checkbox m-checkbox--state-success">
+                                                        <input type="checkbox" th:checked="checked"
+                                                               th:name="${scoreType.typeName}"
+                                                               th:text="${scoreType.typeName}">
+                                                        <span></span>
+                                                    </label>
                                                 </div>
                                             </div>
                                         </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -185,7 +212,7 @@
 </div>
 </body>
 <th:block layout:fragment="script">
-<script th:src="|${url}/assets/js/propro/common.js|" type="text/javascript"></script>
+    <script th:src="|${url}/assets/js/propro/common.js|" type="text/javascript"></script>
 </th:block>
 <!-- end::Body -->
 </html>

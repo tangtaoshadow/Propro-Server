@@ -3,7 +3,6 @@ package com.westlake.air.propro.utils;
 import com.alibaba.fastjson.JSONArray;
 import com.westlake.air.propro.constants.SuffixConst;
 import com.westlake.air.propro.constants.SymbolConst;
-import com.westlake.air.propro.constants.enums.ResultCode;
 import com.westlake.air.propro.domain.bean.analyse.RtIntensityPairsDouble;
 import com.westlake.air.propro.domain.bean.file.TableFile;
 import com.westlake.air.propro.domain.db.AnalyseDataDO;
@@ -160,19 +159,32 @@ public class FileUtil {
         }
     }
 
+    /***
+     * @updatetime tangtao at 2019-10-28 16:43:28
+     * @archive 根据项目名称扫描该项目对应的文件
+     * @param projectName 项目名称
+     * @return 找到的文件列表
+     */
     public static List<File> scanFiles(String projectName) {
+        // 提取目录名称
         String directoryPath = RepositoryUtil.getProjectRepo(projectName);
+        /*
+        directoryPath=E:\data\HYE110_6600_64_Var
+         */
+        // System.out.println("directoryPath" + directoryPath);
         File directory = new File(directoryPath);
-
         List<File> newFileList = new ArrayList<>();
+        // 列出指定路径下的文件名称 返回 File Array
         File[] fileArray = directory.listFiles();
         if (fileArray != null) {
             for (File file : fileArray) {
                 if (file.isFile()) {
+                    // 添加到文件列表
                     newFileList.add(file);
                 }
             }
         }
+        /* 返回找到的文件列表 */
         return newFileList;
     }
 

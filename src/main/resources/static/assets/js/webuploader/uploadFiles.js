@@ -1,6 +1,5 @@
 jQuery(function () {
     var $ = jQuery,    // just in case. Make sure it's not an other libaray.
-
         $wrap = $('#uploader'),
         // 文件容器
         $table = $wrap.find('.queueList'),
@@ -15,11 +14,11 @@ jQuery(function () {
 
         // 总体进度条
         $progress = $statusBar.find('.progress').hide(),
-        chunkSize = 20 * 1024 * 1024,  //5M
+        chunkSize = 30 * 1024 * 1024,  //5M
         //文件校验的地址
         checkUrl = '/project/check?projectName=' + projectName,
         //文件上传的地址
-        uploadUrl = '/project/doupload?projectName=' + projectName + "&chunkSize=" + chunkSize,
+        uploadUrl = '/project/doupload?projectName=' + projectName+"&chunkSize="+chunkSize,
         // 添加的文件数量
         fileCount = 0,
         // 添加的文件总大小
@@ -28,14 +27,95 @@ jQuery(function () {
         state = 'init',
         // 所有文件的进度信息，key为file id
         percentages = {},
+        //存储aird对应json的对象，key为file.name
+        jsonObj={},
+
+        jsonCount=0,
         // WebUploader实例
         uploader;
-
     if (!WebUploader.Uploader.support()) {
         alert('Web Uploader 不支持您的浏览器！如果你使用的是IE浏览器，请尝试升级 flash 播放器');
         throw new Error('WebUploader does not support the browser you are using.');
     }
-
+    /*示例json文件*/
+    var json=[ {startPtr: 0, endPtr: 56810424}
+        ,{startPtr: 56810424, endPtr: 75410465}
+        , {startPtr: 75410465, endPtr: 97673547}
+        ,{startPtr: 97673547, endPtr: 117781037}
+        ,{startPtr: 117781037, endPtr: 138149393}
+        , {startPtr: 138149393, endPtr: 159814590}
+        , {startPtr: 159814590, endPtr: 179725876}
+        ,{startPtr: 179725876, endPtr: 196513879}
+        ,{startPtr: 196513879, endPtr: 212836291}
+        , {startPtr: 212836291, endPtr: 227681837}
+        , {startPtr: 227681837, endPtr: 243311001}
+        , {startPtr: 243311001, endPtr: 258137506}
+        , {startPtr: 258137506, endPtr: 270656123}
+        , {startPtr: 270656123, endPtr: 281842844}
+        , {startPtr: 281842844, endPtr: 293299377}
+        , {startPtr: 293299377, endPtr: 301459203}
+        ,{startPtr: 301459203, endPtr: 309328340}
+        ,{startPtr: 309328340, endPtr: 316039919}
+        ,{startPtr: 316039919, endPtr: 321240131}
+        , {startPtr: 321240131, endPtr: 326463818}
+        ,{startPtr: 326463818, endPtr: 331089484}
+        , {startPtr: 331089484, endPtr: 334856914}
+        , {startPtr: 334856914, endPtr: 338842295}
+        , {startPtr: 338842295, endPtr: 342774814}
+        , {startPtr: 342774814, endPtr: 345939207}
+        , {startPtr: 345939207, endPtr: 348877039}
+        , {startPtr: 348877039, endPtr: 351686339}
+        , {startPtr: 351686339, endPtr: 354009708}
+        ,{startPtr: 354009708, endPtr: 356297974}
+        , {startPtr: 356297974, endPtr: 358494242}
+        , {startPtr: 358494242, endPtr: 360437121}
+        , {startPtr: 360437121, endPtr: 362367650}
+        , {startPtr: 362367650, endPtr: 364235695}
+    ]
+    /*json文件获取请求*/
+    // $.ajax({
+    //     type: "POST",
+    //     url: checkUrl,
+    //     data: requestData,
+    //     cache: false,
+    //     async: false, // 同步
+    //     timeout: 1000
+    // }).then(function (data) {
+    //     var json=data;
+    // });
+    var chunkSize=json.map(function(item){
+        return item.endPtr-item.startPtr
+    });
+    console.log(chunkSize);
+    WebUploader.Uploader.register({
+        'before-send': 'beforeSend'
+    }, {
+        beforeSend: function( block ) {
+            // console.log(block);
+            var task = WebUploader.Deferred();
+            var requestData = {
+                fileName: block.file.name,
+                chunk: block.chunk,
+                chunkSize: chunkSize[block.chunk]
+            };
+            $.ajax({
+                type: "POST",
+                url: checkUrl,
+                data: requestData,
+                cache: false,
+                async: false, // 同步
+                timeout: 1000
+            }).then(function (result) {
+                console.log(result);
+                if (result.msgCode === 'FILE_CHUNK_ALREADY_EXISTED') {
+                    task.reject(); // 分片存在，则跳过上传
+                } else {
+                    task.resolve();
+                }
+            });
+            return task.promise();
+        }
+    });
     // 实例化
     uploader = WebUploader.create({
         pick: {
@@ -250,10 +330,25 @@ jQuery(function () {
     };
 
     uploader.onFileQueued = function (file) {
-
+        console.log(file);
         fileCount++;
         fileSize += file.size;
-
+        var fileType=file.name.split(".")[1];
+        var reader=new FileReader();
+        // reader.readAsBinaryString(file);
+        reader.onload=function (ev) {
+            // console.log(reader.result);
+        };
+        if(fileType==="aird"){
+            console.log("请求json文件");//换成ajax请求
+            var name=file.name;
+            jsonObj[name]="json"+jsonCount;
+            jsonCount++;
+            console.log(jsonObj);
+        }
+        if(fileType==="json"){
+            console.log(file);
+        }
         if (fileCount === 1) {
             $placeHolder.addClass('element-invisible');
             $statusBar.show();
@@ -264,31 +359,9 @@ jQuery(function () {
         updateTotalProgress();
     };
 
-    uploader.on('uploadBeforeSend', function (object, data, header) {
-        var task = WebUploader.Deferred();
-        var requestData = {
-            fileName: data.name,
-            chunk: data.chunk,
-            chunkSize: chunkSize
-        };
-        $.ajax({
-            type: "POST",
-            url: checkUrl,
-            data: requestData,
-            cache: false,
-            async: false, // 同步
-            timeout: 1000
-        }).then(function (result) {
-            if (result.msgCode === 'FILE_CHUNK_ALREADY_EXISTED') {
-                task.reject(); // 分片存在，则跳过上传
-            } else {
-                task.resolve();
-            }
-        });
-        return task.promise();
-    });
-
     uploader.onFileDequeued = function (file) {
+        var name=file.name;
+        delete jsonObj[name];
         fileCount--;
         fileSize -= file.size;
 
@@ -326,13 +399,12 @@ jQuery(function () {
         if ($(this).hasClass('disabled')) {
             return false;
         }
-
         if (state === 'ready') {
             uploader.upload();
         } else if (state === 'paused') {
             uploader.upload();
         } else if (state === 'uploading') {
-            uploader.stop();
+            uploader.stop(true);
         }
     });
 
@@ -343,7 +415,6 @@ jQuery(function () {
     $info.on('click', '.ignore', function () {
         alert('todo');
     });
-
     $upload.addClass('state-' + state);
     updateTotalProgress();
 });

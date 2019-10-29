@@ -19,9 +19,9 @@
             <table class="table table-bordered table-hover" style="table-layout:fixed;">
                 <thead>
                 <tr>
-                    <th width="10%" th:text="#{label_project_report_id}"></th>
                     <th width="10%" th:text="#{label_project_name}"></th>
                     <th width="5%" th:text="#{label_creator}"></th>
+                    <th width="10%" th:text="#{label_identified_number}"></th>
                     <th width="10%" th:text="#{label_create_date}"></th>
                     <th width="10%" th:text="#{label_last_modified_date}"></th>
                     <th width="50%" th:text="#{label_choose_experiments}"></th>
@@ -30,17 +30,19 @@
                 </thead>
                 <tbody>
                 <tr th:each="report:${projectReports}">
-                    <td>
-                        <a th:href="@{/project/reportDetail(reportId=${report.id})}" th:text="${report.id}"></a>
-                    </td>
                     <td th:text="${report.projectName}" data-toggle="m-tooltip" th:title="${report.projectId}"></td>
                     <td th:text="${report.creator}"></td>
+                    <td th:text="${report.identifiedNumber}"></td>
                     <td th:text="${#dates.format(report.createDate,'yyyy-MM-dd HH:mm:ss')}"></td>
                     <td th:text="${#dates.format(report.lastModifiedDate,'yyyy-MM-dd HH:mm:ss')}"></td>
                     <td>
                        <span th:each="exp:${report.exps}" class="m-badge m-badge--success m-badge--wide"  th:text="${exp.value}"  data-toggle="m-tooltip" th:title="${exp.key}"></span>
                     </td>
                     <td>
+                        <a th:href="@{/project/reportDetail(reportId=${report.id})}" data-toggle="m-tooltip"
+                           th:title="#{btn_detail}" class="btn btn-success m-btn m-btn--icon m-btn--icon-only">
+                            <i class="fa fa-book"></i>
+                        </a>
                         <a th:href="@{/project/deleteReport/{id}(id=${report.id})}" data-toggle="m-tooltip"
                            th:title="#{btn_delete}" class="btn btn-danger m-btn m-btn--icon m-btn--icon-only">
                             <i class="fa fa-remove"></i>

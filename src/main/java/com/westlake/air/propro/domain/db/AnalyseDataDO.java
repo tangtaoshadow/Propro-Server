@@ -66,8 +66,10 @@ public class AnalyseDataDO extends BaseDO {
     @JSONField(serialize=false)
     Double qValue;
 
+    //本字段来源于PeptideDO对象中的proteinName
     String proteinName;
 
+    //本字段来源于PeptideDO对象中的isUnique
     Boolean isUnique;
 
     //该肽段片段的理论rt值,从标准库中冗余所得
@@ -90,6 +92,7 @@ public class AnalyseDataDO extends BaseDO {
     @JSONField(serialize=false)
     Double bestRt;
 
+    //最终定量结果
     @JSONField(serialize=false)
     Double intensitySum;
 

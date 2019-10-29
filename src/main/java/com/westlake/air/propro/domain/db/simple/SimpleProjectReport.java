@@ -30,4 +30,7 @@ public class SimpleProjectReport {
 
     //项目合并分析的最后修改日期
     Date lastModifiedDate;
+
+    //肽段鉴定数目
+    Integer identifiedNumber;
 }

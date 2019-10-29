@@ -84,7 +84,7 @@ public class LibraryTsvParser extends BaseLibraryParser {
             while ((line = reader.readLine()) != null) {
                 ResultDO<PeptideDO> resultDO = parseTransition(line, columnMap, library);
                 if (resultDO.isFailed()) {
-                    if(!resultDO.getMsgCode().equals(ResultCode.NO_DECOY.getCode())){
+                    if (!resultDO.getMsgCode().equals(ResultCode.NO_DECOY.getCode())) {
                         tranResult.addErrorMsg(resultDO.getMsgInfo());
                     }
                     continue;
@@ -140,7 +140,7 @@ public class LibraryTsvParser extends BaseLibraryParser {
                 }
                 ResultDO<PeptideDO> resultDO = parseTransition(line, columnMap, library);
                 if (resultDO.isFailed()) {
-                    if(!resultDO.getMsgCode().equals(ResultCode.NO_DECOY.getCode())){
+                    if (!resultDO.getMsgCode().equals(ResultCode.NO_DECOY.getCode())) {
                         tranResult.addErrorMsg(resultDO.getMsgInfo());
                     }
                     continue;
@@ -189,7 +189,7 @@ public class LibraryTsvParser extends BaseLibraryParser {
         String[] row = StringUtils.splitByWholeSeparator(line, "\t");
         PeptideDO peptideDO = new PeptideDO();
         boolean isDecoy = !row[columnMap.get(IsDecoy)].equals("0");
-        if(isDecoy){
+        if (isDecoy) {
             return ResultDO.buildError(ResultCode.NO_DECOY);
         }
         FragmentInfo fi = new FragmentInfo();
@@ -205,6 +205,12 @@ public class LibraryTsvParser extends BaseLibraryParser {
         if (peptideDO.getProteinName().toLowerCase().contains("irt")) {
             peptideDO.setProteinName("iRT");
         }
+        //TODO 重要逻辑判断,常规的标准库中,肽段是否是某蛋白的唯一肽段由本逻辑判定
+//        if (peptideDO.getProteinName().startsWith("1/")) {
+//            peptideDO.setIsUnique(true);
+//        } else {
+//            peptideDO.setIsUnique(false);
+//        }
 
         String annotations = row[columnMap.get(Annotation)].replaceAll("\"", "");
         fi.setAnnotations(annotations);

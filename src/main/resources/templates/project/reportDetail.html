@@ -20,9 +20,9 @@
                 <div class="m-portlet__head">
                     <div class="m-portlet__head-caption">
                         <div class="m-portlet__head-title">
-                                    <span class="m-portlet__head-icon m--hide">
-                                        <i class="la la-gear"></i>
-                                    </span>
+                            <span class="m-portlet__head-icon m--hide">
+                                <i class="la la-gear"></i>
+                            </span>
                             <h3 class="m-portlet__head-text" th:text="#{label_project_report_detail}"></h3>
                         </div>
                     </div>
@@ -80,12 +80,19 @@
                             <label class="col-2 col-form-label" th:text="#{label_peptide_reference}"></label>
                             <div class="col-10">
                                 <table class="table table-bordered table-hover" style="table-layout:fixed;">
+                                    <thead>
+                                        <th>PeptideRef</th>
+                                        <th>BestRT</th>
+                                        <th>IntensitySum</th>
+                                    </thead>
                                     <tbody>
-                                    <tr th:each="dataRef:${projectReport.dataRefs}">
-                                        <td th:text="${#strings.arraySplit(dataRef,'-')[1]}">
-<!--                                            <a th:href="@{/analyse/data/list(overviewId=${#strings.arraySplit(dataRef,'-')[0]}, peptideRef=${#strings.arraySplit(dataRef,'-')[1]})}" th:text="${#strings.arraySplit(dataRef,'-')[1]}"></a>-->
-                                        </td>
-                                    </tr>
+                                        <tr th:each="dataRef, status:${projectReport.dataRefs}">
+                                            <td>
+                                                <a target="_blank" th:href="@{/analyse/data/list(overviewId=${#strings.arraySplit(dataRef,'-')[0]}, peptideRef=${#strings.arraySplit(dataRef,'-')[1]})}" th:text="${#strings.arraySplit(dataRef,'-')[1]}"></a>
+                                            </td>
+                                            <td th:text="${projectReport.bestRts.get(status.index)}"></td>
+                                            <td th:text="${projectReport.intensitySums.get(status.index)}"></td>
+                                        </tr>
                                     </tbody>
                                 </table>
                             </div>

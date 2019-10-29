@@ -18,4 +18,10 @@ public class FdrInfo {
 
     Double qValue;
 
+    //最终选出的最佳峰
+    Double bestRt;
+
+    //最终定量结果
+    Double intensitySum;
+
 }

@@ -822,6 +822,7 @@ public class ProjectController extends BaseController {
 
         List<String> overviewIds = new ArrayList<>();
         HashMap<String, String> exps = new HashMap<>();
+
         for (SimpleExperiment simpleExp : experimentList) {
             String checkState = request.getParameter(simpleExp.getId());
             if (checkState != null && checkState.equals("on")) {
@@ -837,9 +838,13 @@ public class ProjectController extends BaseController {
 
         List<FdrInfo> results = projectMerger.getSelectedPeptideMatrix(overviewIds, 0.01);
         List<String> dataRefs = new ArrayList<>();
+        List<Double> bestRts = new ArrayList<>();
+        List<Double> intensitySums = new ArrayList<>();
         for (FdrInfo fi : results) {
             if (!fi.getIsDecoy()) {
                 dataRefs.add(fi.getDataRef());
+                bestRts.add(fi.getBestRt());
+                intensitySums.add(fi.getIntensitySum());
             }
         }
 
@@ -850,6 +855,9 @@ public class ProjectController extends BaseController {
         reportDO.setExps(exps);
         reportDO.setOverviewIds(overviewIds);
         reportDO.setDataRefs(dataRefs);
+        reportDO.setIdentifiedNumber(dataRefs.size());
+        reportDO.setIntensitySums(intensitySums);
+        reportDO.setBestRts(bestRts);
         projectReportService.insert(reportDO);
 
         model.addAttribute(SUCCESS_MSG, dataRefs.size());

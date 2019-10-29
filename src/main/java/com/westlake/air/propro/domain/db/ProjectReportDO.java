@@ -43,5 +43,13 @@ public class ProjectReportDO extends BaseDO {
     //最终鉴定到的肽段列表(真肽段)
     List<String> dataRefs;
 
+    //最终鉴定到的肽段的数目
+    Integer identifiedNumber;
+
+    //最佳RT位置
+    List<Double> bestRts;
+
+    //最终定量结果
+    List<Double> intensitySums;
 
 }

@@ -233,6 +233,9 @@ public class AnalyseDataServiceImpl implements AnalyseDataService {
         List<ProteinPeptide> ppList = analyseDataDAO.getAll(query, ProteinPeptide.class);
         HashSet<String> proteins = new HashSet<>();
         for (ProteinPeptide pp : ppList) {
+            if (pp.getProteinName().startsWith("1/")) {
+
+            }
             if (pp.getIsUnique() && (!pp.getIsUnique() || !pp.getProteinName().startsWith("1/"))) {
                 continue;
             } else {

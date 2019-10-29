@@ -211,7 +211,7 @@ jQuery(function () {
         $row.appendTo($table);
     }
 
-    // 负责view的销毁
+    // 负责view销毁
     function removeFile(file) {
         var $row = $('#' + file.id);
         delete percentages[file.id];

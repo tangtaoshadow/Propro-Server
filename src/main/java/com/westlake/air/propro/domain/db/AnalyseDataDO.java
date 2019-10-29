@@ -44,6 +44,10 @@ public class AnalyseDataDO extends BaseDO {
     @Indexed
     Boolean isDecoy = false;
 
+    /**
+     * 用于加速数据库搜索的字段,相当于复合索引
+     * 规则: overviewId + "-" + peptideRef + "-" + isDecoy
+     */
     @Indexed
     String dataRef;
 

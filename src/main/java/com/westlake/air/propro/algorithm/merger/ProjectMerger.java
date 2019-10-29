@@ -2,6 +2,7 @@ package com.westlake.air.propro.algorithm.merger;
 
 import com.westlake.air.propro.constants.Constants;
 import com.westlake.air.propro.domain.db.AnalyseDataDO;
+import com.westlake.air.propro.domain.db.simple.FdrInfo;
 import com.westlake.air.propro.domain.query.AnalyseDataQuery;
 import com.westlake.air.propro.service.AnalyseDataService;
 import com.westlake.air.propro.service.AnalyseOverviewService;
@@ -15,10 +16,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 /**
  * 将多个实验的实验结果按照算法进行合并处理
@@ -41,10 +39,11 @@ public class ProjectMerger {
     public HashMap<String, Integer> parameterEstimation(List<String> analyseOverviewIdList, double peakGroupFdr) {
 
         // 1) get peptide matrix
-        HashMap<String, HashMap<String, AnalyseDataDO>> peptideMatrix = getMatrix(analyseOverviewIdList, peakGroupFdr);
+        HashMap<String, HashMap<String, FdrInfo>> peptideMatrix = getMatrix(analyseOverviewIdList, peakGroupFdr);
 
         // 2) get peptide fdr by peptideAllRun fdr
         double decoyRatio = getDecoyRatio(peptideMatrix);
+
         double peptideFdrCalculated = findPeptideFdr(peptideMatrix, decoyRatio, 0);
         if (peptideFdrCalculated > peakGroupFdr) {
             peptideMatrix = getMatrix(analyseOverviewIdList, peptideFdrCalculated);
@@ -58,42 +57,64 @@ public class ProjectMerger {
         }
 
         // 3) peptide select and count
-        HashMap<String, Integer> pepRefMap = getSelectedPeptideRef(peptideMatrix, 0d, alignedFdr);
+        HashMap<String, Integer> pepRefMap = countSelectedPeptideRef(peptideMatrix, alignedFdr);
         return pepRefMap;
     }
 
+    public List<FdrInfo> getSelectedPeptideMatrix(List<String> analyseOverviewIdList, double peakGroupFdr){
+
+        // 1) get peptide matrix
+        HashMap<String, HashMap<String, FdrInfo>> peptideMatrix = getMatrix(analyseOverviewIdList, peakGroupFdr);
+
+        // 2) get peptide fdr by peptideAllRun fdr
+        double decoyRatio = getDecoyRatio(peptideMatrix);
+
+        double peptideFdrCalculated = findPeptideFdr(peptideMatrix, decoyRatio, 0);
+        if (peptideFdrCalculated > peakGroupFdr) {
+            peptideMatrix = getMatrix(analyseOverviewIdList, peptideFdrCalculated);
+        }
+
+        double alignedFdr;
+        if (peptideFdrCalculated < peakGroupFdr) {
+            alignedFdr = peakGroupFdr;
+        } else {
+            alignedFdr = 2 * peptideFdrCalculated;
+        }
+
+        return getSelectedPeptideList(peptideMatrix, alignedFdr);
+    }
     /**
      * 将OverviewList中的所有分析结果以 HashMap<String, HashMap<String, AnalyseDataDO>> 的内存结构保留
      * Key为DECOY_PeptideRef或者是PeptideRef(前者为伪肽段,后者为真实肽段)
      * Value为另外一个Map,这个Map的Key是AnalyseOverviewId
-     *
+     * TODO: 应该直接使用SQL语句进行统计合并,而不是在内存中进行归并  --陆妙善
      * @param analyseOverviewIdList
      * @param fdrLimit
      * @return
      */
-    private HashMap<String, HashMap<String, AnalyseDataDO>> getMatrix(List<String> analyseOverviewIdList, double fdrLimit) {
-        HashMap<String, HashMap<String, AnalyseDataDO>> peptideMatrix = new HashMap<>();
+    private HashMap<String, HashMap<String, FdrInfo>> getMatrix(List<String> analyseOverviewIdList, double fdrLimit) {
+        HashMap<String, HashMap<String, FdrInfo>> peptideMatrix = new HashMap<>();
         AnalyseDataQuery query = new AnalyseDataQuery();
         query.setQValueEnd(fdrLimit);
         for (String overviewId : analyseOverviewIdList) {
             query.setOverviewId(overviewId);
-            List<AnalyseDataDO> analyseDataList = analyseDataService.getAll(query);
-            for (AnalyseDataDO analyseDataDO : analyseDataList) {
-                if (analyseDataDO.getIsDecoy()) {
-                    if (peptideMatrix.containsKey(Constants.DECOY_PREFIX + analyseDataDO.getPeptideRef())) {
-                        peptideMatrix.get(Constants.DECOY_PREFIX + analyseDataDO.getPeptideRef()).put(overviewId, analyseDataDO);
+            List<FdrInfo> fdrInfoList = analyseDataService.getAllFdrInfo(query);
+            for (FdrInfo fdrInfo : fdrInfoList) {
+                if (fdrInfo.getIsDecoy()) {
+                    if (peptideMatrix.containsKey(Constants.DECOY_PREFIX + fdrInfo.getPeptideRef())) {
+                        peptideMatrix.get(Constants.DECOY_PREFIX + fdrInfo.getPeptideRef()).put(overviewId, fdrInfo);
                     } else {
-                        HashMap<String, AnalyseDataDO> runMap = new HashMap<>();
-                        runMap.put(overviewId, analyseDataDO);
-                        peptideMatrix.put(Constants.DECOY_PREFIX + analyseDataDO.getPeptideRef(), runMap);
+                        HashMap<String, FdrInfo> runMap = new HashMap<>();
+                        runMap.put(overviewId, fdrInfo);
+                        peptideMatrix.put(Constants.DECOY_PREFIX + fdrInfo.getPeptideRef(), runMap);
                     }
                 } else {
-                    if (peptideMatrix.containsKey(analyseDataDO.getPeptideRef())) {
-                        peptideMatrix.get(analyseDataDO.getPeptideRef()).put(overviewId, analyseDataDO);
+                    if (peptideMatrix.containsKey(fdrInfo.getPeptideRef())) {
+                        peptideMatrix.get(fdrInfo.getPeptideRef()).put(overviewId, fdrInfo);
                     } else {
-                        HashMap<String, AnalyseDataDO> runMap = new HashMap<>();
-                        runMap.put(overviewId, analyseDataDO);
-                        peptideMatrix.put(analyseDataDO.getPeptideRef(), runMap);
+                        HashMap<String, FdrInfo> runMap = new HashMap<>();
+                        runMap.put(overviewId, fdrInfo);
+                        peptideMatrix.put(fdrInfo.getPeptideRef(), runMap);
                     }
                 }
             }
@@ -107,7 +128,7 @@ public class ProjectMerger {
      * @param peptideMatrix
      * @return Decoy/(Decoy+Target)
      */
-    private float getDecoyRatio(HashMap<String, HashMap<String, AnalyseDataDO>> peptideMatrix) {
+    private float getDecoyRatio(HashMap<String, HashMap<String, FdrInfo>> peptideMatrix) {
         Long targetCount = 0L, decoyCount = 0L;
         //统计多个分析结果中真伪肽段的数目,通过统计Key值中是否包含DECOY_特征字符来统计真伪肽段数目,提升速度.--陆妙善
         for (String peptideRef : peptideMatrix.keySet()) {
@@ -118,15 +139,6 @@ public class ProjectMerger {
             }
         }
 
-//        for (HashMap<String, AnalyseDataDO> map : peptideMatrix.values()) {
-//            for (AnalyseDataDO analyseDataDO : map.values()) {
-//                if (analyseDataDO.getIsDecoy()) {
-//                    decoyCount++;
-//                } else {
-//                    targetCount++;
-//                }
-//            }
-//        }
         //返回伪肽段所占的比例
         return (float) decoyCount / (targetCount + decoyCount);
     }
@@ -139,13 +151,13 @@ public class ProjectMerger {
      * @param fdr
      * @return Decoy/(Decoy+Target)
      */
-    private double getSelectedUniqueDecoyRatio(HashMap<String, HashMap<String, AnalyseDataDO>> peptideMatrix, double fdr) {
+    private double getSelectedUniqueDecoyRatio(HashMap<String, HashMap<String, FdrInfo>> peptideMatrix, double fdr) {
 
         Long decoyCount = 0L, targetCount = 0L;
-        for (HashMap<String, AnalyseDataDO> map : peptideMatrix.values()) {
-            for (AnalyseDataDO analyseDataDO : map.values()) {
-                if (analyseDataDO.getQValue() < fdr) {
-                    if (analyseDataDO.getIsDecoy()) {
+        for (HashMap<String, FdrInfo> map : peptideMatrix.values()) {
+            for (FdrInfo fdrInfo : map.values()) {
+                if (fdrInfo.getQValue() < fdr) {
+                    if (fdrInfo.getIsDecoy()) {
                         decoyCount++;
                     } else {
                         targetCount++;
@@ -164,7 +176,7 @@ public class ProjectMerger {
      * @param recursion
      * @return
      */
-    private double findPeptideFdr(HashMap<String, HashMap<String, AnalyseDataDO>> peptideMatrix, double decoyRatio, int recursion) {
+    private double findPeptideFdr(HashMap<String, HashMap<String, FdrInfo>> peptideMatrix, double decoyRatio, int recursion) {
         double startFdr = 0.0005d / Math.pow(10, recursion);
         double endFdr = 0.01d / Math.pow(10, recursion);
         double step = startFdr;
@@ -272,41 +284,44 @@ public class ProjectMerger {
         return stdList.get(stdList.size() / 2);
     }
 
-    private double getRtDiffCutoff(double medianStd, int times) {
-        return times * medianStd;
-    }
-
     /**
-     * TODO isotope_grouping  "SWATHScoringReader.OpenSWATH_SWATHScoringReader(SWATHScoringReader)"
      *
      * @param peptideMatrix
-     * @param rtDiffCutoff
      * @param alignedFdr
      * @return
      */
-    private HashMap<String, Integer> getSelectedPeptideRef(HashMap<String, HashMap<String, AnalyseDataDO>> peptideMatrix, double rtDiffCutoff, double alignedFdr) {
+    private HashMap<String, Integer> countSelectedPeptideRef(HashMap<String, HashMap<String, FdrInfo>> peptideMatrix, double alignedFdr) {
         HashMap<String, Integer> pepRefMap = new HashMap<>();
         for (String peptideRef : peptideMatrix.keySet()) {
-            double bestFdr = alignedFdr;
-//            double bestRt = 0d;
-//            int count = 0;
-            for (AnalyseDataDO peptideRun : peptideMatrix.get(peptideRef).values()) {
-                if (peptideRun.getQValue() < bestFdr) {
-//                    bestFdr = peptideRun.getQValue();
-//                    bestRt = peptideRun.getBestRt();
+            for (FdrInfo peptideRun : peptideMatrix.get(peptideRef).values()) {
+                if (peptideRun.getQValue() < alignedFdr) {
                     if (pepRefMap.containsKey(peptideRef)) {
                         pepRefMap.put(peptideRef, pepRefMap.get(peptideRef) + 1);
                     } else {
                         pepRefMap.put(peptideRef, 1);
                     }
-//                    count ++;
                 }
             }
-//            if (count == 0){
-//                continue;
-//            }
-//            pepRefMap.put(peptideRef, count);
         }
         return pepRefMap;
+    }
+
+    /**
+     *
+     * @param peptideMatrix
+     * @param alignedFdr
+     * @return
+     */
+    private List<FdrInfo> getSelectedPeptideList(HashMap<String, HashMap<String, FdrInfo>> peptideMatrix, double alignedFdr) {
+        List<FdrInfo> fdrInfos = new ArrayList<>();
+        for (String peptideRef : peptideMatrix.keySet()) {
+            for (FdrInfo peptideRun : peptideMatrix.get(peptideRef).values()) {
+                if (peptideRun.getQValue() < alignedFdr) {
+                    fdrInfos.add(peptideRun);
+                    break;
+                }
+            }
+        }
+        return fdrInfos;
     }
 }

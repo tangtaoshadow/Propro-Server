@@ -148,9 +148,18 @@ public enum ResultCode implements Serializable {
      * Project
      * ******
      */
+    PROJECT_ID_CANNOT_BE_EMPTY("PROJECT_ID_CANNOT_BE_EMPTY", "项目ID不能为空"),
     PROJECT_NAME_CANNOT_BE_EMPTY("PROJECT_NAME_CANNOT_BE_EMPTY", "项目名称不能为空"),
     PROJECT_NOT_EXISTED("PROJECT_NOT_EXISTED", "项目不能为空"),
     NO_EXPERIMENT_UNDER_PROJECT("NO_EXPERIMENT_UNDER_PROJECT", "项目下没有实验数据"),
+
+    /**
+     * ******
+     * Project Report
+     * ******
+     */
+
+
 
     /**
      * ******

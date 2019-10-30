@@ -217,7 +217,6 @@ public class ProjectController extends BaseController {
             data.put("libraries", getLibraryList(0, true));
             data.put("iRtLibraries", getLibraryList(1, true));
             data.put("project", project);
-
             status = 0;
         } while (false);
 
@@ -251,16 +250,13 @@ public class ProjectController extends BaseController {
         Map<String, Object> map = new HashMap<String, Object>();
         // 状态标记
         int status = -1;
-
         Map<String, Object> data = new HashMap<String, Object>();
 
 
         do {
-
             ProjectDO project = projectService.getById(id);
             try {
                 PermissionUtil.check(project);
-
             } catch (Exception e) {
                 status = -2;
                 break;
@@ -296,8 +292,6 @@ public class ProjectController extends BaseController {
 
         // 返回数据
         return JSON.toJSONString(map, SerializerFeature.WriteNonStringKeyAsString);
-
-
     }
 
     /***
@@ -311,14 +305,12 @@ public class ProjectController extends BaseController {
         Map<String, Object> map = new HashMap<String, Object>();
         // 状态标记
         int status = -1;
-
         Map<String, Object> data = new HashMap<String, Object>();
 
         do {
             ProjectDO project = projectService.getByName(name);
             try {
                 PermissionUtil.check(project);
-
             } catch (Exception e) {
                 status = -2;
                 break;
@@ -737,7 +729,6 @@ public class ProjectController extends BaseController {
 
             try {
                 PermissionUtil.check(project);
-
             } catch (Exception e) {
                 status = -2;
                 break;
@@ -766,7 +757,6 @@ public class ProjectController extends BaseController {
             }
 
             List<String> scoreTypes = ScoreUtil.getScoreTypes(request);
-
             List<ExperimentDO> exps = experimentService.getAllByProjectId(id);
             if (exps == null) {
                 // 实验为空
@@ -808,7 +798,6 @@ public class ProjectController extends BaseController {
                 input.setOwnerName(getCurrentUsername());
                 input.setExtractParams(new ExtractParams(mzExtractWindow, rtExtractWindow));
                 input.setScoreTypes(scoreTypes);
-
                 input.setXcorrShapeThreshold(shapeScoreThreshold);
                 input.setXcorrShapeWeightThreshold(shapeWeightScoreThreshold);
                 experimentTask.extract(taskDO, input);
@@ -987,6 +976,7 @@ public class ProjectController extends BaseController {
         model.addAttribute("outputAllPeptides", false);
         return "project/outputSelector";
     }
+
 
     @PostMapping(value = "/doWriteToFile")
     void doWriteToFile(Model model,

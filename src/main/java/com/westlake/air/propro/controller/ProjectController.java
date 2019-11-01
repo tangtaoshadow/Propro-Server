@@ -229,6 +229,7 @@ public class ProjectController extends BaseController {
 
     }
 
+
     /***
      * @archive 更新项目列表
      * @update tangtao 2019-10-23 12:40:21
@@ -435,6 +436,48 @@ public class ProjectController extends BaseController {
 
         // 返回数据
         return JSON.toJSONString(map, SerializerFeature.WriteNonStringKeyAsString);
+    }
+
+    /***
+     * @author tangtao https://www.promiselee.cn/tao
+     * @updateTiem 2019-10-30 13:23:57
+     * @archive 查找指定项目下的指定的文件
+     * @param fileName
+     * @param projectName
+     * @return
+     */
+    @PostMapping(value = "/checkFile")
+    @ResponseBody
+    String checkFile(@RequestParam(value = "fileName") String fileName,
+                     @RequestParam(value = "projectName") String projectName
+    ) {
+
+        Map<String, Object> map = new HashMap<String, Object>();
+        // 状态标记
+        int status = -1;
+        Map<String, Object> data = new HashMap<String, Object>();
+
+        try {
+            // 尝试提取项目名字
+            ProjectDO project = projectService.getByName(projectName);
+            PermissionUtil.check(project);
+            File file = FileUtil.getFile(projectName, fileName);
+            if (null != file) {
+                // 成功找到文件
+                data.put("file", file);
+                status = 0;
+            }
+        } catch (Exception e) {
+            //
+            status = -2;
+        }
+
+        map.put("status", status);
+        map.put("data", data);
+
+        // 返回数据
+        return JSON.toJSONString(map, SerializerFeature.WriteNonStringKeyAsString);
+
     }
 
     /***

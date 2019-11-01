@@ -3,7 +3,6 @@ package com.westlake.air.propro.utils;
 import com.alibaba.fastjson.JSONArray;
 import com.westlake.air.propro.constants.SuffixConst;
 import com.westlake.air.propro.constants.SymbolConst;
-import com.westlake.air.propro.constants.enums.ResultCode;
 import com.westlake.air.propro.domain.bean.analyse.RtIntensityPairsDouble;
 import com.westlake.air.propro.domain.bean.file.TableFile;
 import com.westlake.air.propro.domain.db.AnalyseDataDO;
@@ -175,6 +174,44 @@ public class FileUtil {
         }
         return newFileList;
     }
+
+
+    /***
+     * @updatetime tangtao at 2019-10-30 00:27:52
+     * @archive 根据项目名称扫描该项目对应的文件，并返回找到的指定的文件 没找到返回 null
+     * @param projectName 要查找的项目
+     * @param findFileName 要寻找的文件名
+     * @return 找到的文件列表
+     */
+    public static File getFile(String projectName, String findFileName) {
+        File resultFile = null;
+        try {
+            // 提取目录名称
+            String directoryPath = RepositoryUtil.getProjectRepo(projectName);
+            File directory = new File(directoryPath);
+
+            // 列出指定路径下的文件名称 返回 File Array
+            File[] fileArray = directory.listFiles();
+            if (fileArray != null) {
+                for (File file : fileArray) {
+                    if (file.isFile()) {
+                        // 获取文件名
+                        String fileName = file.getName();
+                        // 检查是否是要寻找的文件
+                        if (null != fileName && 0 < fileName.length() && fileName.equals(findFileName)) {
+                            resultFile = file;
+                            break;
+                        }
+                    }
+                }
+            }
+
+        } catch (Exception e) {
+            resultFile = null;
+        }
+        return resultFile;
+    }
+
 
     /**
      * 删除单个文件

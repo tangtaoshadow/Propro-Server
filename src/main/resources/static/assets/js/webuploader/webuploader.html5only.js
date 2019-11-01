@@ -3377,7 +3377,7 @@
             var pending = [],
                 blob = file.source,
                 total = blob.size,
-                chunks = chunkSize ? Math.ceil( total / chunkSize ) : 1,
+                chunks = chunkSize.length ? chunkSize.length : Math.ceil( total / chunkSize ),
                 start = 0,
                 index = 0,
                 len, api;
@@ -3399,12 +3399,12 @@
             };
     
             while ( index < chunks ) {
-                len = Math.min( chunkSize, total - start );
-    
+                len = chunkSize[index];
+
                 pending.push({
                     file: file,
                     start: start,
-                    end: chunkSize ? (start + len) : total,
+                    end: chunkSize[index] ? (start + len) : total,
                     total: total,
                     chunks: chunks,
                     chunk: index++,

@@ -16,6 +16,8 @@ public class SimpleProjectReport {
     //冗余字段,项目名称
     String projectName;
 
+    String batchName;
+
     //统计使用的analyseOverviewId列表
     List<String> overviewIds;
 

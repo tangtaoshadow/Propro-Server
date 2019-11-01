@@ -34,6 +34,9 @@ public class ProjectReportDO extends BaseDO {
     //项目合并分析的最后修改日期
     Date lastModifiedDate;
 
+    //归并时Experiment的BatchNo字段
+    String batchName;
+
     //统计使用的analyseOverviewId列表
     List<String> overviewIds;
 
@@ -51,5 +54,7 @@ public class ProjectReportDO extends BaseDO {
 
     //最终定量结果
     List<Double> intensitySums;
+
+    List<String> proteinNames;
 
 }

@@ -20,6 +20,7 @@
                 <thead>
                 <tr>
                     <th width="10%" th:text="#{label_project_name}"></th>
+                    <th width="10%" th:text="#{label_batch_name}"></th>
                     <th width="5%" th:text="#{label_creator}"></th>
                     <th width="10%" th:text="#{label_identified_number}"></th>
                     <th width="10%" th:text="#{label_create_date}"></th>
@@ -31,6 +32,7 @@
                 <tbody>
                 <tr th:each="report:${projectReports}">
                     <td th:text="${report.projectName}" data-toggle="m-tooltip" th:title="${report.projectId}"></td>
+                    <td th:text="${report.batchName}"></td>
                     <td th:text="${report.creator}"></td>
                     <td th:text="${report.identifiedNumber}"></td>
                     <td th:text="${#dates.format(report.createDate,'yyyy-MM-dd HH:mm:ss')}"></td>

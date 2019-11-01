@@ -809,6 +809,7 @@ public class ProjectController extends BaseController {
     @RequestMapping(value = "/domerge")
     String doMerge(Model model,
                    @RequestParam(value = "projectId", required = true) String projectId,
+                   @RequestParam(value = "mergeTargets", defaultValue = "false") Boolean mergeTargets,
                    HttpServletRequest request,
                    HttpServletResponse response,
                    RedirectAttributes redirectAttributes) {
@@ -816,51 +817,26 @@ public class ProjectController extends BaseController {
         ProjectDO projectDO = projectService.getById(projectId);
         PermissionUtil.check(projectDO);
 
-        List<SimpleExperiment> experimentList = experimentService.getAllSimpleExperimentByProjectId(projectId);
-        HashMap<String, HashMap<String, String>> intensityMap = new HashMap<>();//key为PeptideRef, value为另外一个Map,map的key为ExperimentName,value为intensity值
-        HashMap<String, String> pepToProt = new HashMap<>();//key为PeptideRef,value为ProteinName
-
-        List<String> overviewIds = new ArrayList<>();
-        HashMap<String, String> exps = new HashMap<>();
-
-        for (SimpleExperiment simpleExp : experimentList) {
-            String checkState = request.getParameter(simpleExp.getId());
-            if (checkState != null && checkState.equals("on")) {
-                //取每一个实验的第一个分析结果进行分析
-                AnalyseOverviewDO analyseOverview = analyseOverviewService.getFirstAnalyseOverviewByExpId(simpleExp.getId());
-                if (analyseOverview == null) {
-                    continue;
+        if (mergeTargets) {
+            List<SimpleExperiment> experimentList = experimentService.getAllSimpleExperimentByProjectId(projectId);
+            List<String> targetExps = new ArrayList<>();
+            for (SimpleExperiment simpleExp : experimentList) {
+                String checkState = request.getParameter(simpleExp.getId());
+                if (checkState != null && checkState.equals("on")) {
+                    targetExps.add(simpleExp.getId());
                 }
-                overviewIds.add(analyseOverview.getId());
-                exps.put(simpleExp.getId(), simpleExp.getName());
             }
+            ProjectReportDO reportDO = projectReportService.generateReport(projectDO, targetExps);
+            reportDO.setCreator(getCurrentUsername());
+            projectReportService.insert(reportDO);
+        } else {
+            List<ProjectReportDO> reports = projectReportService.generateReport(projectId);
+            for (ProjectReportDO reportDO : reports) {
+                reportDO.setCreator(getCurrentUsername());
+            }
+            projectReportService.insertAll(reports);
         }
 
-        List<FdrInfo> results = projectMerger.getSelectedPeptideMatrix(overviewIds, 0.01);
-        List<String> dataRefs = new ArrayList<>();
-        List<Double> bestRts = new ArrayList<>();
-        List<Double> intensitySums = new ArrayList<>();
-        for (FdrInfo fi : results) {
-            if (!fi.getIsDecoy()) {
-                dataRefs.add(fi.getDataRef());
-                bestRts.add(fi.getBestRt());
-                intensitySums.add(fi.getIntensitySum());
-            }
-        }
-
-        ProjectReportDO reportDO = new ProjectReportDO();
-        reportDO.setProjectId(projectId);
-        reportDO.setProjectName(projectDO.getName());
-        reportDO.setCreator(getCurrentUsername());
-        reportDO.setExps(exps);
-        reportDO.setOverviewIds(overviewIds);
-        reportDO.setDataRefs(dataRefs);
-        reportDO.setIdentifiedNumber(dataRefs.size());
-        reportDO.setIntensitySums(intensitySums);
-        reportDO.setBestRts(bestRts);
-        projectReportService.insert(reportDO);
-
-        model.addAttribute(SUCCESS_MSG, dataRefs.size());
         return "redirect:/project/reports?projectId=" + projectId;
     }
 

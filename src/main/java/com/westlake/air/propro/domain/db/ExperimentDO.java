@@ -57,6 +57,9 @@ public class ExperimentDO extends BaseDO {
     //别名,默认为空
     String alias;
 
+    //技术重复Batch号,在合并一个项目中同一个样本的replicated实验时,会按照本批次号进行聚类
+    String batchName;
+
     //DIA_SWATH, PRM, SCANNING_SWATH @see ExpType
     String type;
 

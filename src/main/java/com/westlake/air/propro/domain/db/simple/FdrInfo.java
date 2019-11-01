@@ -10,6 +10,8 @@ public class FdrInfo {
      */
     String dataRef;
 
+    String proteinName;
+
     String peptideRef;
 
     Boolean isDecoy;

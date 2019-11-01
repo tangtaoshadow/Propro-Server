@@ -9,4 +9,5 @@ public class SimpleExperiment {
 
     String name;
 
+    String batchName;
 }

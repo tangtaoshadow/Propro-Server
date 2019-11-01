@@ -54,6 +54,8 @@
                 <tr>
                     <th width="5%" th:text="#{label_project_name}"></th>
                     <th width="10%" th:text="#{label_exp_name}"></th>
+                    <th width="4%" th:text="#{label_alias}"></th>
+                    <th width="4%" th:text="#{label_batch_name}"></th>
                     <th width="10%" th:text="#{label_exp_id}"></th>
                     <th width="5%" th:text="#{label_exp_type}"></th>
                     <th width="5%">Aird Size</th>
@@ -61,7 +63,6 @@
                     <th width="5%" th:text="#{label_swath_windows_count}"></th>
                     <th width="8%" th:text="#{label_irt_result}"></th>
                     <th width="10%" th:text="#{label_instrument_model}"></th>
-                    <th width="8%" th:text="#{label_last_modified_date}"></th>
                     <th width="10%" th:text="#{label_reco_conv_total}"></th>
                     <th width="15%" th:text="#{label_operation}"></th>
                 </tr>
@@ -75,6 +76,8 @@
                         <a th:href="@{/experiment/detail/{id}(id=${experiment.id})}" data-toggle="m-tooltip"
                            th:title="#{btn_detail}" th:text="${experiment.name}"></a>
                     </td>
+                    <td th:text="|${experiment.alias}|"></td>
+                    <td th:text="|${experiment.batchName}|"></td>
                     <td th:text="|${experiment.id}|"></td>
                     <td th:text="${experiment.type}">
                     </td>
@@ -96,7 +99,6 @@
                         <a th:data1="${experiment.id}" th:onclick="query(this.getAttribute('data1'))" data-toggle="modal" data-target="#m_modal_irt" href="#" th:text="|${experiment.irtResult?.si?.slope} -> ${experiment.irtResult?.si?.intercept}|"></a>
                     </td>
                     <td th:text="|${experiment.instrument?.manufacturer} ${experiment.instrument?.model}|"></td>
-                    <td th:text="${#dates.format(experiment.lastModifiedDate,'yyyy-MM-dd HH:mm:ss')}"></td>
                     <td>
                         <a th:href="@{/analyse/overview/list(expId=${experiment.id})}" data-toggle="m-tooltip" th:title="#{label_analyse_overview}">
                             <div th:text="|Peptides : ${analyseOverviewDOMap.get(experiment.id)?.matchedPeptideCount}|"></div>

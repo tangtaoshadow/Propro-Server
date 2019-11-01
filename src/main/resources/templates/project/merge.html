@@ -48,11 +48,23 @@
                                 <label for="name" class="col-2 col-form-label" th:text="#{label_project_name}"></label>
                                 <div class="col-10">
                                     <input type="text" class="form-control m-input" id="name" readonly name="name" th:value="|${project?.name}(${project?.id})|">
+                                    <span th:text="#{label_aggregate_with_batch_name_as_default}"></span>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-12">
                             <div class="m-form__group form-group row">
+                                <label class="col-md-1 col-form-label"></label>
+                                <div class="col-md-11 row">
+                                    <div class="m-checkbox-list col-md-3">
+                                        <label class="m-checkbox">
+                                            <input type="checkbox" th:checked="false" id="mergeTargets" name="mergeTargets" th:text="#{label_merge_target_exps}" onclick="displaySelectPanel()">
+                                            <span></span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="m-form__group form-group row" id="selectPanel">
                                 <label class="col-md-1 col-form-label" th:text="#{label_choose_experiments}"></label>
                                 <div class="col-md-11 row">
                                     <div class="m-checkbox-list col-md-3" th:each="experimentDO:${expList}">
@@ -80,4 +92,21 @@
 </div>
 </body>
 <!-- end::Body -->
+<th:block layout:fragment="script">
+    <script th:inline="javascript">
+        $(document).ready(function () {
+            displaySelectPanel();
+        });
+
+        function displaySelectPanel(){
+            var checkbox = document.getElementById("mergeTargets");
+            var selectPanel = document.getElementById("selectPanel");
+            if(checkbox.checked){
+                selectPanel.hidden = false;
+            }else{
+                selectPanel.hidden = true;
+            }
+        }
+    </script>
+</th:block>
 </html>

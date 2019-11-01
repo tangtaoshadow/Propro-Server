@@ -41,16 +41,16 @@
                             <label class="col-2 col-form-label" th:text="#{label_project_id}"></label>
                             <div class="col-10">
                                 <input type="text" class="form-control m-input" id="projectId" name="projectId"
-                                       readonly th:value="${projectReport?.projectId}"/>
+                                       readonly th:value="|${projectReport?.projectName}(${projectReport?.projectId})|"/>
                             </div>
                         </div>
                         <div class="form-group m-form__group row">
-                            <label for="projectName" class="col-2 col-form-label" th:text="#{label_project_name}">
+                            <label for="batchName" class="col-2 col-form-label" th:text="#{label_batch_name}">
                             </label>
                             <div class="col-10">
-                                <input type="text" class="form-control m-input" id="projectName"
-                                       name="projectName"
-                                       readonly th:value="${projectReport?.projectName}">
+                                <input type="text" class="form-control m-input" id="batchName"
+                                       name="batchName"
+                                       readonly th:value="${projectReport?.batchName}">
                             </div>
                         </div>
 
@@ -81,12 +81,14 @@
                             <div class="col-10">
                                 <table class="table table-bordered table-hover" style="table-layout:fixed;">
                                     <thead>
+                                        <th>ProteinName</th>
                                         <th>PeptideRef</th>
                                         <th>BestRT</th>
                                         <th>IntensitySum</th>
                                     </thead>
                                     <tbody>
                                         <tr th:each="dataRef, status:${projectReport.dataRefs}">
+                                            <td th:text="${projectReport.proteinNames.get(status.index)}"></td>
                                             <td>
                                                 <a target="_blank" th:href="@{/analyse/data/list(overviewId=${#strings.arraySplit(dataRef,'-')[0]}, peptideRef=${#strings.arraySplit(dataRef,'-')[1]})}" th:text="${#strings.arraySplit(dataRef,'-')[1]}"></a>
                                             </td>

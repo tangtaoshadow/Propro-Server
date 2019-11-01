@@ -176,12 +176,12 @@ public class ExperimentController extends BaseController {
     String update(Model model,
                   @RequestParam(value = "id", required = true) String id,
                   @RequestParam(value = "name") String name,
-                  @RequestParam(value = "type") String type,
-                  @RequestParam(value = "iRtLibraryId") String iRtLibraryId,
+                  @RequestParam(value = "alias") String alias,
+                  @RequestParam(value = "batchName") String batchName,
                   @RequestParam(value = "slope") Double slope,
                   @RequestParam(value = "intercept") Double intercept,
                   @RequestParam(value = "description") String description,
-                  @RequestParam(value = "projectName") String projectName,
+                  @RequestParam(value = "projectId") String projectId,
                   RedirectAttributes redirectAttributes) {
 
         ResultDO<ExperimentDO> resultDO = experimentService.getById(id);
@@ -192,7 +192,7 @@ public class ExperimentController extends BaseController {
         ExperimentDO experimentDO = resultDO.getModel();
         PermissionUtil.check(resultDO.getModel());
 
-        ProjectDO project = projectService.getByName(projectName);
+        ProjectDO project = projectService.getById(projectId);
         if (project == null) {
             redirectAttributes.addFlashAttribute(ERROR_MSG, resultDO.getMsgInfo());
             return "redirect:/experiment/list";
@@ -205,11 +205,10 @@ public class ExperimentController extends BaseController {
         }
 
         experimentDO.setName(name);
-        experimentDO.setType(type);
-        experimentDO.setProjectName(projectName);
+        experimentDO.setAlias(alias);
+        experimentDO.setBatchName(batchName);
         experimentDO.setProjectId(project.getId());
         experimentDO.setDescription(description);
-        experimentDO.setIRtLibraryId(iRtLibraryId);
         IrtResult irtResult = experimentDO.getIrtResult();
         irtResult.setSi(new SlopeIntercept(slope, intercept));
         experimentDO.setIrtResult(irtResult);

@@ -27,6 +27,9 @@ import com.westlake.air.propro.service.*;
 import com.westlake.air.propro.utils.*;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -37,10 +40,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.FormParam;
 import java.io.File;
+import java.io.FileReader;
 import java.io.OutputStream;
 import java.net.URLEncoder;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Created by James Lu MiaoShan
@@ -456,6 +461,8 @@ public class ProjectController extends BaseController {
         // 状态标记
         int status = -1;
         Map<String, Object> data = new HashMap<String, Object>();
+        // 存储文件分片列表
+        Map<String, Object> fileFragmentList = new HashMap<String, Object>();
 
         try {
             // 尝试提取项目名字
@@ -464,11 +471,39 @@ public class ProjectController extends BaseController {
             File file = FileUtil.getFile(projectName, fileName);
             if (null != file) {
                 // 成功找到文件
-                data.put("file", file);
+                data.put("fileName", file.getName());
+                data.put("fileLength", file.length());
                 status = 0;
+                JSONParser jsonParser = new JSONParser();
+                JSONObject jsonObject = (JSONObject) jsonParser.parse(
+                        new FileReader(String.valueOf(file))
+                );
+                //
+                JSONArray indexList = (JSONArray) jsonObject.get("indexList");
+                // indexList.forEach((index, item) -> {
+                //     System.out.println(index);
+                // });
+                // long
+                Map<String, String> listTemp = new HashMap<String, String>();
+
+                Stream.iterate(0, i -> i + 1).limit(indexList.size()).forEach(i -> {
+                    System.out.println(String.valueOf(i) + "==\r\n>>" + indexList.get(i));
+                    JSONObject obj = (JSONObject) indexList.get(i);
+                    listTemp.put("startPtr", obj.get("startPtr").toString());
+                    System.out.println(obj.get("startPtr").toString());
+                    // listTemp.put("endPtr", (String) obj.get("endPtr"));
+                    fileFragmentList.put(String.valueOf(i), listTemp);
+                });
+
+                data.put("fileFragmentList", fileFragmentList);
+                // System.out.println(indexList.toJSONString());
+                // data.put("files", jsonObject);
+
+
             }
         } catch (Exception e) {
             //
+            e.printStackTrace();
             status = -2;
         }
 

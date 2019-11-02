@@ -132,15 +132,18 @@ public class TaskController extends BaseController {
                 status = -3;
                 break;
             }
+
             PermissionUtil.check(resultDO.getModel());
             TaskDO taskDO = resultDO.getModel();
             map.put("task", taskDO);
+
             TaskTemplate taskTemplate = TaskTemplate.getByName(taskDO.getTaskTemplate());
             if (taskTemplate == null) {
                 // 对象不存在
                 status = -4;
                 break;
             }
+
             // 成功状态
             status = 0;
         } while (false);

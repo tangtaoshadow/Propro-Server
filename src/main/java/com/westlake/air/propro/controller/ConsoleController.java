@@ -14,8 +14,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.configurationprocessor.json.JSONObject;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.HashMap;
@@ -52,7 +52,7 @@ public class ConsoleController extends BaseController {
      * @Archive 请求资源列表 post
      * @return 返回资源类型 数目
      */
-    @RequestMapping(value = "/resourceList", method = RequestMethod.POST)
+    @PostMapping(value = "/resourceList")
     public String resourceList() {
 
         // 返回状态
@@ -153,13 +153,13 @@ public class ConsoleController extends BaseController {
      * @return
      */
     @RequiresRoles({"admin"})
-    @RequestMapping("/register")
+    @PostMapping("/register")
     String register(Model model, UserDO user) {
         return "home";
     }
 
     @RequiresRoles({"admin"})
-    @RequestMapping("/init")
+    @PostMapping("/init")
     String init(Model model) {
         logger.info("Register");
         UserDO userDO = new UserDO();

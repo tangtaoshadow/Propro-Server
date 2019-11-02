@@ -113,7 +113,8 @@ public class TaskController extends BaseController {
 
 
     /***
-     * @UpdateTime 2019-9-10 09:20:56
+     * @UpdateTime 2019-11-2 23:39:23
+     * @statement 为了兼容之前的前端交互 所以保留了 map也传输数据
      * @Archive 查询任务id的详情
      * @param id 任务id
      * @return
@@ -124,6 +125,7 @@ public class TaskController extends BaseController {
         // 状态标记
         int status = -1;
         Map<String, Object> map = new HashMap<String, Object>();
+        Map<String, Object> data = new HashMap<String, Object>();
 
         do {
             ResultDO<TaskDO> resultDO = taskService.getById(id);
@@ -136,6 +138,7 @@ public class TaskController extends BaseController {
             PermissionUtil.check(resultDO.getModel());
             TaskDO taskDO = resultDO.getModel();
             map.put("task", taskDO);
+            data.put("task", taskDO);
 
             TaskTemplate taskTemplate = TaskTemplate.getByName(taskDO.getTaskTemplate());
             if (taskTemplate == null) {
@@ -148,7 +151,8 @@ public class TaskController extends BaseController {
             status = 0;
         } while (false);
 
-        // 返回状态
+        // 返回状态 **** 以后需要移除 ****
+        map.put("data", data);
         map.put("status", status);
 
         // 返回数据

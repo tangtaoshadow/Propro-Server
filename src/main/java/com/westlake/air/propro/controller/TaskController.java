@@ -32,7 +32,7 @@ public class TaskController extends BaseController {
 
 
     /***
-     * @UpdateTime 2019-9-9 16:29:53
+     * @UpdateTime 2019-11-3 00:53:22
      * @Archive 任务列表
      * @param currentPage
      * @param pageSize
@@ -113,7 +113,7 @@ public class TaskController extends BaseController {
 
 
     /***
-     * @UpdateTime 2019-11-2 23:39:23
+     * @UpdateTime 2019-11-3 00:53:36
      * @statement 去掉了之前数据放在map里 而是封装在data里
      * @Archive 查询任务id的详情
      * @param id 任务id
@@ -140,7 +140,6 @@ public class TaskController extends BaseController {
 
             data.put("task", taskDO);
 
-
             TaskTemplate taskTemplate = TaskTemplate.getByName(taskDO.getTaskTemplate());
             if (taskTemplate == null) {
                 // 对象不存在
@@ -158,9 +157,9 @@ public class TaskController extends BaseController {
 
         map.put("status", status);
 
+
         // 返回数据
         return JSON.toJSONString(map, SerializerFeature.WriteNonStringKeyAsString);
-
     }
 
 

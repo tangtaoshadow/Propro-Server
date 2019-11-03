@@ -898,23 +898,57 @@ public class ProjectController extends BaseController {
         // return "redirect:/task/list";
     }
 
+    /***
+     * @update tangtao at 2019-11-3 18:43:19
+     * @archive 实验部分选取控制面板
+     * @param id
+     * @return
+     */
     @PostMapping(value = "/portionSelector")
-    String portionSelector(Model model,
-                           @RequestParam(value = "id", required = true) String id,
-                           RedirectAttributes redirectAttributes) {
-        ProjectDO project = projectService.getById(id);
-        if (project == null) {
-            redirectAttributes.addFlashAttribute(ERROR_MSG, ResultCode.PROJECT_NOT_EXISTED);
-            return "redirect:/project/list";
-        }
+    String portionSelector(
+            @RequestParam(value = "id", required = true) String id
+    ) {
+        Map<String, Object> map = new HashMap<String, Object>();
+        // 状态标记
+        int status = -1;
+        Map<String, Object> data = new HashMap<String, Object>();
 
-        PermissionUtil.check(project);
+        do {
 
-        List<ExperimentDO> expList = experimentService.getAllByProjectName(project.getName());
-        List<ExperimentDO> collect = expList.stream().sorted(Comparator.comparing(ExperimentDO::getName)).collect(Collectors.toList());
-        model.addAttribute("project", project);
-        model.addAttribute("expList", collect);
-        return "project/portionSelector";
+            ProjectDO project = projectService.getById(id);
+            if (project == null) {
+                status = -2;
+                data.put("errorMsg", ResultCode.PROJECT_NOT_EXISTED);
+                // return "redirect:/project/list";
+                break;
+            }
+
+            try {
+                //
+                PermissionUtil.check(project);
+
+            } catch (Exception e) {
+                //
+                status = -3;
+                break;
+            }
+
+
+            List<ExperimentDO> expList = experimentService.getAllByProjectName(project.getName());
+            List<ExperimentDO> collect = expList.stream().sorted(Comparator.comparing(ExperimentDO::getName)).collect(Collectors.toList());
+            data.put("project", project);
+            data.put("expList", collect);
+
+            status = 0;
+
+        } while (false);
+
+        map.put("status", status);
+        map.put("data", data);
+
+        // 返回数据 前端接收到后应跳转到任务列表
+        return JSON.toJSONString(map, SerializerFeature.WriteNonStringKeyAsString);
+
     }
 
     @PostMapping(value = "/overview")

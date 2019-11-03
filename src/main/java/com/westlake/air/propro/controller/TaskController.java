@@ -35,7 +35,7 @@ public class TaskController extends BaseController {
      * @UpdateTime 2019-11-3 00:53:22
      * @Archive 任务列表
      * @param currentPage
-     * @param pageSize
+     * @param pageSize 默认设置为100
      * @param taskTemplate
      * @param taskStatus
      * @return
@@ -43,7 +43,7 @@ public class TaskController extends BaseController {
     @PostMapping(value = "/list")
     String taskList(
             @RequestParam(value = "currentPage", required = false, defaultValue = "1") Integer currentPage,
-            @RequestParam(value = "pageSize", required = false, defaultValue = "30") Integer pageSize,
+            @RequestParam(value = "pageSize", required = false, defaultValue = "100") Integer pageSize,
             @RequestParam(value = "taskTemplate", required = false) String taskTemplate,
             @RequestParam(value = "taskStatus", required = false) String taskStatus) {
 

@@ -161,6 +161,32 @@
 
 
 
+# 任务：列表
+
+**作者**：[`唐涛`](https://www.promiselee.cn/tao)
+
+**创建**：`2019-11-3 18:07:29`
+
+**修改**：`2019-11-3 18:07:33`
+
+![tangtao](http://cdn.promiselee.cn/share_static/files/propro/propro-task-detail-2019-11-3-180413.png)
+
+
+
+
+
+# 任务：详情
+
+**作者**：[`唐涛`](https://www.promiselee.cn/tao)
+
+**创建**：`2019-11-3 18:05:51`
+
+**修改**：`2019-11-3 18:05:55`
+
+![tangtao](http://cdn.promiselee.cn/share_static/files/propro/propro-task-detail-2019-11-3-180413.png)
+
+
+
 # 待完善的功能
 
 - 标准库设置为public和private `2019-8-30 14:14:21`

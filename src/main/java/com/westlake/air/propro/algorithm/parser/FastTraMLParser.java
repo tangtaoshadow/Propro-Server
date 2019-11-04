@@ -257,14 +257,16 @@ public class FastTraMLParser extends BaseLibraryParser {
                     if (filePepRef.startsWith("DECOY")) {
                         continue;
                     }
-                    //如果PepRef仅包含一个下划线,那么这个PeptideRef是一个单纯的PeptideRef,否则只取最后一段
-                    String[] labels = filePepRef.split("_");
-                    if (labels.length <= 1) {
-                        peptideDO = peptideMap.get(filePepRef);
-                    } else {
-                        String peptideRef = labels[labels.length - 2] + "_" + labels[labels.length - 1];
-                        peptideDO = peptideMap.get(peptideRef);
-                    }
+
+                    peptideDO = peptideMap.get(filePepRef);
+//                    //如果PepRef仅包含一个下划线,那么这个PeptideRef是一个单纯的PeptideRef,否则只取最后一段
+//                    String[] labels = filePepRef.split("_");
+//                    if (labels.length <= 1) {
+//                        peptideDO = peptideMap.get(filePepRef);
+//                    } else {
+//                        String peptideRef = labels[labels.length - 2] + "_" + labels[labels.length - 1];
+//                        peptideDO = peptideMap.get(peptideRef);
+//                    }
                 }
 
                 if (peptideDO != null && peptideDO.getMz() == null && line.contains(PrecursorMarker)) {

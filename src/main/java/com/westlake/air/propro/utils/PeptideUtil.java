@@ -1,5 +1,9 @@
 package com.westlake.air.propro.utils;
 
+import com.westlake.air.propro.constants.enums.ResultCode;
+import com.westlake.air.propro.domain.ResultDO;
+import com.westlake.air.propro.domain.bean.peptide.Annotation;
+import com.westlake.air.propro.domain.db.FragmentInfo;
 import com.westlake.air.propro.domain.db.PeptideDO;
 import org.apache.commons.lang3.StringUtils;
 
@@ -51,9 +55,7 @@ public class PeptideUtil {
                 peptide = StringUtils.replaceOnce(peptide, matcher.group(0), matcher.group(1));
             }
         }
-//        if (unimodMap.size() > 0) {
-            peptideDO.setUnimodMap(unimodMap);
-//        }
+        peptideDO.setUnimodMap(unimodMap);
     }
 
     /**
@@ -77,4 +79,77 @@ public class PeptideUtil {
         return unimodMap;
     }
 
+    public static Annotation parseAnnotation(String annotations) {
+        String[] annotationStrs = annotations.split(",");
+        Annotation annotation = new Annotation();
+
+        try {
+            String annotationStr = annotationStrs[0];
+            if (StringUtils.startsWith(annotationStr, "[")) {
+                annotation.setIsBrotherIcon(true);
+                annotationStr = annotationStr.replace("[", "");
+                annotationStr = annotationStr.replace("]", "");
+            }
+            String[] forDeviation = annotationStr.split("/");
+            if (forDeviation.length > 1) {
+                annotation.setDeviation(Double.parseDouble(forDeviation[1]));
+            }
+
+            if (forDeviation[0].endsWith("i")) {
+                annotation.setIsotope(true);
+                forDeviation[0] = forDeviation[0].replace("i", "");
+            }
+
+            String[] forCharge = forDeviation[0].split("\\^");
+            if (forCharge.length == 2) {
+                annotation.setCharge(Integer.parseInt(forCharge[1]));
+            } else if (forDeviation[0].contains("(")) {
+                String[] msmsCutoff = forDeviation[0].split("\\(");
+                annotation.setCharge(Integer.parseInt(msmsCutoff[1].substring(0, 1)));
+                forCharge[0] = msmsCutoff[0];
+            }
+            //默认为负,少数情况下校准值为正
+            String nOrP = "-";
+            String[] forAdjust;
+            if (forCharge[0].contains("+")) {
+                nOrP = "+";
+                forAdjust = forCharge[0].split("\\+");
+                if (forAdjust.length == 2) {
+                    annotation.setAdjust(Integer.parseInt(nOrP + forAdjust[1]));
+                }
+            } else if (forCharge[0].contains("-")) {
+                forAdjust = forCharge[0].split("-");
+                if (forAdjust.length == 2) {
+                    annotation.setAdjust(Integer.parseInt(nOrP + forAdjust[1]));
+                }
+            } else {
+                forAdjust = forCharge;
+            }
+
+            String finalStr = forAdjust[0];
+            //第一位必定是字母,代表fragment类型
+            annotation.setType(finalStr.substring(0, 1));
+            String location = finalStr.substring(1);
+            if (!location.isEmpty()) {
+                annotation.setLocation(Integer.parseInt(location));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+           return null;
+        }
+        return annotation;
+    }
+
+    //解析离子类型以及断裂位置,不包含离子碎片的带电量
+    public static void parseAnnotations(FragmentInfo fi, String annotations){
+        fi.setAnnotations(annotations);
+        Annotation annotation = parseAnnotation(annotations);
+        if(annotation != null){
+            fi.setAnnotation(annotation);
+            if (fi.getCharge() == null){
+                fi.setCharge(annotation.getCharge());
+            }
+            fi.setCutInfo(annotation.toCutInfo());
+        }
+    }
 }

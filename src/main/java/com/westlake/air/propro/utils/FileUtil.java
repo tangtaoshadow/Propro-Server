@@ -393,6 +393,17 @@ public class FileUtil {
         }
     }
 
+
+    public static void close(BufferedReader bf) {
+        if (bf != null) {
+            try {
+                bf.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     public static void close(FileOutputStream fos) {
         if (fos != null) {
             try {

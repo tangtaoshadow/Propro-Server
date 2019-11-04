@@ -14,6 +14,7 @@ import com.westlake.air.propro.domain.db.PeptideDO;
 import com.westlake.air.propro.domain.db.TaskDO;
 import com.westlake.air.propro.service.LibraryService;
 import com.westlake.air.propro.service.TaskService;
+import com.westlake.air.propro.utils.PeptideUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,17 +54,8 @@ public class MsmsParser extends BaseLibraryParser {
     public ResultDO parseAndInsert(InputStream in, LibraryDO library, TaskDO taskDO) {
 
         try {
-            //开始插入前先清空原有的数据库数据
-            ResultDO resultDOTmp = peptideService.deleteAllByLibraryId(library.getId());
-            if (resultDOTmp.isFailed()) {
-                logger.error(resultDOTmp.getMsgInfo());
-                return ResultDO.buildError(ResultCode.DELETE_ERROR);
-            }
-            taskDO.addLog("Delete the old data already, starting parsing file, 删除旧数据完毕,开始文件解析");
-            taskService.update(taskDO);
 
-            InputStreamReader isr = new InputStreamReader(in, StandardCharsets.UTF_8);
-            BufferedReader reader = new BufferedReader(isr);
+            BufferedReader reader = prepareForReader(in ,library, taskDO);
             String line = reader.readLine();
             if (line == null) {
                 return ResultDO.buildError(ResultCode.LINE_IS_EMPTY);
@@ -248,9 +240,9 @@ public class MsmsParser extends BaseLibraryParser {
             }
             Double intensity = Double.parseDouble(intensityArray[i]);
             FragmentInfo fragmentInfo = new FragmentInfo(cutInfo, Double.parseDouble(massArray[i]), intensity, 1);
-            ResultDO<Annotation> resultDO = parseAnnotation(cutInfo);
+            Annotation annotation = PeptideUtil.parseAnnotation(cutInfo);
             fragmentInfo.setAnnotations(cutInfo);
-            fragmentInfo.setAnnotation(resultDO.getModel());
+            fragmentInfo.setAnnotation(annotation);
             if (fragmentInfo.getAnnotation().getCharge() != 1){
                 fragmentInfo.setCharge(fragmentInfo.getAnnotation().getCharge());
             }

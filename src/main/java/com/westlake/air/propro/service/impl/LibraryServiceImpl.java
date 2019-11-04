@@ -199,6 +199,11 @@ public class LibraryServiceImpl implements LibraryService {
         } else if (fileName.toLowerCase().endsWith("traml")) {
             if (prmPeptideRefMap.isEmpty()) {
                 resultDO = fastTraMLParser.parseAndInsert(libFileStream, library, taskDO);
+                if(resultDO.isFailed()){  //如果使用fastTraMLParser失败了,则直接使用标准的TraML解析器尝试解析
+                    taskDO.addLog("Try with Standard TraML Parser");
+                    taskService.update(taskDO);
+                    resultDO = traMLParser.parseAndInsert(libFileStream, library, taskDO);
+                }
             } else {
                 resultDO = fastTraMLParser.selectiveParseAndInsert(libFileStream, library, new HashSet<>(prmPeptideRefMap.keySet()), false, taskDO);
             }

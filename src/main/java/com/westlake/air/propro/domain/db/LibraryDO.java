@@ -55,12 +55,12 @@ public class LibraryDO extends BaseDO {
     String generator;
 
     //蛋白总数目
-    Long proteinCount;
-    Long uniqueProteinCount;
+    Long proteinCount = 0L;
+    Long uniqueProteinCount = 0L;
 
     //肽段总数目
-    Long totalCount;
-    Long totalUniqueCount;
+    Long totalCount = 0L;
+    Long totalUniqueCount = 0L;
 
     int fastaDeWeightPepCount;
     int libraryDeWeightPepCount;

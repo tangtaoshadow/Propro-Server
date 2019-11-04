@@ -9,6 +9,7 @@ import com.westlake.air.propro.domain.db.LibraryDO;
 import com.westlake.air.propro.domain.db.PeptideDO;
 import com.westlake.air.propro.domain.db.TaskDO;
 import com.westlake.air.propro.service.TaskService;
+import com.westlake.air.propro.utils.PeptideUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,16 +65,8 @@ public class LibraryTsvParser extends BaseLibraryParser {
         ResultDO<List<PeptideDO>> tranResult = new ResultDO<>(true);
         try {
             //开始插入前先清空原有的数据库数据
-            ResultDO resultDOTmp = peptideService.deleteAllByLibraryId(library.getId());
-            if (resultDOTmp.isFailed()) {
-                logger.error(resultDOTmp.getMsgInfo());
-                return ResultDO.buildError(ResultCode.DELETE_ERROR);
-            }
-            taskDO.addLog("删除旧数据完毕,开始文件解析");
-            taskService.update(taskDO);
 
-            InputStreamReader isr = new InputStreamReader(in, StandardCharsets.UTF_8);
-            BufferedReader reader = new BufferedReader(isr);
+            BufferedReader reader = prepareForReader(in, library, taskDO);
             String line = reader.readLine();
             if (line == null) {
                 return ResultDO.buildError(ResultCode.LINE_IS_EMPTY);
@@ -230,11 +223,7 @@ public class LibraryTsvParser extends BaseLibraryParser {
         }
         peptideDO.setPeptideRef(peptideDO.getFullName() + "_" + peptideDO.getCharge());
         try {
-            ResultDO<Annotation> annotationResult = parseAnnotation(fi.getAnnotations());
-            Annotation annotation = annotationResult.getModel();
-            fi.setAnnotation(annotation);
-            fi.setCharge(annotation.getCharge());
-            fi.setCutInfo(annotation.toCutInfo());
+            PeptideUtil.parseAnnotations(fi, fi.getAnnotations());
             peptideDO.putFragment(fi.getCutInfo(), fi);
             resultDO.setModel(peptideDO);
         } catch (Exception e) {

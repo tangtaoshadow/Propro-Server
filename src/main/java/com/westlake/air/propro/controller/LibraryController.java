@@ -175,7 +175,7 @@ public class LibraryController extends BaseController {
             logger.warn(resultDO.getMsgInfo());
             redirectAttributes.addFlashAttribute(ERROR_MSG, resultDO.getMsgInfo());
             redirectAttributes.addFlashAttribute("library", library);
-            return "redirect://library/create";
+            return "redirect:/library/create";
         }
         try {
             InputStream libFileStream = libFile.getInputStream();

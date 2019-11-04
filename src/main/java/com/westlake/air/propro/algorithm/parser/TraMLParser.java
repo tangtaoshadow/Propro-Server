@@ -11,6 +11,7 @@ import com.westlake.air.propro.domain.db.TaskDO;
 import com.westlake.air.propro.algorithm.parser.model.traml.*;
 import com.westlake.air.propro.algorithm.parser.xml.AirXStream;
 import com.westlake.air.propro.service.TaskService;
+import com.westlake.air.propro.utils.PeptideUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -42,7 +43,7 @@ public class TraMLParser extends BaseLibraryParser {
             TraML.class, Transition.class, UserParam.class, ValidationStatus.class
     };
 
-    private void prepare(){
+    private void prepare() {
         airXStream.processAnnotations(classes);
         airXStream.allowTypes(classes);
     }
@@ -54,7 +55,7 @@ public class TraMLParser extends BaseLibraryParser {
         return traML;
     }
 
-    public String parse(TraML traML){
+    public String parse(TraML traML) {
         prepare();
         return airXStream.toXML(traML);
     }
@@ -84,7 +85,7 @@ public class TraMLParser extends BaseLibraryParser {
         // parse transition attribution
         boolean isDecoy = transition.getPeptideRef().toLowerCase().contains("decoy");
         //不处理伪肽段信息
-        if(isDecoy){
+        if (isDecoy) {
             return ResultDO.buildError(ResultCode.NO_DECOY);
         }
         // parse transition cvparams
@@ -98,7 +99,7 @@ public class TraMLParser extends BaseLibraryParser {
         }
         // parse transition userparam
         List<UserParam> listUserParams = transition.getUserParams();
-        if(listUserParams != null){
+        if (listUserParams != null) {
             for (UserParam userParam : listUserParams) {
                 if (userParam.getName().equals("annotation")) {
                     fi.setAnnotations(userParam.getValue());
@@ -108,7 +109,7 @@ public class TraMLParser extends BaseLibraryParser {
 
         // parse precursor
         listCvParams = transition.getPrecursor().getCvParams();
-        if(listCvParams != null){
+        if (listCvParams != null) {
             for (CvParam cvParam : listCvParams) {
                 if (cvParam.getName().equals("isolation window target m/z")) {
                     peptideDO.setMz(Double.valueOf(cvParam.getValue()));
@@ -122,7 +123,7 @@ public class TraMLParser extends BaseLibraryParser {
 
         // parse product cvParams
         listCvParams = transition.getProduct().getCvParams();
-        if(listCvParams != null){
+        if (listCvParams != null) {
             for (CvParam cvParam : listCvParams) {
                 if (cvParam.getName().equals("isolation window target m/z")) {
                     fi.setMz(Double.valueOf(cvParam.getValue()));
@@ -140,10 +141,10 @@ public class TraMLParser extends BaseLibraryParser {
         peptideDO.setSequence(peptide.getSequence());
         peptideDO.setProteinName(peptide.getProteinRefList().get(0).getRef());
         peptideDO.setFullName(peptide.getUserParams().get(0).getValue());
-        for(CvParam cvParam : peptide.getCvParams()){
-            if(cvParam.getName().equals("charge state")){
+        for (CvParam cvParam : peptide.getCvParams()) {
+            if (cvParam.getName().equals("charge state")) {
                 peptideDO.setCharge(Integer.valueOf(cvParam.getValue()));
-                peptideDO.setPeptideRef(peptideDO.getFullName()+"_"+ peptideDO.getCharge());
+                peptideDO.setPeptideRef(peptideDO.getFullName() + "_" + peptideDO.getCharge());
             }
         }
 
@@ -151,10 +152,7 @@ public class TraMLParser extends BaseLibraryParser {
         String annotations = fi.getAnnotations();
         fi.setAnnotations(annotations);
         try {
-            ResultDO<Annotation> annotationResult = parseAnnotation(fi.getAnnotations());
-            Annotation annotation = annotationResult.getModel();
-            fi.setAnnotation(annotation);
-            fi.setCutInfo(annotation.toCutInfo());
+            PeptideUtil.parseAnnotations(fi, fi.getAnnotations());
             peptideDO.putFragment(fi.getCutInfo(), fi);
             resultDO.setModel(peptideDO);
         } catch (Exception e) {
@@ -190,7 +188,7 @@ public class TraMLParser extends BaseLibraryParser {
             for (Transition transition : traML.getTransitionList()) {
                 ResultDO<PeptideDO> resultDO = parseTransition(transition, peptideMap, library);
                 if (resultDO.isFailed()) {
-                    if(!resultDO.getMsgCode().equals(ResultCode.NO_DECOY.getCode())){
+                    if (!resultDO.getMsgCode().equals(ResultCode.NO_DECOY.getCode())) {
                         tranResult.addErrorMsg(resultDO.getMsgInfo());
                     }
                     continue;
@@ -199,7 +197,7 @@ public class TraMLParser extends BaseLibraryParser {
                 addFragment(peptide, map);
             }
 
-            for (PeptideDO peptide: map.values()){
+            for (PeptideDO peptide : map.values()) {
                 shuffleGenerator.generate(peptide);
             }
 
@@ -230,18 +228,18 @@ public class TraMLParser extends BaseLibraryParser {
             }
 
             boolean withCharge = new ArrayList<>(selectedPepSet).get(0).contains("_");
-            if (selectBySequence){
+            if (selectBySequence) {
                 selectedPepSet = convertPepToSeq(selectedPepSet, withCharge);
             }
             HashMap<String, PeptideDO> map = new HashMap<>();
             for (Transition transition : traML.getTransitionList()) {
-                if(!selectedPepSet.isEmpty() && !isSelectedPep(transition, peptideMap, selectedPepSet, withCharge, selectBySequence)){
+                if (!selectedPepSet.isEmpty() && !isSelectedPep(transition, peptideMap, selectedPepSet, withCharge, selectBySequence)) {
                     continue;
                 }
                 ResultDO<PeptideDO> resultDO = parseTransition(transition, peptideMap, library);
 
                 if (resultDO.isFailed()) {
-                    if(!resultDO.getMsgCode().equals(ResultCode.NO_DECOY.getCode())){
+                    if (!resultDO.getMsgCode().equals(ResultCode.NO_DECOY.getCode())) {
                         tranResult.addErrorMsg(resultDO.getMsgInfo());
                     }
                     continue;
@@ -251,7 +249,7 @@ public class TraMLParser extends BaseLibraryParser {
                 //在导入Peptide的同时生成伪肽段
                 shuffleGenerator.generate(peptide);
             }
-            for (PeptideDO peptideDO: map.values()){
+            for (PeptideDO peptideDO : map.values()) {
                 selectedPepSet.remove(peptideDO.getPeptideRef());
             }
             ArrayList<PeptideDO> peptides = new ArrayList<PeptideDO>(map.values());
@@ -270,22 +268,22 @@ public class TraMLParser extends BaseLibraryParser {
     }
 
 
-    private boolean isSelectedPep(Transition transition, HashMap<String, Peptide> peptideMap, HashSet<String> selectedPepSet, boolean withCharge, boolean selectBySequence){
+    private boolean isSelectedPep(Transition transition, HashMap<String, Peptide> peptideMap, HashSet<String> selectedPepSet, boolean withCharge, boolean selectBySequence) {
         Peptide peptide = peptideMap.get(transition.getPeptideRef());
         String fullName = peptide.getUserParams().get(0).getValue();
-        if (selectBySequence){
+        if (selectBySequence) {
             String sequence = removeUnimod(fullName);
             return selectedPepSet.contains(sequence);
         }
-        if (withCharge){
+        if (withCharge) {
             String charge = "";
-            for(CvParam cvParam : peptide.getCvParams()){
-                if(cvParam.getName().equals("charge state")){
+            for (CvParam cvParam : peptide.getCvParams()) {
+                if (cvParam.getName().equals("charge state")) {
                     charge = cvParam.getValue();
                 }
             }
-            return selectedPepSet.contains(fullName+"_"+charge);
-        }else {
+            return selectedPepSet.contains(fullName + "_" + charge);
+        } else {
             return selectedPepSet.contains(fullName);
         }
     }

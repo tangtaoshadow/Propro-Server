@@ -75,12 +75,12 @@
                            th:title="#{menu_peptide_list}" th:text="${library.totalCount}">
                         </a>
                     </td>
-                    <td th:if="${library.proteinCount}!=0" th:text="${library.totalCount}/${library.proteinCount}"></td>
-                    <td th:unless="${library.proteinCount}!=0" th:text="|${library.totalCount}/${library.proteinCount}|"></td>
-                    <td th:text="${#dates.format(library.createDate,'yyyy-MM-dd HH:mm:ss')}"></td>
-                    <td th:text="${library.creator}"></td>
+                    <td th:if="${library.proteinCount}!=0" th:text="${library?.totalCount}/${library?.proteinCount}"></td>
+                    <td th:unless="${library?.proteinCount}!=0" th:text="|${library?.totalCount}/${library?.proteinCount}|"></td>
+                    <td th:text="${#dates.format(library?.createDate,'yyyy-MM-dd HH:mm:ss')}"></td>
+                    <td th:text="${library?.creator}"></td>
                     <td>
-                        <a th:href="@{/library/edit/{id}(id=${library.id})}" data-toggle="m-tooltip"
+                        <a th:href="@{/library/edit/{id}(id=${library?.id})}" data-toggle="m-tooltip"
                            th:title="#{btn_modify}"
                            class="btn btn-warning m-btn m-btn--icon m-btn--icon-only">
                             <i class="fa fa-edit"></i>

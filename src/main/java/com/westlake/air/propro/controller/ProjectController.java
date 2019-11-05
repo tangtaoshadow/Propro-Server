@@ -686,6 +686,7 @@ public class ProjectController extends BaseController {
         return "redirect:/project/list";
     }
 
+
     @PostMapping(value = "/deleteAnalyse/{id}")
     String deleteAnalyse(@PathVariable("id") String id,
                          RedirectAttributes redirectAttributes) {
@@ -701,6 +702,7 @@ public class ProjectController extends BaseController {
         redirectAttributes.addFlashAttribute(SUCCESS_MSG, SuccessMsg.DELETE_SUCCESS);
         return "redirect:/project/list";
     }
+
 
     /***
      * @updateTime tangtao at 2019-10-25 10:42:03
@@ -898,6 +900,7 @@ public class ProjectController extends BaseController {
         // return "redirect:/task/list";
     }
 
+
     /***
      * @update tangtao at 2019-11-3 18:43:19
      * @archive 实验部分选取控制面板
@@ -919,7 +922,6 @@ public class ProjectController extends BaseController {
             if (project == null) {
                 status = -2;
                 data.put("errorMsg", ResultCode.PROJECT_NOT_EXISTED);
-                // return "redirect:/project/list";
                 break;
             }
 
@@ -932,7 +934,6 @@ public class ProjectController extends BaseController {
                 status = -3;
                 break;
             }
-
 
             List<ExperimentDO> expList = experimentService.getAllByProjectName(project.getName());
             List<ExperimentDO> collect = expList.stream().sorted(Comparator.comparing(ExperimentDO::getName)).collect(Collectors.toList());
@@ -1060,7 +1061,7 @@ public class ProjectController extends BaseController {
             pepFragIntListMap.put(peptideDO.getPeptideRef(), fragIntListMap);
         }
 
-        //横坐标实验，纵坐标不同pep
+        //  横坐标实验，纵坐标不同pep
         model.addAttribute("projectName", projectName);
         model.addAttribute("libraryId", libraryId);
         model.addAttribute("libName", libName);
@@ -1107,7 +1108,7 @@ public class ProjectController extends BaseController {
         for (SimpleExperiment simpleExp : experimentList) {
             String checkState = request.getParameter(simpleExp.getId());
             if (checkState != null && checkState.equals("on")) {
-                //取每一个实验的第一个分析结果进行分析
+                //  取每一个实验的第一个分析结果进行分析
                 AnalyseOverviewDO analyseOverview = analyseOverviewService.getFirstAnalyseOverviewByExpId(simpleExp.getId());
                 if (analyseOverview == null) {
                     continue;

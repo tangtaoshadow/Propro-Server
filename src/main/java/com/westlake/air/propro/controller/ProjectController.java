@@ -42,6 +42,7 @@ import javax.ws.rs.FormParam;
 import java.io.File;
 import java.io.FileReader;
 import java.io.OutputStream;
+import java.math.BigInteger;
 import java.net.URLEncoder;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -445,67 +446,44 @@ public class ProjectController extends BaseController {
 
     /***
      * @author tangtao https://www.promiselee.cn/tao
-     * @updateTiem 2019-10-30 13:23:57
+     * @updateTiem 2019-11-6 10:51:01
      * @archive 查找指定项目下的指定的文件
      * @param fileName
      * @param projectName
      * @return
      */
     @PostMapping(value = "/checkFile")
-    @ResponseBody
     String checkFile(@RequestParam(value = "fileName") String fileName,
                      @RequestParam(value = "projectName") String projectName
     ) {
 
         Map<String, Object> map = new HashMap<String, Object>();
+
         // 状态标记
         int status = -1;
         Map<String, Object> data = new HashMap<String, Object>();
-        // 存储文件分片列表
-        Map<String, Object> fileFragmentList = new HashMap<String, Object>();
 
-        try {
-            // 尝试提取项目名字
-            ProjectDO project = projectService.getByName(projectName);
-            PermissionUtil.check(project);
-            File file = FileUtil.getFile(projectName, fileName);
-            if (null != file) {
+        do {
+            try {
+                // 尝试提取项目名字
+                ProjectDO project = projectService.getByName(projectName);
+                PermissionUtil.check(project);
+                File file = FileUtil.getFile(projectName, fileName);
+                if (null != file) {
+                } else {
+                    // 文件不存在
+                    status = -3;
+                    break;
+                }
                 // 成功找到文件
-                data.put("fileName", file.getName());
-                data.put("fileLength", file.length());
                 status = 0;
-                JSONParser jsonParser = new JSONParser();
-                JSONObject jsonObject = (JSONObject) jsonParser.parse(
-                        new FileReader(String.valueOf(file))
-                );
+                break;
+            } catch (Exception e) {
                 //
-                JSONArray indexList = (JSONArray) jsonObject.get("indexList");
-                // indexList.forEach((index, item) -> {
-                //     System.out.println(index);
-                // });
-                // long
-                Map<String, String> listTemp = new HashMap<String, String>();
-
-                Stream.iterate(0, i -> i + 1).limit(indexList.size()).forEach(i -> {
-                    System.out.println(String.valueOf(i) + "==\r\n>>" + indexList.get(i));
-                    JSONObject obj = (JSONObject) indexList.get(i);
-                    listTemp.put("startPtr", obj.get("startPtr").toString());
-                    System.out.println(obj.get("startPtr").toString());
-                    // listTemp.put("endPtr", (String) obj.get("endPtr"));
-                    fileFragmentList.put(String.valueOf(i), listTemp);
-                });
-
-                data.put("fileFragmentList", fileFragmentList);
-                // System.out.println(indexList.toJSONString());
-                // data.put("files", jsonObject);
-
-
+                status = -2;
+                break;
             }
-        } catch (Exception e) {
-            //
-            e.printStackTrace();
-            status = -2;
-        }
+        } while (false);
 
         map.put("status", status);
         map.put("data", data);
@@ -514,6 +492,86 @@ public class ProjectController extends BaseController {
         return JSON.toJSONString(map, SerializerFeature.WriteNonStringKeyAsString);
 
     }
+
+
+    /***
+     *
+     * @param fileName
+     * @param projectName
+     * @return
+     */
+    @PostMapping(value = "/readJsonFile")
+    String readJsonFile(@RequestParam(value = "fileName") String fileName,
+                        @RequestParam(value = "projectName") String projectName
+    ) {
+
+        Map<String, Object> map = new HashMap<String, Object>();
+
+        // 状态标记
+        int status = -1;
+        Map<String, Object> data = new HashMap<String, Object>();
+
+        do {
+            try {
+                // 尝试提取项目名字
+                ProjectDO project = projectService.getByName(projectName);
+                PermissionUtil.check(project);
+                File file = FileUtil.getFile(projectName, fileName);
+                if (null != file) {
+                } else {
+                    // 文件不存在
+                    status = -3;
+                    break;
+                }
+
+                // 成功找到文件
+                // 提前写入 status=0 便于代码阅读 和理解
+                // 其次这样即使下面出错了会捕获 而且status会重新设定
+                // 仍能保证 status=0 才是成功
+                status = 0;
+
+                /******** 开始读取json 文件 并且进行计算分片位置 *********/
+                JSONParser jsonParser = new JSONParser();
+                JSONObject jsonObject = (JSONObject) jsonParser.parse(
+                        new FileReader(String.valueOf(file))
+                );
+                //
+                JSONArray indexList = (JSONArray) jsonObject.get("indexList");
+
+                /** 思路：tangtao
+                 * 存储文件分片位置 但是整数多大可能不太确定 使用 BigInteger 就可以不考虑大小
+                 * 这里不使用 ArrayList 因为 BigInteger 这种方式快 充分利用了索引
+                 * 而且整个处理逻辑简单
+                 */
+                BigInteger fragmentList[] = 0 < indexList.size() ? new BigInteger[indexList.size()] : null;
+
+                Stream.iterate(0, i -> i + 1).limit(indexList.size()).forEach(i -> {
+                    JSONObject obj = (JSONObject) indexList.get(i);
+                    // tangtao at 2019-11-6 10:43:19
+                    // 因为文件分片数据很大 采用大数存储计算
+                    BigInteger start = new BigInteger(obj.get("startPtr").toString());
+                    BigInteger end = new BigInteger(obj.get("endPtr").toString());
+                    BigInteger res = end.subtract(start);
+                    fragmentList[i] = res;
+                });
+
+                // 写入文件分片列表
+                data.put("fileFragmentList", fragmentList);
+            } catch (Exception e) {
+                // 可能出现转换异常等等错误 都归结为出错
+                status = -2;
+                break;
+            }
+        } while (false);
+
+
+        map.put("status", status);
+        map.put("data", data);
+
+        // 返回数据
+        return JSON.toJSONString(map, SerializerFeature.WriteNonStringKeyAsString);
+    }
+
 
     /***
      * @archive 批量计算irt

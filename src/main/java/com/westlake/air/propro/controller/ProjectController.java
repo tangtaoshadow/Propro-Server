@@ -495,12 +495,16 @@ public class ProjectController extends BaseController {
 
 
     /***
-     *
+     * @createAuthor tangtao
+     * @createTime 2019-11-6 09:18:32
+     * @updateTime 2019-11-6 19:28:57
+     * @archive 读取json文件
      * @param fileName
      * @param projectName
      * @return
      */
     @PostMapping(value = "/readJsonFile")
+    @ResponseBody
     String readJsonFile(@RequestParam(value = "fileName") String fileName,
                         @RequestParam(value = "projectName") String projectName
     ) {
@@ -557,6 +561,8 @@ public class ProjectController extends BaseController {
 
                 // 写入文件分片列表
                 data.put("fileFragmentList", fragmentList);
+                // 写回前端 告诉前端这个是哪个json文件的 否则前端不知道
+                data.put("jsonFileName", fileName);
             } catch (Exception e) {
                 // 可能出现转换异常等等错误 都归结为出错
                 status = -2;

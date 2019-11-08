@@ -151,9 +151,10 @@ $(function() {
         if (0 != res) {
           // 拒绝
           task.reject();
+          return -1;
         }
 
-        // console.log("每次发送前调用 包括上传json文件");
+        console.log("开始发送");
         $.ajax({
           type: "POST",
           url: checkUrl,
@@ -299,47 +300,46 @@ $(function() {
     updateStatus();
   }
 
-  sendAirdInit = block => {
+  sendAirdInit = filename => {
+    console.log(
+      "sendAirdInit jsonFileName",
+      jsonFileName,
+      "jsonFileNameStatus",
+      jsonFileNameStatus
+    );
     // 先判断文件分片是否在
-    let filename = block.file.name;
     //  把后缀 .aird 去掉
     filename = filename.substring(0, filename.lastIndexOf(".aird"));
-    if (jsonFileName == filename && 0 == jsonFileNameStatus) {
+    if (jsonFileName == filename + ".json" && 0 == jsonFileNameStatus) {
       // 说明已经存在 并且名称匹配成功
-      // 接下来判断 文件分片是否写入成功
+      console.log("说明已经存在 并且名称匹配成功", fileFragmentList);
+      // 接下来判断 文件分片是否写入成功 只要它不成立 就重新发起请求
+      // 这样可以使得每次刷新都重新获取数据
       if (0 == fileFragmentListStatus) {
         // 说明分片也写入成功
+        console.log("说明分片也写入成功");
         return 0;
       } else {
         // 写入分片
-        fileFragmentList = window.localStorage.getItem("fileFragmentList");
+        console.log("写入分片");
+        fileFragmentList = JSON.parse(
+          window.localStorage.getItem("fileFragmentList")
+        );
         fileFragmentListStatus = 0;
-        console.log("fileFragmentList===", fileFragmentList);
+        console.log("写入分片:成功");
       }
-      return 0;
+      return -1;
     } else {
       // 先发起同步请求json数据 以filename为准 因为他可以变 aird可以任意上传
-      console.log("向服务器索取json数据", filename, block);
-
+      console.log("向服务器索取json数据", filename);
       let res = getJsonFile(filename);
       return res;
     }
-    // 向服务器索取json数据
-    // $.ajax({
-    //     type: "POST",
-    //     url: checkUrl,
-    //     data: requestData,
-    //     cache: false,
-    //     async: false, // 同步
-    //     timeout: 1000
-    // }).then(function (data) {
-    //     var json=data;
-    // });
   };
 
   // create tangtao  向服务器获取 json文件数据
   getJsonFile = filename => {
-    console.log("getJsonFile--filename", filename);
+    console.log("getJsonFile--filename");
     let url = "/project/readJsonFile";
     let requestData = {
       projectName,
@@ -380,8 +380,12 @@ $(function() {
           fileFragmentList: fileFragmentList0 = [],
           jsonFileName: jsonFileName0 = ""
         } = resData;
+        // 数据写入 localStorage
         localStorage.setItem("jsonFileName", jsonFileName0);
-        localStorage.setItem("fileFragmentList", fileFragmentList0);
+        localStorage.setItem(
+          "fileFragmentList",
+          JSON.stringify(fileFragmentList0)
+        );
         jsonFileName = jsonFileName0;
         fileFragmentList = fileFragmentList0;
         jsonFileNameStatus = 0;
@@ -518,8 +522,10 @@ $(function() {
       // console.log(reader.result);
     };
     if (fileType === "aird") {
-      console.log("先判断json数据是否存在，没有就先发起请求json数据"); //换成ajax请求
+      console.log("先判断json数据是否存在，没有就先发起请求json数据");
+
       var name = file.name;
+      sendAirdInit(name);
       jsonObj[name] = "json" + jsonCount;
       jsonCount++;
       console.log(jsonObj);

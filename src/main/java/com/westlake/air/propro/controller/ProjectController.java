@@ -1,5 +1,7 @@
 package com.westlake.air.propro.controller;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.westlake.air.propro.algorithm.merger.ProjectMerger;
 import com.westlake.air.propro.component.ChunkUploader;
 import com.westlake.air.propro.config.VMProperties;
@@ -26,9 +28,11 @@ import com.westlake.air.propro.domain.vo.FileVO;
 import com.westlake.air.propro.domain.vo.UploadVO;
 import com.westlake.air.propro.service.*;
 import com.westlake.air.propro.utils.*;
-import io.swagger.models.auth.In;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -40,10 +44,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.FormParam;
 import java.io.File;
+import java.io.FileReader;
 import java.io.OutputStream;
+import java.math.BigInteger;
 import java.net.URLEncoder;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Created by James Lu MiaoShan
@@ -218,6 +225,7 @@ public class ProjectController extends BaseController {
     String fileManager(Model model, @RequestParam(value = "name", required = true) String name,
                        RedirectAttributes redirectAttributes) {
 
+
         // 根据项目 name 找到项目
         ProjectDO project = projectService.getByName(name);
         PermissionUtil.check(project);
@@ -250,6 +258,141 @@ public class ProjectController extends BaseController {
     }
 
 
+    /***
+     * @author tangtao https://www.promiselee.cn/tao
+     * @updateTiem 2019-11-6 10:51:01
+     * @archive 查找指定项目下的指定的文件
+     * @param fileName
+     * @param projectName
+     * @return
+     */
+    @PostMapping(value = "/checkFile")
+    String checkFile(@RequestParam(value = "fileName") String fileName,
+                     @RequestParam(value = "projectName") String projectName
+    ) {
+
+        Map<String, Object> map = new HashMap<String, Object>();
+
+        // 状态标记
+        int status = -1;
+        Map<String, Object> data = new HashMap<String, Object>();
+
+        do {
+            try {
+                // 尝试提取项目名字
+                ProjectDO project = projectService.getByName(projectName);
+                PermissionUtil.check(project);
+                File file = FileUtil.getFile(projectName, fileName);
+                if (null != file) {
+                } else {
+                    // 文件不存在
+                    status = -3;
+                    break;
+                }
+                // 成功找到文件
+                status = 0;
+                break;
+            } catch (Exception e) {
+                //
+                status = -2;
+                break;
+            }
+        } while (false);
+
+        map.put("status", status);
+        map.put("data", data);
+
+        // 返回数据
+        return JSON.toJSONString(map, SerializerFeature.WriteNonStringKeyAsString);
+
+    }
+
+
+    /***
+     * @createAuthor tangtao
+     * @createTime 2019-11-6 09:18:32
+     * @updateTime 2019-11-6 19:28:57
+     * @archive 读取json文件
+     * @param fileName
+     * @param projectName
+     * @return
+     */
+    @PostMapping(value = "/readJsonFile")
+    @ResponseBody
+    String readJsonFile(@RequestParam(value = "fileName") String fileName,
+                        @RequestParam(value = "projectName") String projectName
+    ) {
+
+        Map<String, Object> map = new HashMap<String, Object>();
+
+        // 状态标记
+        int status = -1;
+        Map<String, Object> data = new HashMap<String, Object>();
+
+        do {
+            try {
+                // 尝试提取项目名字
+                ProjectDO project = projectService.getByName(projectName);
+                PermissionUtil.check(project);
+                File file = FileUtil.getFile(projectName, fileName);
+                if (null != file) {
+                } else {
+                    // 文件不存在
+                    status = -3;
+                    break;
+                }
+
+                // 成功找到文件
+                // 提前写入 status=0 便于代码阅读 和理解
+                // 其次这样即使下面出错了会捕获 而且status会重新设定
+                // 仍能保证 status=0 才是成功
+                status = 0;
+
+                /******** 开始读取json 文件 并且进行计算分片位置 *********/
+                JSONParser jsonParser = new JSONParser();
+                JSONObject jsonObject = (JSONObject) jsonParser.parse(
+                        new FileReader(String.valueOf(file))
+                );
+                //
+                JSONArray indexList = (JSONArray) jsonObject.get("indexList");
+
+                /** 思路：tangtao
+                 * 存储文件分片位置 但是整数多大可能不太确定 使用 BigInteger 就可以不考虑大小
+                 * 这里不使用 ArrayList 因为 BigInteger 这种方式快 充分利用了索引
+                 * 而且整个处理逻辑简单
+                 */
+                BigInteger fragmentList[] = 0 < indexList.size() ? new BigInteger[indexList.size()] : null;
+
+                Stream.iterate(0, i -> i + 1).limit(indexList.size()).forEach(i -> {
+                    JSONObject obj = (JSONObject) indexList.get(i);
+                    // tangtao at 2019-11-6 10:43:19
+                    // 因为文件分片数据很大 采用大数存储计算
+                    BigInteger start = new BigInteger(obj.get("startPtr").toString());
+                    BigInteger end = new BigInteger(obj.get("endPtr").toString());
+                    BigInteger res = end.subtract(start);
+                    fragmentList[i] = res;
+                });
+
+                // 写入文件分片列表
+                data.put("fileFragmentList", fragmentList);
+                // 写回前端 告诉前端这个是哪个json文件的 否则前端不知道
+                data.put("jsonFileName", fileName);
+            } catch (Exception e) {
+                // 可能出现转换异常等等错误 都归结为出错
+                status = -2;
+                break;
+            }
+        } while (false);
+
+
+        map.put("status", status);
+        map.put("data", data);
+
+        // 返回数据
+        return JSON.toJSONString(map, SerializerFeature.WriteNonStringKeyAsString);
+    }
+
+
     @RequestMapping(value = "/doupload", method = RequestMethod.POST)
     @ResponseBody
     ResultDO doUpload(Model model,
@@ -259,12 +402,21 @@ public class ProjectController extends BaseController {
 
         ProjectDO project = projectService.getByName(projectName);
         PermissionUtil.check(project);
+
         model.addAttribute("project", project);
         chunkUploader.chunkUpload(file, uploadVO, projectName);
+
         return new ResultDO(true);
     }
 
-    @RequestMapping(value = "/check", method = RequestMethod.POST)
+
+    /***
+     * @archive 上传文件之前检查文件是否重复
+     * @param block FileBlockVO(fileName=napedro_L120225_010_SW.json, chunk=null, chunkSize=20971520)
+     * @param projectName 项目名称
+     * @return
+     */
+    @PostMapping(value = "/check")
     @ResponseBody
     public Object check(FileBlockVO block,
                         @RequestParam(value = "projectName") String projectName) {
@@ -809,7 +961,6 @@ public class ProjectController extends BaseController {
     @RequestMapping(value = "/domerge")
     String doMerge(Model model,
                    @RequestParam(value = "projectId", required = true) String projectId,
-                   @RequestParam(value = "mergeTargets", defaultValue = "false") Boolean mergeTargets,
                    HttpServletRequest request,
                    HttpServletResponse response,
                    RedirectAttributes redirectAttributes) {
@@ -817,26 +968,51 @@ public class ProjectController extends BaseController {
         ProjectDO projectDO = projectService.getById(projectId);
         PermissionUtil.check(projectDO);
 
-        if (mergeTargets) {
-            List<SimpleExperiment> experimentList = experimentService.getAllSimpleExperimentByProjectId(projectId);
-            List<String> targetExps = new ArrayList<>();
-            for (SimpleExperiment simpleExp : experimentList) {
-                String checkState = request.getParameter(simpleExp.getId());
-                if (checkState != null && checkState.equals("on")) {
-                    targetExps.add(simpleExp.getId());
+        List<SimpleExperiment> experimentList = experimentService.getAllSimpleExperimentByProjectId(projectId);
+        HashMap<String, HashMap<String, String>> intensityMap = new HashMap<>();//key为PeptideRef, value为另外一个Map,map的key为ExperimentName,value为intensity值
+        HashMap<String, String> pepToProt = new HashMap<>();//key为PeptideRef,value为ProteinName
+
+        List<String> overviewIds = new ArrayList<>();
+        HashMap<String, String> exps = new HashMap<>();
+
+        for (SimpleExperiment simpleExp : experimentList) {
+            String checkState = request.getParameter(simpleExp.getId());
+            if (checkState != null && checkState.equals("on")) {
+                //取每一个实验的第一个分析结果进行分析
+                AnalyseOverviewDO analyseOverview = analyseOverviewService.getFirstAnalyseOverviewByExpId(simpleExp.getId());
+                if (analyseOverview == null) {
+                    continue;
                 }
+                overviewIds.add(analyseOverview.getId());
+                exps.put(simpleExp.getId(), simpleExp.getName());
             }
-            ProjectReportDO reportDO = projectReportService.generateReport(projectDO, targetExps);
-            reportDO.setCreator(getCurrentUsername());
-            projectReportService.insert(reportDO);
-        } else {
-            List<ProjectReportDO> reports = projectReportService.generateReport(projectId);
-            for (ProjectReportDO reportDO : reports) {
-                reportDO.setCreator(getCurrentUsername());
-            }
-            projectReportService.insertAll(reports);
         }
 
+        List<FdrInfo> results = projectMerger.getSelectedPeptideMatrix(overviewIds, 0.01);
+        List<String> dataRefs = new ArrayList<>();
+        List<Double> bestRts = new ArrayList<>();
+        List<Double> intensitySums = new ArrayList<>();
+        for (FdrInfo fi : results) {
+            if (!fi.getIsDecoy()) {
+                dataRefs.add(fi.getDataRef());
+                bestRts.add(fi.getBestRt());
+                intensitySums.add(fi.getIntensitySum());
+            }
+        }
+
+        ProjectReportDO reportDO = new ProjectReportDO();
+        reportDO.setProjectId(projectId);
+        reportDO.setProjectName(projectDO.getName());
+        reportDO.setCreator(getCurrentUsername());
+        reportDO.setExps(exps);
+        reportDO.setOverviewIds(overviewIds);
+        reportDO.setDataRefs(dataRefs);
+        reportDO.setIdentifiedNumber(dataRefs.size());
+        reportDO.setIntensitySums(intensitySums);
+        reportDO.setBestRts(bestRts);
+        projectReportService.insert(reportDO);
+
+        model.addAttribute(SUCCESS_MSG, dataRefs.size());
         return "redirect:/project/reports?projectId=" + projectId;
     }
 

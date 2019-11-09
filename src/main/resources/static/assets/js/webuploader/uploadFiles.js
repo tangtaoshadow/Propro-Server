@@ -82,38 +82,7 @@ $(function() {
    *
    */
 
-  tao_init = () => {
-    let jsonFileName0 = window.localStorage.getItem("jsonFileName");
-    let jsonFileList0 = window.localStorage.getItem("jsonFileList");
-
-    // 给出提示
-    let str = `
-    文件上传步骤
-    <br/>
-    (1)每次上传aird文件前,请先上传json文件
-    <br/>
-    (2)接下来上传json配置好的aird文件
-    <br/>
-    (3)json文件可以直接上传
-    `;
-    print_info(str);
-
-    let res = -1;
-    try {
-      if ("" != jsonFileList0 && "" != jsonFileName0) {
-        jsonFileList0 = JSON.parse(jsonFileList0);
-        // 显示参数
-        tao.jsonFileName = jsonFileName0;
-        tao.jsonFileNameStatus = 0;
-        tao.jsonFileList = jsonFileList0;
-        tao.jsonFileListStatus = 0;
-        let size = 0;
-        for (let i = 0, len = jsonFileList0.length; i < len; i++) {
-          size += jsonFileList0[i];
-        }
-        size = size / 1024 / 1024;
-
-        let btn_str = `<div style="width:500px;">
+  let btn_clear_str = `<div style="width:500px;">
           <button type="button" onClick="clearLocalStorage()" style="
           color: #fff;
           background-color: #28a745;
@@ -139,7 +108,76 @@ $(function() {
         >清空缓存</button></div>
         <br/>`;
 
-        print_info(btn_str);
+  tao_init = () => {
+    let jsonFileName0 = window.localStorage.getItem("jsonFileName");
+    let jsonFileList0 = window.localStorage.getItem("jsonFileList");
+
+    // 给出提示
+    let str = `<br/>上传说明：<br/>
+    默认json文件不分片,不分片默认支持上传3GB文件上传<br/>
+    aird文件上传之前需要依赖json分片数据,所以先上传json文件至服务器<br/>
+    如果json文件已经上传至服务器，则aird文件可以直接上传
+    <br/>
+    最好不要一次上传多个文件,上传功能还未完善,等待后续升级
+    <br/>
+    如果你不能理解思路,直接看给出提示操作即可
+    <br/>
+    Author : Tangtao 
+    UpdateTime: 2019-11-10 00:54:50
+    <br/>
+    `;
+    print_info(str);
+
+    str = `
+    <br/>
+    文件上传步骤
+    <br/>
+    (1)每次上传aird文件前,请确保json文件已经上传
+    <br/>
+    (2)接下来上传json配置好的aird文件
+    <br/>
+    (3)json文件可以直接上传
+    `;
+    print_info(str);
+
+    setTimeout(() => {
+      let jsonFileName0 = window.localStorage.getItem("jsonFileName");
+      let jsonFileList0 = window.localStorage.getItem("jsonFileList");
+      str = `正在检查本地缓存`;
+      print_info(str);
+
+      if (null == jsonFileList0 && null == jsonFileName0) {
+        // 符合上传json条件
+        str = `
+      本地不存在缓存
+      `;
+        print_info(str);
+      } else {
+        str = `
+      本地存在缓存,不符合上传json条件<br/>
+      上传json文件前,请点击清空缓存按钮
+      `;
+        print_info(str);
+        print_info(btn_clear_str);
+      }
+    }, 450);
+
+    let res = -1;
+    try {
+      if ("" != jsonFileList0 && "" != jsonFileName0) {
+        jsonFileList0 = JSON.parse(jsonFileList0);
+        // 显示参数
+        tao.jsonFileName = jsonFileName0;
+        tao.jsonFileNameStatus = 0;
+        tao.jsonFileList = jsonFileList0;
+        tao.jsonFileListStatus = 0;
+        let size = 0;
+        for (let i = 0, len = jsonFileList0.length; i < len; i++) {
+          size += jsonFileList0[i];
+        }
+        size = size / 1024 / 1024;
+
+        print_info(btn_clear_str);
 
         setTimeout(() => {
           str = `
@@ -272,6 +310,8 @@ $(function() {
             try {
               if (-3 == result.status) {
                 // 文件不存在 可以上传
+                let str1 = `服务器不存在该文件,允许上传:<br/>`;
+                print_info(str1);
                 return task.resolve();
               } else {
                 let str = `****<br/>警告:文件已经存在 不允许上传<br/>***`;
@@ -433,13 +473,28 @@ $(function() {
       ext: file.ext
     };
     if (fileType == "json") {
-      console.log("111文件类型是 json", file);
-      let str = `
-      可以直接上传<br/>
-      上传的文件类型是json<br/>
-      文件信息:${JSON.stringify(obj)}<br/>
-      `;
+      console.log("文件类型是 json", file);
+
+      // 检测localStorage 是否存在
+      let jsonFileName0 = window.localStorage.getItem("jsonFileName");
+      let jsonFileList0 = window.localStorage.getItem("jsonFileList");
+      let str = `正在检查本地缓存`;
       print_info(str);
+
+      if (null == jsonFileList0 && null == jsonFileName0) {
+        // 符合上传条件
+        str = `
+        可以直接上传json文件<br/>
+        文件信息:${JSON.stringify(obj)}<br/>
+        `;
+        print_info(str);
+      } else {
+        print_info(btn_clear_str);
+        str = `<br/>****警告****<br/>
+        存在缓存,不能立即上传,请先点击清空缓存按钮,等待页面自动刷新即可上传
+        <br/>****`;
+        print_info(str);
+      }
     }
     if (fileCount === 1) {
       $placeHolder.addClass("element-invisible");

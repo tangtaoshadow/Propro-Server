@@ -147,7 +147,7 @@ public class FileUtil {
             // 以读写的方式打开目标文件
             raFile = new RandomAccessFile(out, "rw");
             // 设置文件指针的位置
-            raFile.seek(seek);
+            raFile.seek(raFile.length());
             inputStream = new BufferedInputStream(new FileInputStream(in));
             byte[] buf = new byte[1024];
             int length = 0;

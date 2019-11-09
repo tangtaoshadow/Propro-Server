@@ -1,3 +1,8 @@
+/*
+updateTime 2019-11-9 16:31:57
+updateAuthor tangtao 2019-11-9 14:06:36
+*/
+
 $(function() {
   var $ = jQuery, // just in case. Make sure it's not an other libaray.
     $wrap = $("#uploader"),
@@ -13,17 +18,21 @@ $(function() {
     $placeHolder = $wrap.find(".placeholder"),
     // 总体进度条
     $progress = $statusBar.find(".progress").hide(),
-    chunkSize = 30 * 1024 * 1024, //c5M
+    chunkSize = 3000 * 1024 * 1024, // 3000M 默认不分片
     //文件校验的地址
     checkUrl = "/project/check?projectName=" + projectName,
     // 获取json文件地址
     readJsonUrl = "",
+    tao = {
+      // jsonn 文件名字
+      jsonFileName: "",
+      jsonFileNameStatus: -1,
+      // json 描述文件分片
+      jsonFileList: [],
+      jsonFileListStatus: -1
+    },
     // 指明当前上传的 aird 文件使用的是哪个 json 进行分割的
-    jsonFileName = localStorage.getItem("jsonFileName"),
-    jsonFileNameStatus = -1,
-    // 文件分片列表
-    fileFragmentList = localStorage.getItem("fileFragmentList"),
-    fileFragmentListStatus = -1,
+    jsonFileName = window.localStorage.getItem("jsonFileName"),
     // 文件已经上传大小
     uploadSize = 0,
     // 文件大小
@@ -53,42 +62,6 @@ $(function() {
     throw new Error("WebUploader does not support the browser you are using.");
   }
   console.log("========");
-  /*示例json文件*/
-  var json = [
-    { startPtr: 0, endPtr: 56810424 },
-    { startPtr: 56810424, endPtr: 75410465 },
-    { startPtr: 75410465, endPtr: 97673547 },
-    { startPtr: 97673547, endPtr: 117781037 },
-    { startPtr: 117781037, endPtr: 138149393 },
-    { startPtr: 138149393, endPtr: 159814590 },
-    { startPtr: 159814590, endPtr: 179725876 },
-    { startPtr: 179725876, endPtr: 196513879 },
-    { startPtr: 196513879, endPtr: 212836291 },
-    { startPtr: 212836291, endPtr: 227681837 },
-    { startPtr: 227681837, endPtr: 243311001 },
-    { startPtr: 243311001, endPtr: 258137506 },
-    { startPtr: 258137506, endPtr: 270656123 },
-    { startPtr: 270656123, endPtr: 281842844 },
-    { startPtr: 281842844, endPtr: 293299377 },
-    { startPtr: 293299377, endPtr: 301459203 },
-    { startPtr: 301459203, endPtr: 309328340 },
-    { startPtr: 309328340, endPtr: 316039919 },
-    { startPtr: 316039919, endPtr: 321240131 },
-    { startPtr: 321240131, endPtr: 326463818 },
-    { startPtr: 326463818, endPtr: 331089484 },
-    { startPtr: 331089484, endPtr: 334856914 },
-    { startPtr: 334856914, endPtr: 338842295 },
-    { startPtr: 338842295, endPtr: 342774814 },
-    { startPtr: 342774814, endPtr: 345939207 },
-    { startPtr: 345939207, endPtr: 348877039 },
-    { startPtr: 348877039, endPtr: 351686339 },
-    { startPtr: 351686339, endPtr: 354009708 },
-    { startPtr: 354009708, endPtr: 356297974 },
-    { startPtr: 356297974, endPtr: 358494242 },
-    { startPtr: 358494242, endPtr: 360437121 },
-    { startPtr: 360437121, endPtr: 362367650 },
-    { startPtr: 362367650, endPtr: 364235695 }
-  ];
 
   /*json文件获取请求*/
   // $.ajax({
@@ -102,10 +75,64 @@ $(function() {
   //     var json=data;
   // });
   // chunkSize 分片数组 指定切分位置
-  chunkSize = json.map(function(item) {
-    return item.endPtr - item.startPtr;
-  });
-  console.log("chunkSize", chunkSize);
+  chunkSize = JSON.parse(window.localStorage.getItem("jsonFileList"));
+  console.log("chunkSize==", chunkSize);
+  /***
+   * 上传文件初始化校验
+   *
+   *
+   */
+
+  tao_init = () => {
+    let jsonFileName0 = window.localStorage.getItem("jsonFileName");
+    let jsonFileList0 = window.localStorage.getItem("jsonFileList");
+
+    // 给出提示
+    let str = `
+    文件上传步骤
+    <br/>
+    (1)每次上传aird文件前,请先上传json文件
+    <br/>
+    (2)接下来上传json配置好的aird文件
+    <br/>
+    (3)json文件可以直接上传
+    `;
+    print_info(str);
+
+    let res = -1;
+    try {
+      if ("" != jsonFileList0 && "" != jsonFileName0) {
+        jsonFileList0 = JSON.parse(jsonFileList0);
+        // 显示参数
+        tao.jsonFileName = jsonFileName0;
+        tao.jsonFileNameStatus = 0;
+        tao.jsonFileList = jsonFileList0;
+        tao.jsonFileListStatus = 0;
+        let size = 0;
+        for (let i = 0, len = jsonFileList0.length; i < len; i++) {
+          size += jsonFileList0[i];
+        }
+        size = size / 1024 / 1024;
+        str = `
+        <br/>
+        json文件已经配置完成,可以上传aird文件<br/>
+        当前json文件为：${tao.jsonFileName}<br/>
+        描述信息:<br/>
+        aird文件大小为(MB)：${parseFloat(size)}<br/>
+        aird文件分片数量：${jsonFileList0.length}<br/>
+        aird文件分片信息：${jsonFileList0}<br/>
+        `;
+        print_info(str);
+        res = 0;
+      }
+    } catch (e) {
+      res = -2;
+    }
+    console.log(res);
+  };
+  setTimeout(() => {
+    tao_init();
+  }, 300);
   WebUploader.Uploader.register(
     {
       "before-send": "beforeSend"
@@ -130,8 +157,8 @@ $(function() {
           // 判断是否是 aird 文件
           let filename = block.file.name;
           if (filename.endsWith(".aird")) {
-            // 发送aird 前设置传输参数
-            let res0 = sendAirdInit(block);
+            // 发送aird前设置传输参数
+            let res0 = sendAirdInit(filename);
             if (0 == res0) {
               // success
               res = 0;
@@ -150,11 +177,11 @@ $(function() {
 
         if (0 != res) {
           // 拒绝
-          task.reject();
-          return -1;
+
+          return task.reject();
         }
 
-        console.log("开始发送");
+        console.log("每次发送前调用 包括上传json文件");
         $.ajax({
           type: "POST",
           url: checkUrl,
@@ -167,9 +194,11 @@ $(function() {
           console.log("服务器返回数据", result);
           if (result.msgCode === "FILE_CHUNK_ALREADY_EXISTED") {
             // 分片存在，则跳过上传
-            task.reject();
+            console.log("分片存在，则跳过上传");
+            return task.reject();
           } else {
-            task.resolve();
+            console.log("可以上传");
+            return task.resolve();
           }
         });
         return task.promise();
@@ -202,6 +231,129 @@ $(function() {
   uploader.addButton({
     id: "#addMoreFile"
   });
+
+  sendAirdInit = filename => {
+    // 先判断文件分片是否在
+    //  把后缀 .aird 去掉
+    console.log("sendAirdInit");
+    // 替换 后缀名为 .json
+    filename = filename.substring(0, filename.lastIndexOf(".aird")) + ".json";
+    if (tao.jsonFileName == filename) {
+      // 说明已经存在
+      console.log("说明已经存在");
+      return 0;
+    } else {
+      // 先发起同步请求json数据 以 filename 为准 因为他可以变 aird可以任意上传
+
+      print_info("向服务器请求json数据,json文件名:" + filename);
+      console.log("向服务器索取json数据 filename", filename);
+      getJsonFile(filename);
+    }
+
+    return -1;
+  };
+
+  print_info = (str = "", status = 0) => {
+    let str0 = "";
+    str += "<br/>";
+    if (0 == status) {
+      // 追加
+      str0 = $("#tao-info").html();
+      str0 = str + str0;
+    } else {
+      // 替换
+      str0 = str;
+    }
+    $("#tao-info").html(str0);
+  };
+
+  // 向服务器获取 json文件数据
+  getJsonFile = filename => {
+    console.log("getJsonFile--filename", filename);
+    let url = "/project/readJsonFile";
+    // 配置post 请求参数
+    let requestData = {
+      projectName,
+      fileName: filename
+    };
+    console.log("请求内容", requestData);
+    $.ajax({
+      type: "POST",
+      url: url,
+      data: requestData,
+      cache: false,
+      async: true, // 同步
+      timeout: 1000
+    }).then(function(data) {
+      print_info("服务器返回json数据");
+      console.log("服务器返回 json file", data);
+      let obj = { status: -1 };
+      try {
+        obj = JSON.parse(data);
+      } catch (e) {
+        console.log(e);
+        obj = { status: -1 };
+      }
+
+      // 判断是否 成功 成功就写入数据
+      if (0 == obj.status) {
+        print_info("上传参数准备成功，可以上传");
+        window.localStorage.setItem("jsonFileName", obj.data.jsonFileName);
+        window.localStorage.setItem(
+          "jsonFileList",
+          JSON.stringify(obj.data.fileFragmentList)
+        );
+        tao.jsonFileName = obj.data.jsonFileName;
+        tao.jsonFileNameStatus = 0;
+        tao.jsonFileList = obj.data.fileFragmentList;
+        chunkSize = tao.jsonFileList;
+        let k = 0;
+        for (let i = 0; i < chunkSize.length; i++) {
+          k += chunkSize[i];
+          console.log("i=" + i, k);
+        }
+        console.log("kkkk", k);
+        tao.jsonFileListStatus = 0;
+        console.log("写入 tao", tao);
+      } else {
+        console.error("tangtao 服务器返回数据出错", data);
+      }
+    });
+  };
+
+  // 文件添加时回调此函数
+  uploader.onFileQueued = function(file) {
+    console.log("onFileQueued", file);
+    fileCount++;
+    fileSize += file.size;
+    var fileType = file.name.split(".")[1];
+    var reader = new FileReader();
+    // reader.readAsBinaryString(file);
+    reader.onload = function(ev) {
+      // console.log(reader.result);
+    };
+    if (fileType === "aird") {
+      console.log("先判断json数据是否存在，没有就先发起请求json数据"); //换成ajax请求
+      var name = file.name;
+      console.log(name);
+      // 不管是否存在 都发送
+      sendAirdInit(name);
+      jsonObj[name] = jsonCount;
+      jsonCount++;
+      console.log(jsonObj);
+    }
+    if (fileType === "json") {
+      console.log("文件类型是 json", file);
+    }
+    if (fileCount === 1) {
+      $placeHolder.addClass("element-invisible");
+      $statusBar.show();
+    }
+
+    addFile(file);
+    setState("ready");
+    updateTotalProgress();
+  };
 
   //
   // 当有文件添加进来时执行，负责view的创建
@@ -299,107 +451,6 @@ $(function() {
     spans.eq(1).css("width", Math.round(percent * 100) + "%");
     updateStatus();
   }
-
-  sendAirdInit = filename => {
-    console.log(
-      "sendAirdInit jsonFileName",
-      jsonFileName,
-      "jsonFileNameStatus",
-      jsonFileNameStatus
-    );
-    // 先判断文件分片是否在
-    //  把后缀 .aird 去掉
-    filename = filename.substring(0, filename.lastIndexOf(".aird"));
-    if (jsonFileName == filename + ".json" && 0 == jsonFileNameStatus) {
-      // 说明已经存在 并且名称匹配成功
-      console.log("说明已经存在 并且名称匹配成功", fileFragmentList);
-      // 接下来判断 文件分片是否写入成功 只要它不成立 就重新发起请求
-      // 这样可以使得每次刷新都重新获取数据
-      if (0 == fileFragmentListStatus) {
-        // 说明分片也写入成功
-        console.log("说明分片也写入成功");
-        return 0;
-      } else {
-        // 写入分片
-        console.log("写入分片");
-        fileFragmentList = JSON.parse(
-          window.localStorage.getItem("fileFragmentList")
-        );
-        fileFragmentListStatus = 0;
-        console.log("写入分片:成功");
-      }
-      return -1;
-    } else {
-      // 先发起同步请求json数据 以filename为准 因为他可以变 aird可以任意上传
-      console.log("向服务器索取json数据", filename);
-      let res = getJsonFile(filename);
-      return res;
-    }
-  };
-
-  // create tangtao  向服务器获取 json文件数据
-  getJsonFile = filename => {
-    console.log("getJsonFile--filename");
-    let url = "/project/readJsonFile";
-    let requestData = {
-      projectName,
-      fileName: filename + ".json"
-    };
-    console.log(requestData);
-    if (1 == jsonFileNameStatus) {
-      // 不在发起请求 因为有程序正在执行
-      return -1;
-    }
-    //   标记开始传输
-    jsonFileNameStatus = 1;
-    //  tangtao 延时注销上传流程
-    setTimeout(() => {
-      jsonFileNameStatus = 1 == jsonFileNameStatus ? 0 : jsonFileNameStatus;
-    }, 10000);
-    $.ajax({
-      type: "POST",
-      url: url,
-      data: requestData,
-      cache: false,
-      async: true, // 同步
-      timeout: 1000
-    }).then(function(data) {
-      console.log(">>>>>返回 json file", data);
-      let obj = { status: -1 };
-      try {
-        obj = JSON.parse(data);
-      } catch (e) {
-        console.log("后端返回数据出错", e);
-        obj = { status: -1 };
-      }
-
-      let { status, data: resData } = obj;
-      if (0 == status) {
-        // 释放 标记成功
-        let {
-          fileFragmentList: fileFragmentList0 = [],
-          jsonFileName: jsonFileName0 = ""
-        } = resData;
-        // 数据写入 localStorage
-        localStorage.setItem("jsonFileName", jsonFileName0);
-        localStorage.setItem(
-          "fileFragmentList",
-          JSON.stringify(fileFragmentList0)
-        );
-        jsonFileName = jsonFileName0;
-        fileFragmentList = fileFragmentList0;
-        jsonFileNameStatus = 0;
-        fileFragmentListStatus = 0;
-      } else {
-        // 清空数据
-        console.error("tangtao 读取json file 出错");
-        jsonFileNameStatus = -2;
-        fileFragmentListStatus = -2;
-        localStorage.setItem("jsonFileName", "");
-        localStorage.setItem("fileFragmentList", "");
-      }
-    });
-  };
 
   function updateStatus() {
     var text = "",
@@ -507,39 +558,6 @@ $(function() {
 
     $percent.css("width", percentage * 100 + "%");
     percentages[file.id][1] = percentage;
-    updateTotalProgress();
-  };
-
-  // 文件添加时回调此函数
-  uploader.onFileQueued = function(file) {
-    console.log("onFileQueued", file);
-    fileCount++;
-    fileSize += file.size;
-    var fileType = file.name.split(".")[1];
-    var reader = new FileReader();
-    // reader.readAsBinaryString(file);
-    reader.onload = function(ev) {
-      // console.log(reader.result);
-    };
-    if (fileType === "aird") {
-      console.log("先判断json数据是否存在，没有就先发起请求json数据");
-
-      var name = file.name;
-      sendAirdInit(name);
-      jsonObj[name] = "json" + jsonCount;
-      jsonCount++;
-      console.log(jsonObj);
-    }
-    if (fileType === "json") {
-      console.log("文件类型是 json", file);
-    }
-    if (fileCount === 1) {
-      $placeHolder.addClass("element-invisible");
-      $statusBar.show();
-    }
-
-    addFile(file);
-    setState("ready");
     updateTotalProgress();
   };
 

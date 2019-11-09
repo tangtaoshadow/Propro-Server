@@ -329,6 +329,7 @@ public class ProjectController extends BaseController {
         int status = -1;
         Map<String, Object> data = new HashMap<String, Object>();
 
+
         do {
             try {
                 // 尝试提取项目名字
@@ -393,6 +394,15 @@ public class ProjectController extends BaseController {
     }
 
 
+    /***
+     * @UpdateTime 2019-11-9 15:51:13
+     * @updateAuthor tangtao
+     * @param model
+     * @param projectName
+     * @param file
+     * @param uploadVO
+     * @return
+     */
     @RequestMapping(value = "/doupload", method = RequestMethod.POST)
     @ResponseBody
     ResultDO doUpload(Model model,
@@ -430,7 +440,6 @@ public class ProjectController extends BaseController {
             RedirectAttributes redirectAttributes) {
         ProjectDO project = projectService.getById(projectId);
         PermissionUtil.check(project);
-
         List<File> fileList = FileUtil.scanFiles(project.getName());
         List<File> newFileList = new ArrayList<>();
         List<ExperimentDO> exps = experimentService.getAllByProjectId(projectId);
@@ -478,6 +487,7 @@ public class ProjectController extends BaseController {
         // 返回任务id 供前端查询
         return "redirect:/task/detail/" + taskDO.getId();
     }
+
 
     @RequestMapping(value = "/irt")
     String irt(Model model,

@@ -1,5 +1,5 @@
 /*
-updateTime 2019-11-9 16:31:57
+updateTime 2019-11-9 22:17:40
 updateAuthor tangtao 2019-11-9 14:06:36
 */
 
@@ -332,8 +332,8 @@ $(function() {
     reader.onload = function(ev) {
       // console.log(reader.result);
     };
-    if (fileType === "aird") {
-      console.log("先判断json数据是否存在，没有就先发起请求json数据"); //换成ajax请求
+    if (fileType == "aird") {
+      console.log("先判断json数据是否存在，没有就先发起请求json数据");
       var name = file.name;
       console.log(name);
       // 不管是否存在 都发送
@@ -342,8 +342,22 @@ $(function() {
       jsonCount++;
       console.log(jsonObj);
     }
-    if (fileType === "json") {
-      console.log("文件类型是 json", file);
+    let obj = {
+      filename: file.name,
+      filesize: fileSize,
+      lastModifiedDate: file.lastModifiedDate,
+      id: file.id,
+      ext: file.ext
+    };
+    if (fileType == "json") {
+      console.log("111文件类型是 json", file);
+      let str = `
+      可以直接上传<br/>
+      上传的文件类型是json<br/>
+      文件信息:${JSON.stringify(obj)}<br/>
+      `;
+      console.log(str);
+      print_info(str);
     }
     if (fileCount === 1) {
       $placeHolder.addClass("element-invisible");

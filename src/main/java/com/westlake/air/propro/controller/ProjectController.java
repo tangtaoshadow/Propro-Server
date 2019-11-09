@@ -277,6 +277,9 @@ public class ProjectController extends BaseController {
         // 状态标记
         int status = -1;
         Map<String, Object> data = new HashMap<String, Object>();
+        // 添加好请求信息 供前端判断
+        data.put("fileName",fileName);
+        data.put("projectName",projectName);
 
         do {
             try {

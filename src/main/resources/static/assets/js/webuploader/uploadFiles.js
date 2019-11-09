@@ -204,7 +204,11 @@ $(function() {
           // 拒绝
           return task.reject();
         } else {
-          let str = `<br/>正在上传${filename}`;
+          let str = `<br/>正在上传${filename}
+          <br/>当前片${block.chunk}
+          <br/>总共片数${block.chunks}
+          <br/>分片位置${block.start}->${block.end}
+          <br/>分片长度${block.end - block.start}`;
           print_info(str);
         }
 
@@ -225,6 +229,18 @@ $(function() {
             return task.reject();
           } else {
             console.log("可以上传");
+            try {
+              if (-3 == result.status) {
+                // 文件不存在 可以上传
+                return task.resolve();
+              } else {
+                let str = `<span style="color:#dc3545;">.文件已经存在 不允许上传</span>`;
+                console.log("文件已经存在 不允许上传");
+                print_info(str);
+                return task.reject();
+              }
+            } catch (e) {}
+
             return task.resolve();
           }
         });

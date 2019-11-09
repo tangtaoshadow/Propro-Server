@@ -108,6 +108,83 @@ $(function() {
         >清空缓存</button></div>
         <br/>`;
 
+  let btn_delete_str = `<div style="width:500px;">
+        <button type="button" val0="DELETE_FILENAME" class="deletefile" style="
+        color: #fff;
+        background-color: #dc3545;
+        border-color: #dc3545;
+        margin-top: .1rem;
+        margin-bottom: .1rem;
+        cursor: pointer;
+        display: inline-block;
+        font-weight: 400;
+        text-align: center;
+        vertical-align: middle;
+        border: 1px solid transparent;
+        padding: .375rem .75rem;
+        font-size: 1rem;
+        line-height: 1.5;
+        height:30px !important;
+        border-radius: .25rem;
+        transition: color .15s ease-in-out,
+        background-color .15s ease-in-out,
+        border-color .15s ease-in-out,
+        box-shadow .15s ease-in-out;
+      "
+      >删除文件</button>
+      <span>DELETE_FILENAME</span>
+      </div>
+      <br/>`;
+
+  btn_delete_init = () => {
+    setTimeout(() => {
+      $(".deletefile")
+        .off()
+        .click(e => {
+          tao_delete_file(e);
+        });
+    }, 300);
+  };
+
+  // 删除文件调用
+  tao_delete_file = e => {
+    let delete_file_name = $(e.target).attr("val0");
+    let str = `执行删除文件：${delete_file_name}`;
+    print_info(str);
+    let url = `/project/deleteFile`;
+    let requestData = {
+      projectName,
+      fileName: delete_file_name
+    };
+    $.ajax({
+      type: "POST",
+      url: url,
+      data: requestData,
+      cache: false,
+      async: false, // 同步
+      timeout: 3000
+    }).then(function(data) {
+      print_info(`服务器返回json数据<br/>${data}<br/>`);
+      console.log("服务器返回 json file", data);
+      let obj = { status: -1 };
+      let str = "<br/>";
+      try {
+        obj = JSON.parse(data);
+        if (0 == obj.status) {
+          str += `文件${obj.data.fileName}: 删除成功<br/>`;
+        } else if (-3 == obj.status) {
+          str += `文件${obj.data.fileName}: 不存在,删除失败<br/>`;
+        } else {
+          str += `文件${obj.data.fileName}: 删除失败<br/>`;
+        }
+        print_info(str);
+      } catch (e) {
+        console.log(e);
+        obj = { status: -1 };
+      }
+      console.log("服务器返回对象", obj);
+    });
+  };
   tao_init = () => {
     let jsonFileName0 = window.localStorage.getItem("jsonFileName");
     let jsonFileList0 = window.localStorage.getItem("jsonFileList");
@@ -137,6 +214,8 @@ $(function() {
     (2)接下来上传json配置好的aird文件
     <br/>
     (3)json文件可以直接上传
+    <br/>
+    (4)文件上传成功后记得刷新界面
     `;
     print_info(str);
 
@@ -314,9 +393,18 @@ $(function() {
                 print_info(str1);
                 return task.resolve();
               } else {
-                let str = `****<br/>警告:文件已经存在 不允许上传<br/>***`;
-                console.log("文件已经存在 不允许上传");
+                let delete_file_name = result.data.fileName;
+
+                btn_delete_str = btn_delete_str.replace(
+                  /DELETE_FILENAME/g,
+                  delete_file_name
+                );
+
+                print_info(btn_delete_str);
+                let str = `****<br/>警告:文件${result.data.fileName}已经存在服务器上,不允许上传<br/>***`;
                 print_info(str);
+                // 注册删除事件
+                btn_delete_init();
                 return task.reject();
               }
             } catch (e) {}

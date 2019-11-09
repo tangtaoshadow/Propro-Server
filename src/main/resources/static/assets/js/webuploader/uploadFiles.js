@@ -217,7 +217,7 @@ $(function() {
             <br/>
             json文件已经配置完成,可以上传aird文件,上传json文件请先点击 清空缓存 按钮<br/>
             当前json文件为：${tao.jsonFileName}<br/>
-            可以上传aird文件：${allowUploadAirdFileName}
+            可以上传aird文件：${allowUploadAirdFileName}<br/>
             描述信息:<br/>
             aird文件大小为(MB)：${parseFloat(size)}<br/>
             aird文件分片数量：${jsonFileList0.length}<br/>
@@ -310,11 +310,14 @@ $(function() {
           // 拒绝
           return task.reject();
         } else {
-          let str = `<br/>正在上传${filename}
+          let str = `正在上传${filename},,总进度${(
+            (block.chunk / block.chunks) *
+            100
+          ).toFixed(3)}%
           <br/>当前片${block.chunk}
           <br/>总共片数${block.chunks}
           <br/>分片位置${block.start}->${block.end}
-          <br/>分片长度${block.end - block.start}`;
+          <br/>分片长度${block.end - block.start}<br/><br/>`;
           print_info(str);
         }
 
@@ -325,17 +328,20 @@ $(function() {
           data: requestData,
           cache: false,
           async: false, // 同步
-          timeout: 1000
+          timeout: 2000
         }).then(result => {
           // 判断是否需要继续上传文件
           console.log("服务器返回数据", result);
           if (result.msgCode === "FILE_CHUNK_ALREADY_EXISTED") {
             // 分片存在，则跳过上传
             console.log("分片存在，则跳过上传");
+            print_info(`分片存在，跳过上传`);
             return task.reject();
           } else {
             if (checkUrl == sendUrl) {
-              // 分片不存在
+              // 分片不存在 允许上传
+              print_info(`分片不存在，执行上传`);
+              return task.resolve();
             }
             // 尝试转换为 对象
             result = JSON.parse(result);
@@ -406,10 +412,14 @@ $(function() {
     // 先判断文件分片是否在
     //  把后缀 .aird 去掉
     console.log("sendAirdInit");
+    let filename1 = filename;
     // 替换 后缀名为 .json
     filename = filename.substring(0, filename.lastIndexOf(".aird")) + ".json";
+    let str = "";
     if (tao.jsonFileName == filename) {
       // 说明已经存在
+      str = `可以上传:${filename1}<br/>`;
+      print_info(str);
       console.log("说明已经存在");
       return 0;
     } else {

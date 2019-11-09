@@ -347,9 +347,9 @@ $(function() {
     // chunkSize: null == chunkSize ? 3000 * 1024 * 104 : chunkSize,
     chunkSize: null == chunkSize ? defaultChunkSize : chunkSize,
     server: uploadUrl,
-    fileNumLimit: 500, //一次上传的文件总数目,200个,相当于100个Aird实验(包含100个Aird文件和100个JSON文件)
+    fileNumLimit: 1000, //一次上传的文件总数目,200个,相当于100个Aird实验(包含100个Aird文件和100个JSON文件)
     fileSizeLimit: 500 * 1024 * 1024 * 1024, // 200GB
-    fileSingleSizeLimit: 10 * 1024 * 1024 * 1024 // 2GB
+    fileSingleSizeLimit: 100 * 1024 * 1024 * 1024 // 2GB
   });
 
   // 添加“添加文件”的按钮，

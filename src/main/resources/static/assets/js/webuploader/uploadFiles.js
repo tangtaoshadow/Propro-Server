@@ -112,16 +112,50 @@ $(function() {
           size += jsonFileList0[i];
         }
         size = size / 1024 / 1024;
-        str = `
-        <br/>
-        json文件已经配置完成,可以上传aird文件<br/>
-        当前json文件为：${tao.jsonFileName}<br/>
-        描述信息:<br/>
-        aird文件大小为(MB)：${parseFloat(size)}<br/>
-        aird文件分片数量：${jsonFileList0.length}<br/>
-        aird文件分片信息：${jsonFileList0}<br/>
-        `;
-        print_info(str);
+
+        let btn_str = `<div style="width:500px;">
+          <button type="button" onClick="clearLocalStorage()" style="
+          color: #fff;
+          background-color: #28a745;
+          border-color: #28a745;
+          margin-top: .1rem;
+          margin-bottom: .1rem;
+          cursor: pointer;
+          display: inline-block;
+          font-weight: 400;
+          text-align: center;
+          vertical-align: middle;
+          border: 1px solid transparent;
+          padding: .375rem .75rem;
+          font-size: 1rem;
+          line-height: 1.5;
+          height:30px !important;
+          border-radius: .25rem;
+          transition: color .15s ease-in-out,
+          background-color .15s ease-in-out,
+          border-color .15s ease-in-out,
+          box-shadow .15s ease-in-out;
+        "
+        >清空缓存</button></div>
+        <br/>`;
+
+        print_info(btn_str);
+
+        setTimeout(() => {
+          str = `
+            <br/>
+            json文件已经配置完成,可以上传aird文件,上传json文件请先点击 清空缓存 按钮<br/>
+            当前json文件为：${tao.jsonFileName}<br/>
+            描述信息:<br/>
+            aird文件大小为(MB)：${parseFloat(size)}<br/>
+            aird文件分片数量：${jsonFileList0.length}<br/>
+            aird文件分片信息：${jsonFileList0}<br/>
+            `;
+          print_info(str);
+          str = `<br/>当前时间 ${new Date()}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`;
+          print_info(str);
+        }, 500);
+
         res = 0;
       }
     } catch (e) {
@@ -228,13 +262,19 @@ $(function() {
             console.log("分片存在，则跳过上传");
             return task.reject();
           } else {
-            console.log("可以上传");
+            // 尝试转换为 对象
+            result = JSON.parse(result);
+            let str1 = `${new Date()}<br/>解析服务器数据成功:<br/>
+            ${JSON.stringify(result)}`;
+            print_info(str1);
+            console.log("解析服务器数据成功,数据如下", result);
+
             try {
               if (-3 == result.status) {
                 // 文件不存在 可以上传
                 return task.resolve();
               } else {
-                let str = `<span style="color:#dc3545;">.文件已经存在 不允许上传</span>`;
+                let str = `****<br/>警告:文件已经存在 不允许上传<br/>***`;
                 console.log("文件已经存在 不允许上传");
                 print_info(str);
                 return task.reject();
@@ -409,6 +449,19 @@ $(function() {
     addFile(file);
     setState("ready");
     updateTotalProgress();
+  };
+
+  clearLocalStorage = () => {
+    localStorage.removeItem("jsonFileList");
+    localStorage.removeItem("jsonFileName");
+    console.log("clearLocalStorage Success");
+    let str = `清除缓存成功,即将刷新`;
+    print_info(str);
+    setTimeout(() => {
+      let str = `正在刷新`;
+      print_info(str);
+      window.location.reload();
+    }, 3120);
   };
 
   //

@@ -266,7 +266,8 @@ public class ProjectController extends BaseController {
      * @param projectName
      * @return
      */
-    @PostMapping(value = "/checkFile")
+    @RequestMapping(value = "/checkFile")
+    @ResponseBody
     String checkFile(@RequestParam(value = "fileName") String fileName,
                      @RequestParam(value = "projectName") String projectName
     ) {

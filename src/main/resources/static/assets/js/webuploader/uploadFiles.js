@@ -18,11 +18,11 @@ $(function() {
     $placeHolder = $wrap.find(".placeholder"),
     // 总体进度条
     $progress = $statusBar.find(".progress").hide(),
-    chunkSize = 3000 * 1024 * 1024, // 3000M 默认不分片
+    // 默认 3GB 不分片
+    defaultChunkSize = [3000 * 1024 * 104],
+    chunkSize = defaultChunkSize, // 3000M 默认不分片
     //文件校验的地址
     checkUrl = "/project/check?projectName=" + projectName,
-    // 获取json文件地址
-    readJsonUrl = "",
     tao = {
       // jsonn 文件名字
       jsonFileName: "",
@@ -32,7 +32,6 @@ $(function() {
       jsonFileListStatus: -1
     },
     // 指明当前上传的 aird 文件使用的是哪个 json 进行分割的
-    jsonFileName = window.localStorage.getItem("jsonFileName"),
     // 文件已经上传大小
     uploadSize = 0,
     // 文件大小
@@ -74,7 +73,7 @@ $(function() {
   // }).then(function (data) {
   //     var json=data;
   // });
-  // chunkSize 分片数组 指定切分位置
+  // chunkSize 尝试获取 分片数组 指定切分位置
   chunkSize = JSON.parse(window.localStorage.getItem("jsonFileList"));
   console.log("chunkSize==", chunkSize);
   /***
@@ -143,25 +142,40 @@ $(function() {
         console.log("beforeSend", block);
         console.log(chunkSize);
         var task = WebUploader.Deferred();
-        var requestData = {
-          // 文件名称
-          fileName: block.file.name,
-          // 表示当前的分片位置
-          chunk: block.chunk,
-          // 即将上传的文件大小
-          chunkSize: chunkSize[block.chunk]
-        };
+        let requestData = {};
 
         let res = -1;
+        // 判断是否是 aird 文件
+        let filename = block.file.name;
+
+        //
+        let sendUrl = checkUrl;
         do {
-          // 判断是否是 aird 文件
-          let filename = block.file.name;
           if (filename.endsWith(".aird")) {
             // 发送aird前设置传输参数
             let res0 = sendAirdInit(filename);
             if (0 == res0) {
               // success
               res = 0;
+              try {
+                requestData = {
+                  // 文件名称
+                  fileName: block.file.name,
+                  // 表示当前的分片位置
+                  chunk: block.chunk,
+                  // 即将上传的文件大小
+                  chunkSize: chunkSize[block.chunk]
+                };
+              } catch (e) {
+                requestData = {
+                  // 文件名称
+                  fileName: block.file.name,
+                  // 表示当前的分片位置
+                  chunk: 0,
+                  // 即将上传的文件大小
+                  chunkSize: defaultChunkSize
+                };
+              }
               break;
             } else {
               console.error("终止传输");
@@ -170,6 +184,17 @@ $(function() {
             }
           } else if (filename.endsWith(".json")) {
             res = 0;
+            requestData = {
+              // 文件名称
+              fileName: block.file.name,
+              // 表示当前的分片位置
+              chunk: 0,
+              // 即将上传的文件大小
+              chunkSize: defaultChunkSize
+            };
+            // json有专门的上传校验文档
+            // sendUrl = `/project/checkFile?fileName=${block.file.name}&projectName=${projectName}`;
+            sendUrl = `/project/checkFile?projectName=${projectName}`;
           } else {
             //
           }
@@ -177,14 +202,16 @@ $(function() {
 
         if (0 != res) {
           // 拒绝
-
           return task.reject();
+        } else {
+          let str = `<br/>正在上传${filename}`;
+          print_info(str);
         }
 
         console.log("每次发送前调用 包括上传json文件");
         $.ajax({
           type: "POST",
-          url: checkUrl,
+          url: sendUrl,
           data: requestData,
           cache: false,
           async: false, // 同步
@@ -220,7 +247,9 @@ $(function() {
     disableGlobalDnd: true,
     chunked: true,
     threads: 1,
-    chunkSize: chunkSize,
+    // 如果为空 则使用不分片
+    // chunkSize: null == chunkSize ? 3000 * 1024 * 104 : chunkSize,
+    chunkSize: null == chunkSize ? defaultChunkSize : chunkSize,
     server: uploadUrl,
     fileNumLimit: 500, //一次上传的文件总数目,200个,相当于100个Aird实验(包含100个Aird文件和100个JSON文件)
     fileSizeLimit: 500 * 1024 * 1024 * 1024, // 200GB
@@ -312,7 +341,6 @@ $(function() {
           k += chunkSize[i];
           console.log("i=" + i, k);
         }
-        console.log("kkkk", k);
         tao.jsonFileListStatus = 0;
         console.log("写入 tao", tao);
       } else {
@@ -340,7 +368,6 @@ $(function() {
       sendAirdInit(name);
       jsonObj[name] = jsonCount;
       jsonCount++;
-      console.log(jsonObj);
     }
     let obj = {
       filename: file.name,
@@ -356,7 +383,6 @@ $(function() {
       上传的文件类型是json<br/>
       文件信息:${JSON.stringify(obj)}<br/>
       `;
-      console.log(str);
       print_info(str);
     }
     if (fileCount === 1) {

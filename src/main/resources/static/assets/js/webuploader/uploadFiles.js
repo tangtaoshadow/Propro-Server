@@ -31,6 +31,8 @@ $(function() {
       jsonFileList: [],
       jsonFileListStatus: -1
     },
+    // 允许上传的aird文件名称
+    allowUploadAirdFileName = "",
     // 指明当前上传的 aird 文件使用的是哪个 json 进行分割的
     // 文件已经上传大小
     uploadSize = 0,
@@ -136,55 +138,6 @@ $(function() {
       </div>
       <br/>`;
 
-  btn_delete_init = () => {
-    setTimeout(() => {
-      $(".deletefile")
-        .off()
-        .click(e => {
-          tao_delete_file(e);
-        });
-    }, 300);
-  };
-
-  // 删除文件调用
-  tao_delete_file = e => {
-    let delete_file_name = $(e.target).attr("val0");
-    let str = `执行删除文件：${delete_file_name}`;
-    print_info(str);
-    let url = `/project/deleteFile`;
-    let requestData = {
-      projectName,
-      fileName: delete_file_name
-    };
-    $.ajax({
-      type: "POST",
-      url: url,
-      data: requestData,
-      cache: false,
-      async: false, // 同步
-      timeout: 3000
-    }).then(function(data) {
-      print_info(`服务器返回json数据<br/>${data}<br/>`);
-      console.log("服务器返回 json file", data);
-      let obj = { status: -1 };
-      let str = "<br/>";
-      try {
-        obj = JSON.parse(data);
-        if (0 == obj.status) {
-          str += `文件${obj.data.fileName}: 删除成功<br/>`;
-        } else if (-3 == obj.status) {
-          str += `文件${obj.data.fileName}: 不存在,删除失败<br/>`;
-        } else {
-          str += `文件${obj.data.fileName}: 删除失败<br/>`;
-        }
-        print_info(str);
-      } catch (e) {
-        console.log(e);
-        obj = { status: -1 };
-      }
-      console.log("服务器返回对象", obj);
-    });
-  };
   tao_init = () => {
     let jsonFileName0 = window.localStorage.getItem("jsonFileName");
     let jsonFileList0 = window.localStorage.getItem("jsonFileList");
@@ -259,10 +212,12 @@ $(function() {
         print_info(btn_clear_str);
 
         setTimeout(() => {
+          allowUploadAirdFileName = tao.jsonFileName.replace(".json", ".aird");
           str = `
             <br/>
             json文件已经配置完成,可以上传aird文件,上传json文件请先点击 清空缓存 按钮<br/>
             当前json文件为：${tao.jsonFileName}<br/>
+            可以上传aird文件：${allowUploadAirdFileName}
             描述信息:<br/>
             aird文件大小为(MB)：${parseFloat(size)}<br/>
             aird文件分片数量：${jsonFileList0.length}<br/>
@@ -379,6 +334,9 @@ $(function() {
             console.log("分片存在，则跳过上传");
             return task.reject();
           } else {
+            if (checkUrl == sendUrl) {
+              // 分片不存在
+            }
             // 尝试转换为 对象
             result = JSON.parse(result);
             let str1 = `${new Date()}<br/>解析服务器数据成功:<br/>
@@ -399,7 +357,6 @@ $(function() {
                   /DELETE_FILENAME/g,
                   delete_file_name
                 );
-
                 print_info(btn_delete_str);
                 let str = `****<br/>警告:文件${result.data.fileName}已经存在服务器上,不允许上传<br/>***`;
                 print_info(str);
@@ -498,8 +455,11 @@ $(function() {
       async: true, // 同步
       timeout: 1000
     }).then(function(data) {
-      print_info("服务器返回json数据");
+      let str = `<br/>${new Date()}<br/>`;
+      str += `服务器返回json分片数据:<br/>${data}<br/>`;
+      print_info(str);
       console.log("服务器返回 json file", data);
+      let data1 = data;
       let obj = { status: -1 };
       try {
         obj = JSON.parse(data);
@@ -510,7 +470,6 @@ $(function() {
 
       // 判断是否 成功 成功就写入数据
       if (0 == obj.status) {
-        print_info("上传参数准备成功，可以上传");
         window.localStorage.setItem("jsonFileName", obj.data.jsonFileName);
         window.localStorage.setItem(
           "jsonFileList",
@@ -527,7 +486,16 @@ $(function() {
         }
         tao.jsonFileListStatus = 0;
         console.log("写入 tao", tao);
+        print_info(`
+        json分片信息成功写入本地缓存，<br/>
+        可以上传aird文件：${tao.jsonFileName.replace(".json", ".aird")}<br/>
+        注意：如果你此时添加的是aird文件,请刷新后重新上传<br/>`);
       } else {
+        str = `<br/>****<br/>
+        服务器返回分片信息出错：请检查是否已经上传过json文件：${obj.data.fileName}
+        <br/>
+        ****<br/>`;
+        print_info(str);
         console.error("tangtao 服务器返回数据出错", data);
       }
     });
@@ -592,6 +560,56 @@ $(function() {
     addFile(file);
     setState("ready");
     updateTotalProgress();
+  };
+
+  btn_delete_init = () => {
+    setTimeout(() => {
+      $(".deletefile")
+        .off()
+        .click(e => {
+          tao_delete_file(e);
+        });
+    }, 300);
+  };
+
+  // 删除文件调用
+  tao_delete_file = e => {
+    let delete_file_name = $(e.target).attr("val0");
+    let str = `执行删除文件：${delete_file_name}`;
+    print_info(str);
+    let url = `/project/deleteFile`;
+    let requestData = {
+      projectName,
+      fileName: delete_file_name
+    };
+    $.ajax({
+      type: "POST",
+      url: url,
+      data: requestData,
+      cache: false,
+      async: false, // 同步
+      timeout: 3000
+    }).then(function(data) {
+      print_info(`服务器返回json数据<br/>${data}<br/>`);
+      console.log("服务器返回 json file", data);
+      let obj = { status: -1 };
+      let str = "<br/>";
+      try {
+        obj = JSON.parse(data);
+        if (0 == obj.status) {
+          str += `文件${obj.data.fileName}: 删除成功<br/>`;
+        } else if (-3 == obj.status) {
+          str += `文件${obj.data.fileName}: 不存在,删除失败<br/>`;
+        } else {
+          str += `文件${obj.data.fileName}: 删除失败<br/>`;
+        }
+        print_info(str);
+      } catch (e) {
+        console.log(e);
+        obj = { status: -1 };
+      }
+      console.log("服务器返回对象", obj);
+    });
   };
 
   clearLocalStorage = () => {

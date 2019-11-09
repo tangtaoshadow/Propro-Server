@@ -399,6 +399,9 @@ public class ProjectController extends BaseController {
         int status = -1;
         Map<String, Object> data = new HashMap<String, Object>();
 
+        // 添加好请求信息 供前端判断
+        data.put("fileName",fileName);
+        data.put("projectName",projectName);
 
         do {
             try {
@@ -410,6 +413,7 @@ public class ProjectController extends BaseController {
                 } else {
                     // 文件不存在
                     status = -3;
+                    data.put("errorInfo","json文件"+fileName+"：不存在");
                     break;
                 }
 

@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+      layout:decorator="~{layouts/layout}">
+<!-- begin::Head -->
+<head>
+    <title th:text="#{title_welcome_to_propro}"></title>
+    <link th:href="|${url}/assets/css/pagination.css|" rel="stylesheet" type="text/css"/>
+</head>
+<!-- end::Head -->
+<!-- end::Body -->
+<body>
+
+<div class="m-subheader ">
+    <div class="d-flex align-items-center">
+        <div class="mr-auto">
+            <h3 class="m-subheader__title m-subheader__title--separator" th:text="#{label_feature_score_list}">
+            </h3>
+        </div>
+    </div>
+</div>
+
+<div class="m-content" layout:fragment="content">
+
+    <div class="alert alert-danger" role="alert" th:if="${error_msg}" th:text="${error_msg}"></div>
+    <div th:if="${errorList}" th:each="arrayS:${errorList}">
+        <div class="alert alert-danger" role="alert" th:text="${arrayS}"></div>
+    </div>
+
+    <div class="alert alert-success" role="alert" th:if="${success_msg}" th:text="${success_msg}"></div>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="clearfix">
+                <form id="searchForm" method="post" role="form"
+                      class="m-form m-form--fit m-form--label-align-right m-form--group-seperator-dashed"
+                      th:action="@{/score/list}">
+                    <input id="currentPage" type="hidden" class="form-control" name="currentPage">
+                    <input id="pageSize" type="hidden" th:value="${pageSize}" class="form-control" name="pageSize">
+                    <input id="overviewId" type="hidden" th:value="${overview.id}" class="form-control"
+                           name="overviewId">
+
+                    <div class="form-group m-form__group row">
+                        <div class="input-group col-lg-2">
+                            <div class="input-group-prepend">
+                                <button class="btn btn-success" type="button" th:text="#{label_if_identified}"></button>
+                            </div>
+                            <select class="form-control m-input" id="isIdentified" name="isIdentified">
+                                <option th:text="All" th:value="All"
+                                        th:selected="${isIdentified}=='All'?true:false"></option>
+                                <option th:text="Yes" th:value="Yes"
+                                        th:selected="${isIdentified}=='Yes'?true:false"></option>
+                                <option th:text="No" th:value="No"
+                                        th:selected="${isIdentified}=='No'?true:false"></option>
+                            </select>
+                        </div>
+                        <div class="input-group col-lg-2">
+                            <div class="input-group-prepend">
+                                <button class="btn btn-success" type="button" th:text="#{label_is_decoy}"></button>
+                            </div>
+                            <select class="form-control m-input" id="isDecoy" name="isDecoy">
+                                <option th:text="All" th:value="All"
+                                        th:selected="${isDecoy}=='All'?true:false"></option>
+                                <option th:text="Yes" th:value="Yes"
+                                        th:selected="${isDecoy}=='Yes'?true:false"></option>
+                                <option th:text="No" th:value="No"
+                                        th:selected="${isDecoy}=='No'?true:false"></option>
+                            </select>
+                        </div>
+                        <div class="input-group col-lg-2">
+                            <div class="input-group-prepend">
+                                <button class="btn btn-success" type="button">
+                                    FDR-Start:
+                                </button>
+                            </div>
+                            <input type="text" class="form-control m-input" name="fdrStart" placeholder="fdrStart"
+                                   th:value="${fdrStart}">
+                        </div>
+                        <div class="input-group col-lg-2">
+                            <div class="input-group-prepend">
+                                <button class="btn btn-success" type="button">
+                                    FDR-End:
+                                </button>
+                            </div>
+                            <input type="text" class="form-control m-input" name="fdrEnd" placeholder="fdrEnd"
+                                   th:value="${fdrEnd}">
+                        </div>
+                        <div class="input-group col-lg-3">
+                            <div class="input-group-prepend">
+                                <button class="btn btn-success" type="button">
+                                    PeptideRef:
+                                </button>
+                            </div>
+                            <input type="text" class="form-control" name="peptideRef" placeholder="PeptideRef"
+                                   th:value="${peptideRef}">
+                            <div class="input-group-append">
+                                <button class="btn btn-primary" type="submit" th:text="#{btn_search}"></button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="m-portlet m-portlet--full-height">
+                <div class="m-portlet__head">
+                    <div class="m-portlet__head-caption">
+                        <div class="m-portlet__head-title">
+                            <h3 class="m-portlet__head-text"
+                                th:text="|#{label_analyse_overview}:${overview.name},ID:${overview.id},Total:${totalNum} Group Scores|">
+                            </h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="m-portlet__body">
+                    <!--begin::Section-->
+                    <div class="m-accordion m-accordion--bordered m-accordion--solid" id="m_accordion_6" role="tablist">
+                        <!--begin::Item-->
+
+                        <div th:each="score:${scores}" class="m-accordion__item">
+                            <div class="m-accordion__item-head collapsed" role="tab" id="m_accordion_7_item_1_head"
+                                 data-toggle="collapse" th:href="|#${score.peptideRef}_${score.isDecoy?'decoy':''}|"
+                                 aria-expanded="false">
+                                <!--<span th:if="${scoreForAll.isDecoy}" class="m-accordion__item-icon"><i class="fa fa-bomb"></i></span>-->
+                                <span th:if="${!score.isDecoy}" class="m-accordion__item-icon"><i
+                                        class="fa fa-diamond"></i></span>
+                                <span th:if="${!score.isDecoy&&score.identifiedStatus==0}"
+                                      class="m-accordion__item-icon"><i
+                                        class="fa fa-check"></i></span>
+                                <span th:if="${!score.isDecoy&&score.identifiedStatus!=0}"
+                                      class="m-accordion__item-icon"><i
+                                        class="fa fa-close"></i></span>
+                                <span class="m-accordion__item-title"
+                                      th:text="|(${score?.featureScoresList?.size()})[#{label_predict} RT:${score?.rt}][FDR:${score?.fdr}]${score.isDecoy?'Decoy':'Target'}:${score?.peptideRef}|"></span>
+                                <span class="m-accordion__item-mode"></span>
+                            </div>
+                            <div class="m-accordion__item-body collapse"
+                                 th:id="|${score?.peptideRef}_${score.isDecoy?'decoy':''}|" role="tabpanel"
+                                 aria-labelledby="m_accordion_7_item_1_head" data-parent="#m_accordion_7">
+                                <div class="m-accordion__item-content">
+<!--                                    <a th:href="@{/score/list(overviewId=${overviewId},peptideRef=${score?.peptideRef})}"-->
+<!--                                       class="btn btn-primary btn-sm" th:text="#{btn_view_peptide_score}"></a>-->
+                                    <a target="_blank"
+                                       th:href="@{/analyse/clinic(dataId=${score.id},onlyLib=true)}"
+                                       class="btn btn-danger btn-sm" th:text="#{btn_peptide_clinic}"></a>
+                                    <table class="table table-bordered table-hover" style="table-layout:fixed;">
+                                        <thead>
+                                        <tr>
+                                            <th>RT</th>
+                                            <th>MainXxSwathPrelimScore+</th>
+                                            <th>VarBseriesScore+</th>
+<!--                                            <th>VarElutionModelFitScore+</th>-->
+                                            <th>VarIntensityScore+</th>
+                                            <th>VarIsotopeCorrelationScore+</th>
+                                            <th>VarIsotopeOverlapScore-</th>
+                                            <th>VarLibraryCorr+</th>
+                                            <th>VarLibraryRsmd-</th>
+                                            <th>VarLogSnScore+</th>
+                                            <th>VarMassdevScore-</th>
+                                            <th>VarMassdevScoreWeighted-</th>
+                                            <th>VarNormRtScore-</th>
+                                            <th>VarXcorrCoelution-</th>
+                                            <th>VarXcorrCoelutionWeighted-</th>
+                                            <th>VarXcorrShape+</th>
+                                            <th>VarXcorrShapeWeighted+</th>
+                                            <th>VarYseriesScore+</th>
+                                            <th>VarLibraryDotprod+</th>
+                                            <th>VarLibraryManhattan-</th>
+                                            <th>VarLibrarySangle-</th>
+                                            <th>VarLibraryRootmeansquare-</th>
+<!--                                            <th>VarManhattScore+</th>-->
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        <tr th:each="featureScore:${score.featureScoresList}">
+                                            <td th:if="${score.bestRt==featureScore.rt}"
+                                                th:style="'background-color:#bbc1f1'" th:text="${featureScore.rt}"></td>
+                                            <td th:unless="${score.bestRt==featureScore.rt}"
+                                                th:text="${featureScore.rt}"></td>
+
+                                            <td th:if="${score.bestRt==featureScore.rt}"
+                                                th:style="'background-color:#bbc1f1'"
+                                                th:text="${featureScore.get('MainScore', scoreTypes)}"></td>
+                                            <td th:unless="${score.bestRt==featureScore.rt}"
+                                                th:text="${featureScore.get('MainScore', scoreTypes)}"></td>
+
+                                            <td th:if="${score.bestRt==featureScore.rt}"
+                                                th:style="'background-color:#bbc1f1'"
+                                                th:text="${featureScore.get('BseriesScore', scoreTypes)}"></td>
+                                            <td th:unless="${score.bestRt==featureScore.rt}"
+                                                th:text="${featureScore.get('BseriesScore', scoreTypes)}"></td>
+
+                                            <td th:if="${score.bestRt==featureScore.rt}"
+                                                th:style="'background-color:#bbc1f1'"
+                                                th:text="${featureScore.get('IntensityScore', scoreTypes)}"></td>
+                                            <td th:unless="${score.bestRt==featureScore.rt}"
+                                                th:text="${featureScore.get('IntensityScore', scoreTypes)}"></td>
+
+                                            <td th:if="${score.bestRt==featureScore.rt}"
+                                                th:style="'background-color:#bbc1f1'"
+                                                th:text="${featureScore.get('IsotopeCorrelationScore', scoreTypes)}"></td>
+                                            <td th:unless="${score.bestRt==featureScore.rt}"
+                                                th:text="${featureScore.get('IsotopeCorrelationScore', scoreTypes)}"></td>
+
+                                            <td th:if="${score.bestRt==featureScore.rt}"
+                                                th:style="'background-color:#bbc1f1'"
+                                                th:text="${featureScore.get('IsotopeOverlapScore', scoreTypes)}"></td>
+                                            <td th:unless="${score.bestRt==featureScore.rt}"
+                                                th:text="${featureScore.get('IsotopeOverlapScore', scoreTypes)}"></td>
+
+                                            <td th:if="${score.bestRt==featureScore.rt}"
+                                                th:style="'background-color:#bbc1f1'"
+                                                th:text="${featureScore.get('LibraryCorr', scoreTypes)}"></td>
+                                            <td th:unless="${score.bestRt==featureScore.rt}"
+                                                th:text="${featureScore.get('LibraryCorr', scoreTypes)}"></td>
+
+                                            <td th:if="${score.bestRt==featureScore.rt}"
+                                                th:style="'background-color:#bbc1f1'"
+                                                th:text="${featureScore.get('LibraryRsmd', scoreTypes)}"></td>
+                                            <td th:unless="${score.bestRt==featureScore.rt}"
+                                                th:text="${featureScore.get('LibraryRsmd', scoreTypes)}"></td>
+
+                                            <td th:if="${score.bestRt==featureScore.rt}"
+                                                th:style="'background-color:#bbc1f1'"
+                                                th:text="${featureScore.get('LogSnScore', scoreTypes)}"></td>
+                                            <td th:unless="${score.bestRt==featureScore.rt}"
+                                                th:text="${featureScore.get('LogSnScore', scoreTypes)}"></td>
+
+                                            <td th:if="${score.bestRt==featureScore.rt}"
+                                                th:style="'background-color:#bbc1f1'"
+                                                th:text="${featureScore.get('MassdevScore', scoreTypes)}"></td>
+                                            <td th:unless="${score.bestRt==featureScore.rt}"
+                                                th:text="${featureScore.get('MassdevScore', scoreTypes)}"></td>
+
+                                            <td th:if="${score.bestRt==featureScore.rt}"
+                                                th:style="'background-color:#bbc1f1'"
+                                                th:text="${featureScore.get('MassdevScoreWeighted', scoreTypes)}"></td>
+                                            <td th:unless="${score.bestRt==featureScore.rt}"
+                                                th:text="${featureScore.get('MassdevScoreWeighted', scoreTypes)}"></td>
+
+                                            <td th:if="${score.bestRt==featureScore.rt}"
+                                                th:style="'background-color:#bbc1f1'"
+                                                th:text="${featureScore.get('NormRtScore', scoreTypes)}"></td>
+                                            <td th:unless="${score.bestRt==featureScore.rt}"
+                                                th:text="${featureScore.get('NormRtScore', scoreTypes)}"></td>
+
+                                            <td th:if="${score.bestRt==featureScore.rt}"
+                                                th:style="'background-color:#bbc1f1'"
+                                                th:text="${featureScore.get('XcorrCoelution', scoreTypes)}"></td>
+                                            <td th:unless="${score.bestRt==featureScore.rt}"
+                                                th:text="${featureScore.get('XcorrCoelution', scoreTypes)}"></td>
+
+                                            <td th:if="${score.bestRt==featureScore.rt}"
+                                                th:style="'background-color:#bbc1f1'"
+                                                th:text="${featureScore.get('XcorrCoelutionWeighted', scoreTypes)}"></td>
+                                            <td th:unless="${score.bestRt==featureScore.rt}"
+                                                th:text="${featureScore.get('XcorrCoelutionWeighted', scoreTypes)}"></td>
+
+                                            <td th:if="${score.bestRt==featureScore.rt}"
+                                                th:style="'background-color:#bbc1f1'"
+                                                th:text="${featureScore.get('XcorrShape', scoreTypes)}"></td>
+                                            <td th:unless="${score.bestRt==featureScore.rt}"
+                                                th:text="${featureScore.get('XcorrShape', scoreTypes)}"></td>
+
+                                            <td th:if="${score.bestRt==featureScore.rt}"
+                                                th:style="'background-color:#bbc1f1'"
+                                                th:text="${featureScore.get('XcorrShapeWeighted', scoreTypes)}"></td>
+                                            <td th:unless="${score.bestRt==featureScore.rt}"
+                                                th:text="${featureScore.get('XcorrShapeWeighted', scoreTypes)}"></td>
+
+                                            <td th:if="${score.bestRt==featureScore.rt}"
+                                                th:style="'background-color:#bbc1f1'"
+                                                th:text="${featureScore.get('YseriesScore', scoreTypes)}"></td>
+                                            <td th:unless="${score.bestRt==featureScore.rt}"
+                                                th:text="${featureScore.get('YseriesScore', scoreTypes)}"></td>
+
+                                            <td th:if="${score.bestRt==featureScore.rt}"
+                                                th:style="'background-color:#bbc1f1'"
+                                                th:text="${featureScore.get('LibraryDotprod', scoreTypes)}"></td>
+                                            <td th:unless="${score.bestRt==featureScore.rt}"
+                                                th:text="${featureScore.get('LibraryDotprod', scoreTypes)}"></td>
+
+                                            <td th:if="${score.bestRt==featureScore.rt}"
+                                                th:style="'background-color:#bbc1f1'"
+                                                th:text="${featureScore.get('LibraryManhattan', scoreTypes)}"></td>
+                                            <td th:unless="${score.bestRt==featureScore.rt}"
+                                                th:text="${featureScore.get('LibraryManhattan', scoreTypes)}"></td>
+
+                                            <td th:if="${score.bestRt==featureScore.rt}"
+                                                th:style="'background-color:#bbc1f1'"
+                                                th:text="${featureScore.get('LibrarySangle', scoreTypes)}"></td>
+                                            <td th:unless="${score.bestRt==featureScore.rt}"
+                                                th:text="${featureScore.get('LibrarySangle', scoreTypes)}"></td>
+
+                                            <td th:if="${score.bestRt==featureScore.rt}"
+                                                th:style="'background-color:#bbc1f1'"
+                                                th:text="${featureScore.get('LibraryRootmeansquare', scoreTypes)}"></td>
+                                            <td th:unless="${score.bestRt==featureScore.rt}"
+                                                th:text="${featureScore.get('LibraryRootmeansquare', scoreTypes)}"></td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <!--end::Item-->
+                    </div>
+                </div>
+                <p id="pagination"></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+
+<th:block layout:fragment="script">
+    <script th:src="|${url}/assets/js/jquery-bootpag/jquery.bootpag.js|" type="text/javascript"></script>
+    <script th:src="|${url}/assets/js/echarts/echarts.min.js|" type="text/javascript"></script>
+    <script th:src="|${url}/assets/js/echarts/dark.js|" type="text/javascript"></script>
+    <script th:src="|${url}/assets/js/propro/propro.js|" type="text/javascript"></script>
+
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        var totalPage = [[${totalPage}]];
+        var currentPage = [[${currentPage}]];
+        /*]]>*/
+
+        $(document).ready(function () {
+            $('#pagination').bootpag({
+                paginationClass: 'pagination',
+                next: '<i class="fa fa-angle-right"></i>',
+                prev: '<i class="fa fa-angle-left"></i>',
+                total: totalPage,
+                page: currentPage,
+                maxVisible: 20
+            }).on("page", function (event, num) {
+                document.getElementById("currentPage").value = num;
+                document.getElementById("searchForm").submit();
+            });
+        });
+    </script>
+</th:block>
+
+<!-- end::Body -->
+</html>

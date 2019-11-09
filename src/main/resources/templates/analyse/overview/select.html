@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+      layout:decorator="~{layouts/layout}">
+<!-- begin::Head -->
+<head>
+    <title th:text="#{title_welcome_to_propro}"></title>
+</head>
+<!-- end::Head -->
+<!-- end::Body -->
+<body>
+<div class="m-content" layout:fragment="content">
+    <div class="alert alert-danger" role="alert" th:if="${error_msg}" th:text="${error_msg}"></div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <!--begin::Portlet-->
+            <div class="m-portlet m-portlet--tab">
+                <div class="m-portlet__head">
+                    <div class="m-portlet__head-caption">
+                        <div class="m-portlet__head-title">
+                            <span class="m-portlet__head-icon m--hide"><i class="la la-gear"></i></span>
+                            <h3 class="m-portlet__head-text" th:text="|#{label_choose_overviews_to_compare}(#{label_max_for} 4 Overviews)|"></h3>
+                        </div>
+                    </div>
+                </div>
+                <!--begin::Form-->
+                <form class="m-form m-form--fit m-form--label-align-right" th:action="@{/analyse/overview/comparison}"
+                      th:method="post">
+                    <div class="m-portlet__body">
+                        <div class="form-group m-form__group row">
+                            <label for="overviewIdA" class="col-form-label col-lg-3" th:text="|#{label_overview_id_for} A|">
+                            </label>
+                            <div class="col-lg-4 col-md-9 col-sm-12">
+                                <input type="text" class="form-control m-input" name="overviewIdA" id="overviewIdA"
+                                       th:value="${overviewIdA}">
+                            </div>
+                        </div>
+                        <div class="form-group m-form__group row">
+                            <label for="overviewIdB" class="col-form-label col-lg-3" th:text="|#{label_overview_id_for} B|">
+                            </label>
+                            <div class="col-lg-4 col-md-9 col-sm-12">
+                                <input type="text" class="form-control m-input" name="overviewIdB" id="overviewIdB"
+                                       th:value="${overviewIdB}">
+                            </div>
+                        </div>
+                        <div class="form-group m-form__group row">
+                            <label for="overviewIdC" class="col-form-label col-lg-3" th:text="|#{label_overview_id_for} C|">
+                            </label>
+                            <div class="col-lg-4 col-md-9 col-sm-12">
+                                <input type="text" class="form-control m-input" name="overviewIdC" id="overviewIdC"
+                                       th:value="${overviewIdC}">
+                            </div>
+                        </div>
+                        <div class="form-group m-form__group row">
+                            <label for="overviewIdD" class="col-form-label col-lg-3" th:text="|#{label_overview_id_for} D|">
+                            </label>
+                            <div class="col-lg-4 col-md-9 col-sm-12">
+                                <input type="text" class="form-control m-input" name="overviewIdD" id="overviewIdD"
+                                       th:value="${overviewIdD}">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="m-portlet__foot m-portlet__foot--fit">
+                        <div class="m-form__actions">
+                            <button type="submit" class="btn btn-primary" th:text="#{btn_start_compare}">
+                            </button>
+                        </div>
+                    </div>
+                </form>
+                <!--end::Form-->
+            </div>
+            <!--end::Portlet-->
+        </div>
+    </div>
+
+</div>
+</body>
+
+<!-- end::Body -->
+</html>

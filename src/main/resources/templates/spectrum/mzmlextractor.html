@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+      layout:decorator="~{layouts/layout}">
+<!-- begin::Head -->
+<head>
+    <title th:text="#{title_welcome_to_propro}"></title>
+    <link th:href="|${url}/assets/css/main.css|" rel="stylesheet" type="text/css"/>
+</head>
+<!-- end::Head -->
+<!-- end::Body -->
+<body>
+<div class="m-content" layout:fragment="content">
+
+    <div class="alert alert-danger" role="alert" th:if="${error_msg}" th:text="${error_msg}"></div>
+    <div class="alert alert-success" role="alert" th:if="${success_msg}" th:text="${success_msg}"></div>
+    <div class="alert alert-success" role="alert" th:if="${searchResult}" th:text="${searchResult}"></div>
+
+    <div class="m-portlet__body">
+        <!--begin: Search Form -->
+        <div class="clearfix row">
+            <div class="col-lg-6">
+                <form id="searchForm" method="post" role="form"
+                      class="m-form m-form--fit m-form--label-align-right m-form--group-seperator-dashed"
+                      th:action="@{/spectrum/mzmlextractor}">
+                    <div class="form-group m-form__group row">
+                        <div class="input-group col-lg-4">
+                            <div class="input-group-prepend">
+                                <button class="btn btn-success" type="button" th:text="#{label_mz_precision}"></button>
+                            </div>
+                            <select class="form-control m-input" name="mzPrecision">
+                                <option th:if="${mzPrecision}=='64'" th:selected="true" value="64">64</option>
+                                <option th:unless="${mzPrecision}=='64'" value="64">64</option>
+                                <option th:if="${mzPrecision}=='32'" th:selected="true" value="32">32</option>
+                                <option th:unless="${mzPrecision}=='32'" value="32">32</option>
+                            </select>
+                        </div>
+                        <div class="input-group col-lg-4">
+                            <div class="input-group-prepend">
+                                <button class="btn btn-success" type="button" th:text="#{label_intensity_precision}">
+                                </button>
+                            </div>
+                            <select class="form-control m-input" name="intensityPrecision">
+                                <option th:if="${intensityPrecision}=='32'" th:selected="true" value="32">32</option>
+                                <option th:unless="${intensityPrecision}=='32'" value="32">32</option>
+                                <option th:if="${intensityPrecision}=='64'" th:selected="true" value="64">64</option>
+                                <option th:unless="${intensityPrecision}=='64'" value="64">64</option>
+                            </select>
+                        </div>
+                        <div class="input-group col-lg-4">
+                            <div class="m-checkbox-list">
+                                <label class="m-checkbox">
+                                    <input id="isZlibCompression" type="checkbox" th:checked="${isZlibCompression}" name="isZlibCompression" th:text="#{label_is_zlib}">
+                                    <span></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group m-form__group row">
+                        <div class="input-group col-lg-12">
+                            <div class="input-group-prepend">
+                                <button class="btn btn-success" type="button" th:text="#{label_compressed_mz}">
+                                </button>
+                            </div>
+                            <textarea rows="15" class="form-control m-input" name="mz" placeholder="mz"
+                                      th:text="${mz}"></textarea>
+                        </div>
+                    </div>
+                    <div class="form-group m-form__group row">
+                        <div class="input-group col-lg-12">
+                            <div class="input-group-prepend">
+                                <button class="btn btn-success" type="button" th:text="#{label_compressed_intensity}">
+                                </button>
+                            </div>
+                            <textarea rows="15" class="form-control m-input" name="intensity" placeholder="intensity"
+                                      th:text="${intensity}"></textarea>
+                            <div class="input-group-append">
+                                <button class="btn btn-warning" type="submit" th:text="#{btn_decompress}"></button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="col-lg-6">
+                <table class="table table-bordered" style="table-layout:fixed;">
+                    <thead>
+                    <tr>
+                        <th width="10%">
+                            No.
+                        </th>
+                        <th width="45%">
+                            m/z
+                        </th>
+                        <th width="45%">
+                            intensity
+                        </th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="intensity,status:${intensityArray}">
+                        <td th:text="${status.index+1}"></td>
+                        <td th:text="${mzArray[status.index]}"></td>
+                        <td th:text="${intensity}"></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+        <!--end: Search Form -->
+
+
+    </div>
+</div>
+
+</body>
+
+<!-- end::Body -->
+</html>

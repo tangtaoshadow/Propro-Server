@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+      layout:decorator="~{layouts/layout}">
+<!-- begin::Head -->
+<head>
+    <title th:text="#{title_welcome_to_propro}"></title>
+    <link th:href="|${url}/assets/css/pagination.css|" rel="stylesheet" type="text/css"/>
+</head>
+<!-- end::Head -->
+<!-- end::Body -->
+<body>
+
+<div class="m-subheader ">
+    <div class="d-flex align-items-center">
+        <div class="mr-auto">
+            <h3 class="m-subheader__title m-subheader__title--separator" th:text="#{menu_analyse_data_list}"></h3>
+        </div>
+    </div>
+</div>
+
+<div class="m-content" layout:fragment="content">
+
+    <div class="alert alert-danger" role="alert" th:if="${error_msg}" th:text="${error_msg}"></div>
+    <div th:if="${errorList}" th:each="arrayS:${errorList}">
+        <div class="alert alert-danger" role="alert" th:text="${arrayS}"></div>
+    </div>
+
+    <div class="alert alert-success" role="alert" th:if="${success_msg}" th:text="${success_msg}"></div>
+    <div class="m-portlet__body">
+        <div class="clearfix">
+            <form id="searchForm" method="post" role="form"
+                  class="m-form m-form--fit m-form--label-align-right m-form--group-seperator-dashed"
+                  th:action="@{/analyse/data/list}">
+                <input id="currentPage" type="hidden" class="form-control" name="currentPage">
+                <input id="pageSize" type="hidden" th:value="${pageSize}" class="form-control" name="pageSize">
+                <input id="overviewId" type="hidden" th:value="${overviewId}" class="form-control" name="overviewId">
+                <div class="form-group m-form__group row">
+                    <div class="input-group col-lg-2">
+                        <div class="input-group-prepend">
+                            <button class="btn btn-success" type="button">
+                                PeptideRef:
+                            </button>
+                        </div>
+                        <input type="text" class="form-control m-input" name="peptideRef" th:placeholder="#{placeholder_peptide_ref}"
+                               th:value="${peptideRef}">
+                    </div>
+                    <div class="input-group col-lg-2">
+                        <div class="input-group-prepend">
+                            <button class="btn btn-success" type="button" th:text="#{btn_identified_status}"></button>
+                        </div>
+                        <input type="text" class="form-control m-input" name="identifiedStatus" th:placeholder="#{placeholder_identified_status}"
+                               th:value="${identifiedStatus}">
+                    </div>
+                    <div class="input-group-append">
+                        <button class="btn btn-primary" type="submit" th:text="#{btn_search}"></button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-9">
+            <table class="table table-bordered table-hover" style="table-layout:fixed;">
+                <thead>
+                <tr>
+                    <th width="2%">No.</th>
+                    <th width="25%" th:text="#{label_protein_name}"></th>
+                    <th width="20%" th:text="#{label_peptide_name}"></th>
+                    <th width="5%" th:text="#{label_is_decoy}"></th>
+                    <th width="6%">RT</th>
+                    <th width="25%" th:text="#{label_fragment}"></th>
+                    <th width="17%" th:text="#{label_operation}"></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="data,status:${datas}">
+                    <td th:text="${status.index+1}"></td>
+                    <td th:text="${data.proteinName}"></td>
+                    <td>
+                        <a target="_Blank"
+                           th:href="@{/peptide/list(libraryId=${overview?.libraryId},peptideRef=${data.peptideRef})}"
+                           th:text="${data.peptideRef}"></a>
+                    </td>
+                    <td th:if="${data.isDecoy}">
+                        <span class="m-badge m-badge--danger m-badge--wide" th:text="#{label_decoy}"></span>
+                    </td>
+                    <td th:if="${!data.isDecoy}">
+                       <span class="m-badge m-badge--success m-badge--wide" th:text="#{label_target}"></span>
+                    </td>
+                    <td th:text="${data.rt}"></td>
+                    <td>
+                        <table class="table table-bordered table-hover"
+                               style="table-layout:fixed;background-color: whitesmoke;text-align: center;">
+                            <thead>
+                            <tr>
+                                <th width="30%" th:text="#{label_cutinfo}"></th>
+                                <th width="30%" th:text="#{label_fragment_mz}"></th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="cutInfo:${data.mzMap.keySet()}">
+                                <td th:text="${cutInfo}"></td>
+                                <td th:text="${data.mzMap.get(cutInfo)}"></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </td>
+                    <td>
+                        <a th:if="${!data.isDecoy}" target="_blank" th:href="@{/analyse/clinic(dataId=${data.id},onlyLib=true)}"
+                           class="btn btn-danger btn-sm" th:text="#{btn_peptide_clinic}"></a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+            <p id="pagination"></p>
+        </div>
+        <div class="col-md-3">
+            <!--begin::Portlet-->
+            <div class="m-portlet m-portlet--tab">
+                <div class="m-portlet__head">
+                    <div class="m-portlet__head-caption">
+                        <div class="m-portlet__head-title">
+                            <span class="m-portlet__head-icon m--hide">
+                                <i class="la la-gear"></i>
+                            </span>
+                            <h3 class="m-portlet__head-text" th:text="#{label_analyse_overview_detail}"></h3>
+                        </div>
+                    </div>
+                </div>
+                <!--begin::Form-->
+                <form class="m-form m-form--fit m-form--label-align-right">
+                    <div class="m-portlet__body">
+                        <div class="form-group m-form__group row">
+                            <label for="id" class="col-3 col-form-label">
+                                ID
+                            </label>
+                            <div class="col-9">
+                                <input type="text" class="form-control m-input" id="id" name="id" readonly
+                                       th:value="${overview?.id}">
+                            </div>
+                        </div>
+                        <div class="form-group m-form__group row">
+                            <label for="id" class="col-3 col-form-label" th:text="#{label_analyse_code}">
+                            </label>
+                            <div class="col-9">
+                                <input type="text" class="form-control m-input" id="name" name="name" readonly
+                                       th:value="${overview?.name}">
+                            </div>
+                        </div>
+                        <div class="form-group m-form__group row">
+                            <label for="id" class="col-3 col-form-label" th:text="#{label_exp_id}">
+                            </label>
+                            <div class="col-9">
+                                <input type="text" class="form-control m-input" id="expId" name="expId" readonly
+                                       th:value="${overview?.expId}">
+                            </div>
+                        </div>
+                        <div class="form-group m-form__group row">
+                            <label for="library" class="col-3 col-form-label" th:text="#{label_associated_library}">
+                            </label>
+                            <div class="col-9">
+                                <input type="text" class="form-control m-input" id="library" readonly
+                                       th:value="|${overview?.libraryName}(${overview?.libraryId})|">
+                            </div>
+                        </div>
+                        <div class="form-group m-form__group row">
+                            <label for="evolutionMSDataNum" class="col-3 col-form-label" th:text="#{label_total_chromatogram_count}"></label>
+                            <div class="col-9">
+                                <input type="text" class="form-control m-input" id="evolutionMSDataNum" readonly
+                                       th:value="|${totalNum}|">
+                            </div>
+                        </div>
+                        <div class="form-group m-form__group row">
+                            <label for="ExtractWindow" class="col-3 col-form-label" th:text="#{label_mz_rt_extract_window}">
+                            </label>
+                            <div class="col-9">
+                                <input type="text" class="form-control m-input" id="ExtractWindow" readonly
+                                       th:value="|${overview?.rtExtractWindow}/${overview?.mzExtractWindow}|">
+                            </div>
+                        </div>
+                        <div class="form-group m-form__group row">
+                            <label for="slopeIntercept" class="col-3 col-form-label" th:text="#{label_slope_intercept}">
+                            </label>
+                            <div class="col-9">
+                                <input type="text" class="form-control m-input" id="slopeIntercept" readonly
+                                       th:value="|${overview?.slope}/${overview?.intercept}|">
+                            </div>
+                        </div>
+                        <div class="form-group m-form__group row">
+                            <label for="ownerName" class="col-3 col-form-label" th:text="#{label_owner}">
+
+                            </label>
+                            <div class="col-9">
+                                <input type="text" class="form-control m-input" id="ownerName" readonly
+                                       th:value="|${overview?.ownerName}|">
+                            </div>
+                        </div>
+                        <div class="form-group m-form__group row">
+                            <label for="createDate" class="col-3 col-form-label" th:text="#{label_create_date}">
+                            </label>
+                            <div class="col-9">
+                                <input type="text" class="form-control m-input" id="createDate" name="createDate"
+                                       readonly
+                                       th:value="${#dates.format(overview?.createDate, 'yyyy-MM-dd HH:mm:ss')}">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="m-portlet__foot m-portlet__foot--fit">
+                        <div class="m-form__actions">
+                            <a th:href="@{/analyse/overview/delete/{id}(id=${overview?.id})}" class="btn btn-danger" th:text="#{btn_delete}"></a>
+                        </div>
+                    </div>
+                </form>
+                <!--end::Form-->
+            </div>
+            <!--end::Portlet-->
+        </div>
+        <div class="modal fade" id="m_modal_target" tabindex="-1" role="dialog" aria-labelledby="TargetInfo"
+             aria-hidden="true">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Target Info</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                                aria-hidden="true">&times;</span></button>
+                    </div>
+                    <div id="modal-body" class="modal-body" style="width: 1200px;height:600px;"></div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal" th:text="#{btn_close}">
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal fade" id="m_modal_group" tabindex="-1" role="dialog" aria-labelledby="TargetInfo"
+             aria-hidden="true">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            <button type="button" class="btn btn-sm btn-warning"
+                                    th:onclick="queryGroup(null,true,false)" th:text="#{btn_gauss_filter}">
+                            </button>
+                            <button type="button" class="btn btn-sm btn-info"
+                                    th:onclick="queryGroup(null,true, true)" th:text="#{btn_denoising_gauss_filter}">
+                            </button>
+                            <button type="button" class="btn btn-sm btn-brand"
+                                    th:onclick="queryGroup(null,false, false)" th:text="#{btn_original_data}">
+                            </button>
+                            <button type="button" class="btn btn-sm btn-accent"
+                                    th:onclick="queryGroup(null,false, true)" th:text="#{btn_denoising_data}">
+                            </button>
+                            <span class="m-badge m-badge--success m-badge--wide" id="peptideLabel">
+
+                        </span>
+                        </h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                                aria-hidden="true">&times;</span></button>
+                    </div>
+                    <div id="modal-body-group" class="modal-body" style="width: 1000px;height:600px;"></div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal" th:text="#{btn_close}">
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
+</body>
+
+<th:block layout:fragment="script">
+    <script th:src="|${url}/assets/js/jquery-bootpag/jquery.bootpag.js|" type="text/javascript"></script>
+    <script th:src="|${url}/assets/js/echarts/echarts.min.js|" type="text/javascript"></script>
+    <script th:src="|${url}/assets/js/echarts/dark.js|" type="text/javascript"></script>
+    <script th:src="|${url}/assets/js/propro/propro.js|" type="text/javascript"></script>
+
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        var totalPage = [[${totalPage}]];
+        var currentPage = [[${currentPage}]];
+        /*]]>*/
+        var chart;
+        var chartGroup;
+
+        $(document).ready(function () {
+            $('#pagination').bootpag({
+                paginationClass: 'pagination',
+                next: '<i class="fa fa-angle-right"></i>',
+                prev: '<i class="fa fa-angle-left"></i>',
+                total: totalPage,
+                page: currentPage,
+                maxVisible: 20
+            }).on("page", function (event, num) {
+                document.getElementById("currentPage").value = num;
+                document.getElementById("searchForm").submit();
+            });
+            chart = echarts.init(document.getElementById('modal-body'));
+            chartGroup = echarts.init(document.getElementById('modal-body-group'));
+        });
+
+
+    </script>
+</th:block>
+
+<!-- end::Body -->
+</html>

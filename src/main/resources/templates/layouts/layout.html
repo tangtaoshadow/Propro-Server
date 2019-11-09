@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<!--<html th:with="url='https://wias.oss-cn-shanghai.aliyuncs.com'" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.w3.org/1999/xhtml" xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout">-->
+<html th:with="url='http://localhost:80'" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout">
+<!-- begin::Head -->
+<head>
+    <meta charset="utf-8"/>
+    <title th:text="#{title_welcome_to_propro}"></title>
+    <meta name="description" content="Latest updates and statistic charts">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <!--    &lt;!&ndash;begin::Base Styles &ndash;&gt;-->
+    <!--    &lt;!&ndash;begin::Page Vendors &ndash;&gt;-->
+    <!--    <link th:href="|${url}/assets/vendors/custom/fullcalendar/fullcalendar.bundle.css|" rel="stylesheet" type="text/css" />-->
+    <!--    &lt;!&ndash;end::Page Vendors &ndash;&gt;-->
+    <link th:href="|${url}/assets/vendors/base/vendors.bundle.css|" rel="stylesheet" type="text/css"/>
+    <link th:href="|${url}/assets/css/style.bundle.css|" rel="stylesheet" type="text/css"/>
+    <link th:href="|${url}/assets/css/propro.css|" rel="stylesheet" type="text/css"/>
+    <!--end::Base Styles -->
+    <link th:href="|${url}/assets/favicon.ico|" rel="shortcut icon"/>
+</head>
+<!-- end::Head -->
+<!-- end::Body -->
+<body class="m-page--fluid m--skin- m-content--skin-light2 m-header--fixed m-header--fixed-mobile m-aside-left--enabled m-aside-left--skin-dark m-aside-left--offcanvas m-footer--push m-aside--offcanvas-default">
+<!-- begin:: Page -->
+<div class="m-grid m-grid--hor m-grid--root m-page">
+    <!-- BEGIN: Header -->
+    <header class="m-grid__item m-header" data-minimize-offset="200" data-minimize-mobile-offset="200">
+        <div class="m-container m-container--fluid m-container--full-height">
+            <div class="m-stack m-stack--ver m-stack--desktop">
+                <!-- BEGIN: Brand -->
+                <div class="m-stack__item m-brand  m-brand--skin-dark ">
+                    <div class="m-stack m-stack--ver m-stack--general">
+                        <div class="m-stack__item m-stack__item--middle m-stack__item--center m-brand__logo">
+                            <a href="#" class="m-brand__logo-wrapper">
+                                <img alt="" style="height: 60px;"
+                                     th:src="|${url}/assets/logo/propro-logo-hori-small.png|"/>
+                            </a>
+                        </div>
+                        <div class="m-stack__item m-stack__item--middle m-brand__tools">
+                            <!-- BEGIN: Responsive Aside Left Menu Toggler -->
+                            <a href="javascript:;" id="m_aside_left_offcanvas_toggle"
+                               class="m-brand__icon m-brand__toggler m-brand__toggler--left m--visible-tablet-and-mobile-inline-block">
+                                <span></span>
+                            </a>
+                            <!-- END -->
+                            <!-- BEGIN: Responsive Header Menu Toggler -->
+                            <a id="m_aside_header_menu_mobile_toggle" href="javascript:;"
+                               class="m-brand__icon m-brand__toggler m--visible-tablet-and-mobile-inline-block">
+                                <span></span>
+                            </a>
+                            <!-- END -->
+                            <!-- BEGIN: Topbar Toggler -->
+                            <a id="m_aside_header_topbar_mobile_toggle" href="javascript:;"
+                               class="m-brand__icon m--visible-tablet-and-mobile-inline-block">
+                                <i class="flaticon-more"></i>
+                            </a>
+                            <!-- BEGIN: Topbar Toggler -->
+                        </div>
+                    </div>
+                </div>
+                <!-- END: Brand -->
+                <div class="m-stack__item m-stack__item--fluid m-header-head" id="m_header_nav">
+                    <div th:replace="screens/h-menu">&nbsp;</div>
+                    <div th:replace="screens/topbar">&nbsp;</div>
+                </div>
+            </div>
+        </div>
+    </header>
+    <!-- END: Header -->
+    <!-- begin::Body -->
+    <div class="m-grid__item m-grid__item--fluid m-grid m-grid--ver-desktop m-grid--desktop m-body">
+        <!--<div th:replace="screens/v-left-menu">&nbsp;</div>-->
+        <div class="m-grid__item m-grid__item--fluid m-wrapper">
+            <div class="m-content" layout:fragment="content"></div>
+        </div>
+    </div>
+    <!-- end:: Body -->
+    <div th:replace="screens/footer">&nbsp;</div>
+</div>
+<!-- end:: Page -->
+
+<!-- begin::Scroll Top -->
+<div class="m-scroll-top m-scroll-top--skin-top" data-toggle="m-scroll-top" data-scroll-offset="500"
+     data-scroll-speed="300">
+    <i class="la la-arrow-up"></i>
+</div>
+<!-- end::Scroll Top -->
+<!--begin::Base Scripts -->
+<script th:src="|${url}/assets/vendors/base/vendors.bundle.js|" type="text/javascript"></script>
+<script th:src="|${url}/assets/js/propro/scripts.bundle.js|" type="text/javascript"></script>
+<!--end::Base Scripts -->
+<th:block layout:fragment="script"/>
+</body>
+<!-- end::Body -->
+</html>

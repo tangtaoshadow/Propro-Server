@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+      layout:decorator="~{layouts/layout}">
+<!-- begin::Head -->
+<head>
+    <title th:text="#{title_welcome_to_propro}"></title>
+    <link th:href="|${url}/assets/css/pagination.css|" rel="stylesheet" type="text/css"/>
+</head>
+<!-- end::Head -->
+<!-- end::Body -->
+<body>
+<div class="m-content" layout:fragment="content">
+
+    <div class="alert alert-danger" role="alert" th:if="${error_msg}" th:text="${error_msg}"></div>
+    <div class="alert alert-success" role="alert" th:if="${success_msg}" th:text="${success_msg}"></div>
+    <div class="m-portlet__body">
+        <!--begin: Datatable -->
+        <div>
+            <table class="table table-bordered table-hover" style="table-layout:fixed;">
+                <thead>
+                <tr>
+                    <th width="10%" th:text="#{label_project_name}"></th>
+                    <th width="5%" th:text="#{label_creator}"></th>
+                    <th width="10%" th:text="#{label_identified_number}"></th>
+                    <th width="10%" th:text="#{label_create_date}"></th>
+                    <th width="10%" th:text="#{label_last_modified_date}"></th>
+                    <th width="50%" th:text="#{label_choose_experiments}"></th>
+                    <th width="5%" th:text="#{label_operation}"></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="report:${projectReports}">
+                    <td th:text="${report.projectName}" data-toggle="m-tooltip" th:title="${report.projectId}"></td>
+                    <td th:text="${report.creator}"></td>
+                    <td th:text="${report.identifiedNumber}"></td>
+                    <td th:text="${#dates.format(report.createDate,'yyyy-MM-dd HH:mm:ss')}"></td>
+                    <td th:text="${#dates.format(report.lastModifiedDate,'yyyy-MM-dd HH:mm:ss')}"></td>
+                    <td>
+                       <span th:each="exp:${report.exps}" class="m-badge m-badge--success m-badge--wide"  th:text="${exp.value}"  data-toggle="m-tooltip" th:title="${exp.key}"></span>
+                    </td>
+                    <td>
+                        <a th:href="@{/project/reportDetail(reportId=${report.id})}" data-toggle="m-tooltip"
+                           th:title="#{btn_detail}" class="btn btn-success m-btn m-btn--icon m-btn--icon-only">
+                            <i class="fa fa-book"></i>
+                        </a>
+                        <a th:href="@{/project/deleteReport/{id}(id=${report.id})}" data-toggle="m-tooltip"
+                           th:title="#{btn_delete}" class="btn btn-danger m-btn m-btn--icon m-btn--icon-only">
+                            <i class="fa fa-remove"></i>
+                        </a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <!--end: Datatable -->
+    </div>
+</div>
+
+</body>
+
+<!-- end::Body -->
+</html>

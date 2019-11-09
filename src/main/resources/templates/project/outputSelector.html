@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+      xmlns="http://www.w3.org/1999/html"
+      layout:decorator="~{layouts/layout}">
+<!-- begin::Head -->
+<head>
+    <title th:text="#{title_welcome_to_propro}"></title>
+</head>
+<!-- end::Head -->
+<!-- end::Body -->
+<body>
+<!--<div class="m-subheader ">-->
+    <!--<div class="d-flex align-items-center">-->
+        <!--<div class="mr-auto">-->
+            <!--<h3 class="m-subheader__title m-subheader__title&#45;&#45;separator" th:text="#{label_batch_convolution}">-->
+            <!--</h3>-->
+        <!--</div>-->
+    <!--</div>-->
+<!--</div>-->
+
+<div class="m-content" layout:fragment="content">
+
+    <div class="alert alert-danger" role="alert" th:if="${error_msg}" th:text="${error_msg}"></div>
+    <div th:if="${errorList}" th:each="arrayS:${errorList}">
+        <div class="alert alert-danger" role="alert" th:text="${arrayS}"></div>
+    </div>
+
+    <div class="alert alert-success" role="alert" th:if="${success_msg}" th:text="${success_msg}"></div>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="m-portlet m-portlet--tab">
+                <div class="m-portlet__head">
+                    <div class="m-portlet__head-caption">
+                        <div class="m-portlet__head-title">
+                            <span class="m-portlet__head-icon m--hide">
+                                <i class="la la-gear"></i>
+                            </span>
+                            <h3 class="m-portlet__head-text" th:text="#{label_output_select_panel}"></h3>
+                        </div>
+                    </div>
+                </div>
+                <!--begin::Form-->
+                <form method="post" role="form" class="m-form m-form--fit m-form--label-align-right" th:action="@{/project/doWriteToFile}">
+                    <div class="m-portlet__body row">
+                        <input type="text" name="projectId" hidden="hidden" th:value="${project?.id}">
+                        <div class="col-md-6 m-form__section m-form__section--first">
+                            <div class="form-group m-form__group row">
+                                <label for="name" class="col-2 col-form-label" th:text="#{label_project_name}"></label>
+                                <div class="col-10">
+                                    <input type="text" class="form-control m-input" id="name" readonly name="name" th:value="|${project?.name}(${project?.id})|">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="m-form__group form-group row">
+                                <label class="col-md-1 col-form-label" th:text="#{label_choose_experiments}"></label>
+                                <div class="col-md-11 row">
+                                    <div class="m-checkbox-list col-md-3" th:each="experimentDO:${expList}">
+                                        <label class="m-checkbox">
+                                            <input type="checkbox" th:checked="checked"
+                                                   th:name="${experimentDO.id}" th:text="${experimentDO.name}">
+                                            <span></span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="m-portlet__foot m-portlet__foot--fit">
+                        <div class="m-form__actions">
+                            <button type="submit" class="btn btn-primary" th:text="#{btn_write_to_file}"></button>
+                        </div>
+                    </div>
+                </form>
+                <!--end::Form-->
+            </div>
+        </div>
+    </div>
+
+</div>
+</body>
+<!-- end::Body -->
+</html>

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout" layout:decorator="~{layouts/layout}">
+<!-- begin::Head -->
+<head>
+    <title th:text="#{title_welcome_to_propro}"></title>
+</head>
+<!-- end::Head -->
+<!-- end::Body -->
+<body>
+<div class="m-content" layout:fragment="content">
+
+    <div class="alert alert-danger" role="alert" th:if="${error_msg}" th:text="${error_msg}"></div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <!--begin::Portlet-->
+            <div class="m-portlet m-portlet--tab">
+                <div class="m-portlet__head">
+                    <div class="m-portlet__head-caption">
+                        <div class="m-portlet__head-title">
+                            <span class="m-portlet__head-icon m--hide"><i class="la la-gear"></i></span>
+                            <h3 class="m-portlet__head-text" th:text="#{label_update_project}"></h3>
+                        </div>
+                    </div>
+                </div>
+                <!--begin::Form-->
+                <form class="m-form m-form--fit m-form--label-align-right" th:action="@{/project/update}" th:method="post">
+                    <input type="text" class="form-control m-input" hidden="" name="id" readonly th:value="${project?.id}">
+                    <div class="m-portlet__body">
+                        <div class="form-group m-form__group m--margin-top-10">
+                            <div class="alert m-alert m-alert--default" role="alert" th:text="#{label_fill_information}">
+                            </div>
+                        </div>
+                        <div class="form-group m-form__group row">
+                            <label for="name" class="col-4 col-form-label" th:text="#{label_project_name}"></label>
+                            <div class="col-8">
+                                <input type="text" class="form-control m-input" id="name" name="name" readonly th:value="${project?.name}">
+                                <span class="m-form__help" th:text="#{label_project_name_must_be_unique}"></span>
+                            </div>
+                        </div>
+                        <div class="form-group m-form__group row">
+                            <label for="type" class="col-4 col-form-label" th:text="#{label_project_type}">
+                            </label>
+                            <div class="col-8">
+                                <select class="form-control m-input" id="type" name="type">
+                                    <option th:value="DIA_SWATH" th:selected="${type}=='DIA_SWATH'?true:false">DIA_SWATH</option>
+                                    <option th:value="PRM" th:selected="${type}=='PRM'?true:false">PRM</option>
+                                    <option th:value="SCANNING_SWATH" th:selected="${type}=='SCANNING_SWATH'?true:false">SCANNING_SWATH</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group m-form__group row">
+                            <label for="iRtLibraryId" class="col-4 col-form-label" th:text="#{label_default_irt_library}"></label>
+                            <div class="col-8">
+                                <select class="form-control m-input" id="iRtLibraryId" name="iRtLibraryId">
+                                    <option value="">Not Selected</option>
+                                    <option th:each="library:${iRtLibraries}" th:value="${library.id}"
+                                            th:text="|${library.name}(${library.id})|"
+                                            th:selected="${iRtLibraryId}==${library.id}?true:false"></option>
+                                </select>
+                                <span th:text="#{label_optional}"></span>
+                            </div>
+
+                        </div>
+                        <div class="form-group m-form__group row">
+                            <label for="library" class="col-4 col-form-label" th:text="#{label_default_library}"></label>
+                            <div class="col-8">
+                                <select class="form-control m-input" id="library" name="libraryId">
+                                    <option value="">Not Selected</option>
+                                    <option th:each="library:${libraries}" th:value="${library.id}"
+                                            th:text="|${library.name}(${library.id})|"
+                                            th:selected="${libraryId}==${library.id}?true:false"></option>
+                                </select>
+                                <span th:text="#{label_optional}"></span>
+                            </div>
+                        </div>
+                        <div class="form-group m-form__group row">
+                            <label for="description" class="col-4 col-form-label" th:text="#{label_detail_description}"></label>
+                            <div class="col-8">
+                            <textarea class="form-control m-input" id="description" name="description"
+                                      rows="3" th:value="${project?.description}"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="m-portlet__foot m-portlet__foot--fit">
+                        <div class="m-form__actions">
+                            <button type="submit" class="btn btn-primary" th:text="#{btn_submit}"></button>
+                        </div>
+                    </div>
+                </form>
+                <!--end::Form-->
+            </div>
+            <!--end::Portlet-->
+        </div>
+    </div>
+
+</div>
+
+
+</body>
+
+<!-- end::Body -->
+</html>

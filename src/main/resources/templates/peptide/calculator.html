@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+      layout:decorator="~{layouts/layout}">
+    <!-- begin::Head -->
+    <head>
+        <title th:text="#{title_welcome_to_propro}"></title>
+    </head>
+    <!-- end::Head -->
+    <!-- end::Body -->
+    <body>
+        <div class="m-content" layout:fragment="content">
+
+            <div class="alert alert-danger" role="alert" th:if="${error_msg}" th:text="${error_msg}"></div>
+            <div class="alert alert-success" role="alert" th:if="${success_msg}" th:text="${success_msg}"></div>
+            <div class="alert alert-success" role="alert" th:if="${searchResult}" th:text="${searchResult}"></div>
+
+            <div class="m-portlet__body">
+                <!--begin: Search Form -->
+                <div class="clearfix">
+                    <form id="searchForm" method="post" role="form"
+                          class="m-form m-form--fit m-form--label-align-right m-form--group-seperator-dashed"
+                          th:action="@{/peptide/calculator}">
+
+                        <div class="form-group m-form__group row">
+                            <div class="input-group col-lg-4">
+                                <div class="input-group-prepend">
+                                    <button class="btn btn-success" type="button" th:text="#{label_molecular_formula}">
+                                    </button>
+                                </div>
+                                <input type="text" class="form-control m-input" name="sequence" placeholder="sequence"
+                                       th:value="${sequence}">
+                            </div>
+                            <div class="input-group col-lg-4">
+                                <div class="input-group-prepend">
+                                    <button class="btn btn-success" type="button" th:text="#{label_fragment_type}">
+                                    </button>
+                                </div>
+                                <select class="form-control m-input" name="type">
+                                    <option th:if="${type}=='p'" th:selected="true" value="p">Full</option>
+                                    <option th:unless="${type}=='p'" value="p">Full</option>
+                                    <option th:if="${type}=='b'" th:selected="true" value="b">b-ion</option>
+                                    <option th:unless="${type}=='b'" value="b">b-ion</option>
+                                    <option th:if="${type}=='y'" th:selected="true" value="y">y-ion</option>
+                                    <option th:unless="${type}=='y'" value="y">y-ion</option>
+                                </select>
+                            </div>
+                            <div class="input-group col-lg-4">
+                                <div class="input-group-prepend">
+                                    <button class="btn btn-success" type="button" th:text="#{label_charge}">
+                                    </button>
+                                </div>
+                                <input type="number" class="form-control m-input" name="charge" placeholder="charge"
+                                       th:value="${charge}">
+                            </div>
+                        </div>
+                        <div class="form-group m-form__group row">
+                            <div class="input-group col-lg-4">
+                                <div class="input-group-prepend">
+                                    <button class="btn btn-success" type="button" th:text="#{label_mz_deviation}">
+                                    </button>
+                                </div>
+                                <input type="text" class="form-control m-input" name="deviation"
+                                       th:value="${deviation}">
+                            </div>
+                            <div class="input-group col-lg-4">
+                                <div class="input-group-prepend">
+                                    <button class="btn btn-success" type="button" th:text="|UnimodIds(#{label_multiple_ids_separated_with_comma})|">
+                                    </button>
+                                </div>
+                                <input type="text" class="form-control m-input" name="unimodIds"
+                                       th:value="${unimodIds}">
+                            </div>
+                            <div class="input-group col-lg-4">
+                                <div class="input-group-prepend">
+                                    <button class="btn btn-success" type="button" th:text="#{label_mz_adjust}">
+                                    </button>
+                                </div>
+                                <input type="number" class="form-control m-input" name="adjust" placeholder="adjust"
+                                       th:value="${adjust}">
+                                <div class="input-group-append">
+                                    <button class="btn btn-warning" type="submit" th:text="#{btn_compute}"></button>
+                                </div>
+                            </div>
+                        </div>
+
+                    </form>
+                </div>
+                <!--end: Search Form -->
+                <div class="clearfix">
+                    <div class="alert alert-success" role="alert" th:if="${monoMz}" th:text="|MonoMz:${monoMz}|"></div>
+                    <div class="alert alert-primary" role="alert" th:if="${averageMz}"
+                         th:text="|AverageMz:${averageMz}|"></div>
+                </div>
+
+            </div>
+        </div>
+
+    </body>
+
+    <!-- end::Body -->
+</html>

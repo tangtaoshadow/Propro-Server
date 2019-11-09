@@ -1,0 +1,39 @@
+{
+  "_id" : "5b67136d2ada5f15749a015b",
+  "libraryId" : "5b67136d2ada5f15749a0140",
+  "proteinName" : "2/CONT_P02768-1/sp|P02768|ALBU_HUMAN",
+  "peptideRef" : "VHTEC(UniMod:4)C(UniMod:4)HGDLLEC(UniMod:4)ADDR_4",
+  "markPeptide" : false,
+  "markProtein" : false,
+  "libraryName" : "血浆校准库",
+  "precursorMz" : 522.4648408,
+  "productMz" : 605.2424147,
+  "rt" : 6.1,
+  "name" : "112882_VHTEC(UniMod:4)C(UniMod:4)HGDLLEC(UniMod:4)ADDR_4",
+  "intensity" : 8726.9,
+  "isDecoy" : false,
+  "sequence" : "VHTECCHGDLLECADDR",
+  "annotations" : "b10^2/0.00,y11-91^2/-0.03",
+  "withBrackets" : false,
+  "fullName" : "VHTEC(UniMod:4)C(UniMod:4)HGDLLEC(UniMod:4)ADDR",
+  "precursorCharge" : 4,
+  "annotation" : {
+    "type" : "b",
+    "location" : 10,
+    "deviation" : 0.0,
+    "charge" : 2,
+    "adjust" : 0,
+    "isIsotope" : false
+  },
+  "cutInfo" : "b10^2",
+  "unimodMap" : {
+    "4" : "4",
+    "5" : "4",
+    "12" : "4"
+  },
+  "acidList" : [],
+  "detecting" : true,
+  "identifying" : false,
+  "quantifying" : true,
+  "_class" : "com.westlake.air.pecs.domain.db.TransitionDO"
+}

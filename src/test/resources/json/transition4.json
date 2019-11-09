@@ -1,0 +1,38 @@
+{
+  "_id" : "5b67136d2ada5f15749a014e",
+  "libraryId" : "5b67136d2ada5f15749a0140",
+  "proteinName" : "2/CONT_P02768-1/sp|P02768|ALBU_HUMAN",
+  "peptideRef" : "TC(UniMod:4)VADESAENC(UniMod:4)DK_2",
+  "markPeptide" : false,
+  "markProtein" : false,
+  "libraryName" : "血浆校准库",
+  "precursorMz" : 749.7928626,
+  "productMz" : 1237.500122,
+  "rt" : -23.64895,
+  "name" : "101375_TC(UniMod:4)VADESAENC(UniMod:4)DK_2",
+  "intensity" : 4338.9,
+  "isDecoy" : false,
+  "sequence" : "TCVADESAENCDK",
+  "annotations" : "y11/-0.00",
+  "withBrackets" : false,
+  "fullName" : "TC(UniMod:4)VADESAENC(UniMod:4)DK",
+  "precursorCharge" : 2,
+  "annotation" : {
+    "type" : "y",
+    "location" : 11,
+    "deviation" : -0.0,
+    "charge" : 1,
+    "adjust" : 0,
+    "isIsotope" : false
+  },
+  "cutInfo" : "y11",
+  "unimodMap" : {
+    "1" : "4",
+    "10" : "4"
+  },
+  "acidList" : [],
+  "detecting" : true,
+  "identifying" : false,
+  "quantifying" : true,
+  "_class" : "com.westlake.air.pecs.domain.db.TransitionDO"
+}

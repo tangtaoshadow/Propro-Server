@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+      layout:decorator="~{layouts/layout}">
+<!-- begin::Head -->
+<head>
+    <title th:text="#{title_welcome_to_propro}"></title>
+</head>
+<!-- end::Head -->
+<!-- end::Body -->
+<body>
+
+<div class="m-subheader ">
+    <div class="d-flex align-items-center">
+        <div class="mr-auto">
+            <h3 class="m-subheader__title m-subheader__title--separator" th:text="#{label_exp_detail}">
+            </h3>
+        </div>
+    </div>
+</div>
+
+<div class="m-content" layout:fragment="content">
+    <div class="row">
+        <div class="col-md-12">
+            <!--begin::Portlet-->
+            <div class="m-portlet m-portlet--tab">
+                <div class="m-portlet__head">
+                    <div class="m-portlet__head-caption">
+                        <div class="m-portlet__head-title">
+                            <span class="m-portlet__head-icon m--hide">
+                                <i class="la la-gear"></i>
+                            </span>
+                            <h3 class="m-portlet__head-text" th:text="#{label_exp_detail}"></h3>
+                        </div>
+                    </div>
+                </div>
+                <!--begin::Form-->
+                <form class="m-form m-form--fit m-form--label-align-right">
+                    <div class="m-portlet__body">
+                        <div class="form-group m-form__group row">
+                            <label for="projectName" class="col-1 col-form-label" th:text="#{label_project_name}"></label>
+                            <div class="col-5">
+                                <input type="text" class="form-control m-input" id="projectName" readonly name="projectName"
+                                th:value="${projectName}">
+                            </div>
+                        </div>
+                        <div class="form-group m-form__group row">
+                            <label for="libName" class="col-1 col-form-label" th:text="#{label_library_name}"></label>
+                            <div class="col-5">
+                                <input type="text" class="form-control m-input" id="libName" readonly name="libName"
+                                th:value="${libName}">
+                            </div>
+                        </div>
+                    </div>
+                </form>
+
+                <!--th:href="@{/peptide/list(libraryId=${libraryId},peptideRef=${peptideRef})}"-->
+
+                <div th:each="peptideRef,status:${pepFragIntListMap.keySet()}">
+                    <div th:id="plot+${status.index}" class="m-portlet__body" style="width: auto;height:600px;"></div>
+                    <script th:src="|${url}/assets/js/echarts/echarts.min.js|" type="text/javascript"></script>
+                    <script th:src="|${url}/assets/js/echarts/dark.js|" type="text/javascript"></script>
+
+                    <script th:inline="javascript">
+                        var index = [[${status.index}]];
+                        var peptideRef = [[${peptideRef}]];
+                        var url = 'http://' + document.domain + '/peptide/list?libraryId='+[[${libraryId}]] + '&peptideRef=' + peptideRef;
+                        var protName = [[${protNameList.get(status.index)}]];
+                        var fragList = [[${pepFragIntListMap.get(peptideRef).keySet()}]];
+                        var fragIntList = [[${pepFragIntListMap.get(peptideRef).values()}]];
+                        var expNameList = [[${expNameList}]];
+                        var identifyList = [[${identifyMap.get(peptideRef)}]];
+                        window.onload = init(peptideRef, protName, fragList, fragIntList, expNameList);
+
+
+                        function init(peptideRef, protName, fragList, fragIntList, expNameList) {
+                            // var result = $.ajax({url: "/experiment/getPrmWindows?expId=" + id, async: false});
+                            // var datas = result.responseJSON.model;
+                            // var peptideList = datas.peptideList;
+
+                            option = {
+                                title: {
+                                    text: peptideRef,
+                                    link: url,
+                                    subtext: protName
+                                },
+                                tooltip : {
+                                    trigger: 'axis',
+                                    axisPointer : {            // 坐标轴指示器，坐标轴触发有效
+                                        type : 'shadow'        // 默认为直线，可选为：'line' | 'shadow'
+                                    }
+                                },
+                                legend: {
+                                    data: fragList
+                                },
+                                grid: {
+                                    left: '3%',
+                                    right: '4%',
+                                    bottom: '3%',
+                                    containLabel: true
+                                },
+                                xAxis : [
+                                    {
+                                        type : 'category',
+                                        data : expNameList,
+                                        axisLabel :{
+                                            rotate:45,
+                                            fontSize: 10
+                                        }
+                                    }
+                                ],
+                                yAxis : [
+                                    {
+                                        type : 'value'
+                                    }
+                                ],
+                                series: [],
+                                animationEasing: 'elasticOut',
+                                animationDelayUpdate: function (idx) {
+                                    return idx * 5;
+                                }
+                            };
+                            for (var i = 0; i < fragList.length; i++){
+                                option.series.push(
+                                    {
+                                        name: fragList[i],
+                                        type:'bar',
+                                        stack: 'fragments',
+                                        data: fragIntList[i],
+                                        animationDelay: function (idx) {
+                                            return idx * 20;
+                                        }
+                                    }
+                                )
+                            }
+                        }
+
+                        var chart = echarts.init(document.getElementById('plot'+ index));
+                        chart.setOption(option);
+                    </script>
+                    <form class="m-form m-form--fit m-form--label-align-right">
+                        <div class="m-portlet__body">
+                            <div class="form-group m-form__group row">
+                                <label for="intensity" class="col-1 col-form-label" th:text="Intensity"></label>
+                                <div class="col-10">
+                                    <input type="text" class="form-control m-input" id="intensity" readonly name="intensity"
+                                           th:value="${intMap.get(peptideRef)}">
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <!--begin::Form-->
+                <!--<form class="m-form m-form&#45;&#45;fit m-form&#45;&#45;label-align-right">-->
+                    <!--<div class="m-portlet__body">-->
+                        <!--<div class="form-group m-form__group row">-->
+                            <!--<label for="id" class="col-2 col-form-label" th:text="#{label_exp_id}">-->
+                            <!--</label>-->
+                            <!--<div class="col-10">-->
+                                <!--<input type="text" class="form-control m-input" id="id" name="id" readonly-->
+                                       <!--th:value="${experiment?.id}">-->
+                            <!--</div>-->
+                        <!--</div>-->
+                        <!--<div class="form-group m-form__group row">-->
+                            <!--<label for="name" class="col-2 col-form-label" th:text="#{label_exp_name}">-->
+                            <!--</label>-->
+                            <!--<div class="col-10">-->
+                                <!--<input type="text" class="form-control m-input" id="name" name="name" readonly-->
+                                       <!--th:value="${experiment?.name}">-->
+                            <!--</div>-->
+                        <!--</div>-->
+
+                    <!--</div>-->
+                    <!--<div class="m-portlet__foot m-portlet__foot&#45;&#45;fit">-->
+                        <!--<div class="m-form__actions">-->
+                            <!--<a th:href="@{/swathindex/list(expId=${experiment?.id})}" class="btn btn-brand" th:text="#{label_spectrum_list}"></a>-->
+                            <!--<a th:href="@{/experiment/edit/{id}(id=${experiment?.id})}" class="btn btn-primary" th:text="#{btn_modify}"></a>-->
+                            <!--<a th:href="@{/experiment/delete/{id}(id=${experiment?.id})}" class="btn btn-danger" th:text="#{btn_delete}"></a>-->
+                        <!--</div>-->
+                    <!--</div>-->
+                <!--</form>-->
+                <!--end::Form-->
+            </div>
+            <!--end::Portlet-->
+        </div>
+    </div>
+</div>
+</body>
+</html>

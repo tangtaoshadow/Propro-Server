@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+      layout:decorator="~{layouts/layout}">
+    <!-- begin::Head -->
+    <head>
+        <title th:text="#{title_welcome_to_propro}"></title>
+    </head>
+    <!-- end::Head -->
+    <!-- end::Body -->
+    <body>
+
+        <div class="m-subheader ">
+            <div class="d-flex align-items-center">
+                <div class="mr-auto">
+                    <h3 class="m-subheader__title m-subheader__title--separator" th:text="#{label_peptide_detail}">
+                    </h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="m-content" layout:fragment="content">
+
+            <div class="alert alert-danger" role="alert" th:if="${error_msg}" th:text="${error_msg}"></div>
+            <div th:if="${errorList}" th:each="arrayS:${errorList}">
+                <div class="alert alert-danger" role="alert" th:text="${arrayS}"></div>
+            </div>
+
+            <div class="alert alert-success" role="alert" th:if="${success_msg}" th:text="${success_msg}"></div>
+            <div class="row">
+                <div class="col-md-8">
+                    <!--begin::Portlet-->
+                    <div class="m-portlet m-portlet--tab">
+                        <div class="m-portlet__head">
+                            <div class="m-portlet__head-caption">
+                                <div class="m-portlet__head-title">
+                                    <span class="m-portlet__head-icon m--hide">
+                                        <i class="la la-gear"></i>
+                                    </span>
+                                    <h3 class="m-portlet__head-text" th:text="#{label_peptide_detail}"></h3>
+                                </div>
+                            </div>
+                        </div>
+                        <!--begin::Form-->
+                        <form class="m-form m-form--fit m-form--label-align-right">
+                            <div class="m-portlet__body">
+                                <div class="form-group m-form__group row">
+                                    <label for="id" class="col-2 col-form-label">
+                                        ID
+                                    </label>
+                                    <div class="col-10">
+                                        <input type="text" class="form-control m-input" id="id" name="id" readonly
+                                               th:value="${peptide?.id}">
+                                    </div>
+                                </div>
+                                <div class="form-group m-form__group row">
+                                    <label class="col-2 col-form-label" th:text="#{label_library_id}">
+                                    </label>
+                                    <div class="col-10">
+                                        <input type="text" class="form-control m-input" id="libraryId" name="libraryId"
+                                               readonly th:value="${peptide?.libraryId}"/>
+                                        <span class="m-form__help">
+                                            <a th:href="@{/library/detail/{id}(id=${peptide?.libraryId})}" th:text="#{btn_click_to_view}"></a>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="form-group m-form__group row">
+                                    <label for="proteinName" class="col-2 col-form-label" th:text="#{label_protein_name}">
+                                    </label>
+                                    <div class="col-10">
+                                        <input type="text" class="form-control m-input" id="proteinName"
+                                               name="proteinName"
+                                               readonly th:value="${peptide?.proteinName}">
+                                    </div>
+                                </div>
+                                <div class="form-group m-form__group row">
+                                    <label for="precursorMz" class="col-2 col-form-label" th:text="#{label_peptide_mz}">
+                                    </label>
+                                    <div class="col-10">
+                                        <input type="text" class="form-control m-input" id="precursorMz"
+                                               name="precursorMz"
+                                               readonly th:value="${peptide?.mz}">
+                                    </div>
+                                </div>
+                                <div class="form-group m-form__group row">
+                                    <label for="rt" class="col-2 col-form-label" th:text="#{label_rt}">
+                                    </label>
+                                    <div class="col-10">
+                                        <input type="text" class="form-control m-input" id="rt"
+                                               name="rt" readonly
+                                               th:value="${peptide?.rt}">
+                                    </div>
+                                </div>
+                                <div class="form-group m-form__group row">
+                                    <label for="peptideRef" class="col-2 col-form-label">
+                                        PeptideRef
+                                    </label>
+                                    <div class="col-10">
+                                        <input type="text" class="form-control m-input" id="peptideRef"
+                                               name="peptideRef" readonly th:value="${peptide?.peptideRef}">
+                                    </div>
+                                </div>
+                                <div class="form-group m-form__group row">
+                                    <label for="fullUniModPeptideName" class="col-2 col-form-label" th:text="#{label_peptide_full_name}">
+                                    </label>
+                                    <div class="col-10">
+                                        <input type="text" class="form-control m-input" id="fullUniModPeptideName"
+                                               name="fullUniModPeptideName" readonly
+                                               th:value="${peptide?.fullName}">
+                                    </div>
+                                </div>
+                                <div class="form-group m-form__group row">
+                                    <label for="charge" class="col-2 col-form-label" th:text="#{label_charge}">
+                                    </label>
+                                    <div class="col-10">
+                                        <input type="text" class="form-control m-input" id="charge"
+                                               name="precursorCharge" readonly
+                                               th:value="${peptide?.charge}">
+                                    </div>
+                                </div>
+                                <div class="form-group m-form__group row">
+                                    <label class="col-2 col-form-label" th:text="#{label_unimod}">
+                                    </label>
+                                    <div class="col-10">
+                                        <div th:each="unimod:${peptide?.unimodMap}">
+                                            <div th:text="${unimod}"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group m-form__group row">
+                                    <label for="sequence" class="col-2 col-form-label" th:text="#{label_peptide_sequence}">
+                                    </label>
+                                    <div class="col-10">
+                                        <input type="text" class="form-control m-input" id="sequence"
+                                               name="sequence" readonly
+                                               th:value="${peptide?.sequence}">
+                                    </div>
+                                </div>
+                                <div class="form-group m-form__group row">
+                                    <label class="col-2 col-form-label" th:text="#{label_fragment}">
+                                    </label>
+                                    <div class="col-10">
+                                        <table class="table table-bordered table-hover" style="table-layout:fixed;">
+                                            <thead>
+                                            <tr>
+                                                <th width="20%" th:text="#{label_cutinfo}"></th>
+                                                <th width="20%" th:text="#{label_fragment_mz}"></th>
+                                                <th width="20%" th:text="#{label_fragment_intensity}"></th>
+                                                <th width="10%" th:text="#{label_charge}"></th>
+                                                <th width="30%" th:text="#{label_annotations}"></th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            <tr th:each="fragment:${peptide.fragmentMap.values()}">
+                                                <td th:text="${fragment.cutInfo}"></td>
+                                                <td th:text="${fragment.mz}"></td>
+                                                <td th:text="${fragment.intensity}"></td>
+                                                <td th:text="${fragment.charge}"></td>
+                                                <td th:text="${fragment.annotations}"></td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <div class="form-group m-form__group row">
+                                    <label for="sequence" class="col-2 col-form-label" th:text="#{label_decoy}"></label>
+                                    <div class="col-10">
+                                        <input type="text" class="form-control m-input" id="decoySequence"
+                                               name="decoySequence" readonly
+                                               th:value="${peptide?.decoySequence}">
+                                    </div>
+                                </div>
+                                <div class="form-group m-form__group row">
+                                    <label class="col-2 col-form-label" th:text="#{label_decoy_fragment}"></label>
+                                    <div class="col-10">
+                                        <table class="table table-bordered table-hover" style="table-layout:fixed;">
+                                            <thead>
+                                            <tr>
+                                                <th width="20%" th:text="#{label_cutinfo}"></th>
+                                                <th width="20%" th:text="#{label_fragment_mz}"></th>
+                                                <th width="20%" th:text="#{label_fragment_intensity}"></th>
+                                                <th width="10%" th:text="#{label_charge}"></th>
+                                                <th width="30%" th:text="#{label_annotations}"></th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            <tr th:each="fragment:${peptide.decoyFragmentMap?.values()}">
+                                                <td th:text="${fragment.cutInfo}"></td>
+                                                <td th:text="${fragment.mz}"></td>
+                                                <td th:text="${fragment.intensity}"></td>
+                                                <td th:text="${fragment.charge}"></td>
+                                                <td th:text="${fragment.annotations}"></td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </form>
+                        <!--end::Form-->
+                    </div>
+                    <!--end::Portlet-->
+                </div>
+            </div>
+
+        </div>
+
+
+    </body>
+
+    <!-- end::Body -->
+</html>

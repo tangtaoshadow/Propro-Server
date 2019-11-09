@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+      layout:decorator="~{layouts/layout}">
+<!-- begin::Head -->
+<head>
+    <title th:text="#{title_welcome_to_propro}"></title>
+</head>
+<!-- end::Head -->
+<!-- end::Body -->
+<body>
+<div class="m-content" layout:fragment="content">
+
+    <div class="alert alert-danger" role="alert" th:if="${error_msg}" th:text="${error_msg}"></div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <!--begin::Portlet-->
+            <div class="m-portlet m-portlet--tab">
+                <div class="m-portlet__head">
+                    <div class="m-portlet__head-caption">
+                        <div class="m-portlet__head-title">
+                            <span class="m-portlet__head-icon m--hide"><i class="la la-gear"></i></span>
+                            <h3 class="m-portlet__head-text" th:text="#{label_create_library}"></h3>
+                        </div>
+                    </div>
+                </div>
+                <!--begin::Form-->
+                <form class="m-form m-form--fit m-form--label-align-right" th:action="@{/library/add}" th:method="post"
+                      enctype="multipart/form-data">
+                    <div class="m-portlet__body">
+                        <div class="form-group m-form__group m--margin-top-10">
+                            <div class="alert m-alert m-alert--default" role="alert" th:text="#{label_import_csv_or_traml_format_library}">
+                            </div>
+                        </div>
+                        <div class="form-group m-form__group row">
+                            <label for="libraryName" class="col-2 col-form-label" th:text="#{label_library_name}">
+                            </label>
+                            <div class="col-10">
+                                <input type="text" class="form-control m-input" id="libraryName"
+                                       placeholder="Enter Library Name" name="name" th:value="${library?.name}">
+                                <span class="m-form__help" th:text="#{label_library_name_must_be_unique}"></span>
+                            </div>
+                        </div>
+                        <div class="form-group m-form__group row">
+                            <label for="type" class="col-2 col-form-label" th:text="#{label_library_type}">
+                            </label>
+                            <div class="col-6">
+                                <!--<input type="text" class="form-control m-input" id="type" name="type" placeholder="0:Library,1:iRT-Library" th:value="${library?.type}">-->
+                                <select class="form-control m-input" id="type" name="type">
+                                    <option th:text="#{label_library}" th:value="0" th:selected="${type}==0?true:false"></option>
+                                    <option th:text="#{label_irt_library}" th:value="1" th:selected="${type}==1?true:false"></option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group m-form__group row">
+                            <label for="description" class="col-2 col-form-label" th:text="#{label_detail_description}">
+                            </label>
+                            <div class="col-10">
+                            <textarea class="form-control m-input" id="description" name="description"
+                                      rows="3" th:value="${library?.description}"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="form-group m-form__group row">
+                            <label class="col-2 col-form-label" th:text="#{label_upload_library}">
+                            </label>
+                            <div class="col-10">
+                                <div class="custom-file">
+                                    <input type="file" class="custom-file-input" name="libFile" id="libFile">
+                                    <label class="custom-file-label" for="libFile" th:text="#{label_upload_csv_or_traml_format_library}">
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group m-form__group row">
+                            <label class="col-2 col-form-label" th:text="#{label_upload_peptide_list}">
+                            </label>
+                            <div class="col-10">
+                                <div class="custom-file">
+                                    <input type="file" class="custom-file-input" name="prmFile" id="prmFile">
+                                    <label class="custom-file-label" for="prmFile" th:text="#{label_peptide_list_note}">
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="m-portlet__foot m-portlet__foot--fit">
+                        <div class="m-form__actions">
+                            <button type="submit" class="btn btn-primary" th:text="#{btn_submit}">
+                            </button>
+                        </div>
+                    </div>
+                </form>
+                <!--end::Form-->
+            </div>
+            <!--end::Portlet-->
+        </div>
+    </div>
+
+</div>
+
+
+</body>
+
+<!-- end::Body -->
+</html>

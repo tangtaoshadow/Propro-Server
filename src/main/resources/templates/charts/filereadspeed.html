@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+      layout:decorator="~{layouts/layout}">
+<!-- begin::Head -->
+<head>
+    <title th:text="#{title_welcome_to_propro}"></title>
+</head>
+<!-- end::Head -->
+<!-- end::Body -->
+<body>
+<div class="m-content" layout:fragment="content">
+
+    <div class="alert alert-danger" role="alert" th:if="${error_msg}" th:text="${error_msg}"></div>
+    <div class="alert alert-success" role="alert" th:if="${success_msg}" th:text="${success_msg}"></div>
+    <div class="alert alert-success" role="alert" th:if="${searchResult}" th:text="${searchResult}"></div>
+
+    <div class="m-portlet__body">
+
+        <div id="charts" style="width: auto;height:auto;">
+        </div>
+    </div>
+    <th:block layout:fragment="script">
+        <script>/*Fixing iframe window.innerHeight 0 issue in Safari*/
+        document.body.clientHeight;</script>
+        <script src="https://gw.alipayobjects.com/os/antv/pkg/_antv.g2-3.4.1/dist/g2.min.js"></script>
+        <script src="https://gw.alipayobjects.com/os/antv/pkg/_antv.data-set-0.10.1/dist/data-set.min.js"></script>
+        <script src="https://gw.alipayobjects.com/os/antv/assets/lib/jquery-3.2.1.min.js"></script>
+
+        <script th:inline="javascript">
+            $.getJSON('/charts/getFileSpeedData', function (data) {
+                var _DataSet = DataSet,
+                    DataView = _DataSet.DataView;
+
+                var dv = new DataView().source(data);
+                dv.transform({
+                    type: 'fold',
+                    fields: ['No.1', 'No.2', 'No.3', 'No.4', 'No.5', 'No.6', 'No.7', 'No.8', 'No.9', 'No.10',
+                        'No.11', 'No.12', 'No.13', 'No.14', 'No.15', 'No.16', 'No.17', 'No.18', 'No.19', 'No.20',
+                        'No.21', 'No.22', 'No.23', 'No.24', 'No.25', 'No.26', 'No.27', 'No.28', 'No.29', 'No.30', 'No.31', 'No.32',
+                    ], // 展开字段集
+                    key: 'type',
+                    value: 'value'
+                }).transform({
+                    type: 'bin.quantile',
+                    field: 'value', // 计算分为值的字段
+                    as: '_bin', // 保存分为值的数组字段
+                    groupBy: ['Species', 'type']
+                });
+
+                var colorMap = {
+                    'mzXML': G2.Global.colors[0],
+                    'Vendor': G2.Global.colors[1],
+                    'Aird': G2.Global.colors[2]
+                };
+
+                var chart = new G2.Chart({
+                    container: 'mountNode',
+                    forceFit: true,
+                    height: window.innerHeight
+                    // padding: [ 20, 120, 95 ]
+                });
+                chart.source(dv);
+                chart.legend({
+                    marker: 'circle'
+                });
+                chart.tooltip({
+                    crosshairs: {
+                        type: 'rect'
+                    }
+                });
+                chart.downloadImage();
+                chart.schema().position('type*_bin').color('Species', function (val) {
+                    return colorMap[val];
+                }).shape('box').style('Species', {
+                    stroke: '#545454',
+                    fill: function fill(val) {
+                        return colorMap[val];
+                    },
+                    fillOpacity: 0.3
+                }).adjust('dodge');
+                chart.render();
+            });
+        </script>
+    </th:block>
+</div>
+</body>
+
+<!-- end::Body -->
+</html>

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+      layout:decorator="~{layouts/layout}">
+<!-- begin::Head -->
+<head>
+    <title th:text="#{title_welcome_to_propro}"></title>
+    <link th:href="|${url}/assets/css/pagination.css|" rel="stylesheet" type="text/css"/>
+</head>
+<!-- end::Head -->
+<!-- end::Body -->
+<body>
+<div class="m-content" layout:fragment="content">
+
+    <div class="alert alert-danger" role="alert" th:if="${error_msg}" th:text="${error_msg}"></div>
+    <div class="alert alert-success" role="alert" th:if="${success_msg}" th:text="${success_msg}"></div>
+    <div class="row">
+        <div class="col-md-8">
+            <!--begin::Portlet-->
+            <div class="m-portlet m-portlet--tab">
+                <div class="m-portlet__head">
+                    <div class="m-portlet__head-caption">
+                        <div class="m-portlet__head-title">
+                            <span class="m-portlet__head-icon m--hide">
+                                <i class="la la-gear"></i>
+                            </span>
+                            <h3 class="m-portlet__head-text" th:text="#{label_project_report_detail}"></h3>
+                        </div>
+                    </div>
+                </div>
+                <!--begin::Form-->
+                <form class="m-form m-form--fit m-form--label-align-right">
+                    <div class="m-portlet__body">
+                        <div class="form-group m-form__group row">
+                            <label for="id" class="col-2 col-form-label" th:text="#{label_project_report_id}"></label>
+                            <div class="col-10">
+                                <input type="text" class="form-control m-input" id="id" name="id" readonly
+                                       th:value="${projectReport?.id}">
+                            </div>
+                        </div>
+                        <div class="form-group m-form__group row">
+                            <label class="col-2 col-form-label" th:text="#{label_project_id}"></label>
+                            <div class="col-10">
+                                <input type="text" class="form-control m-input" id="projectId" name="projectId"
+                                       readonly th:value="${projectReport?.projectId}"/>
+                            </div>
+                        </div>
+                        <div class="form-group m-form__group row">
+                            <label for="projectName" class="col-2 col-form-label" th:text="#{label_project_name}">
+                            </label>
+                            <div class="col-10">
+                                <input type="text" class="form-control m-input" id="projectName"
+                                       name="projectName"
+                                       readonly th:value="${projectReport?.projectName}">
+                            </div>
+                        </div>
+
+                        <div class="form-group m-form__group row">
+                            <label class="col-2 col-form-label" th:text="#{label_exp}"></label>
+                            <div class="col-10">
+                                <span th:each="exp:${projectReport.exps}" class="m-badge m-badge--success m-badge--wide"  th:text="${exp.value}"  data-toggle="m-tooltip" th:title="${exp.key}"></span>
+                            </div>
+                        </div>
+                        <div class="form-group m-form__group row">
+                            <label class="col-2 col-form-label" th:text="#{label_analyse_overview}"></label>
+                            <div class="col-10">
+                                <span th:each="overviewId:${projectReport.overviewIds}" class="m-badge m-badge--success m-badge--wide"  th:text="${overviewId}"></span>
+                            </div>
+                        </div>
+                        <div class="form-group m-form__group row">
+                            <label for="totalPeptideNumber" class="col-2 col-form-label">PeptideRef Number
+                            </label>
+                            <div class="col-10">
+                                <input type="text" class="form-control m-input" id="totalPeptideNumber"
+                                       name="totalPeptideNumber"
+                                       readonly th:value="${projectReport?.dataRefs.size()}">
+                            </div>
+                        </div>
+
+                        <div class="form-group m-form__group row">
+                            <label class="col-2 col-form-label" th:text="#{label_peptide_reference}"></label>
+                            <div class="col-10">
+                                <table class="table table-bordered table-hover" style="table-layout:fixed;">
+                                    <thead>
+                                        <th>PeptideRef</th>
+                                        <th>BestRT</th>
+                                        <th>IntensitySum</th>
+                                    </thead>
+                                    <tbody>
+                                        <tr th:each="dataRef, status:${projectReport.dataRefs}">
+                                            <td>
+                                                <a target="_blank" th:href="@{/analyse/data/list(overviewId=${#strings.arraySplit(dataRef,'-')[0]}, peptideRef=${#strings.arraySplit(dataRef,'-')[1]})}" th:text="${#strings.arraySplit(dataRef,'-')[1]}"></a>
+                                            </td>
+                                            <td th:text="${projectReport.bestRts.get(status.index)}"></td>
+                                            <td th:text="${projectReport.intensitySums.get(status.index)}"></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+                <!--end::Form-->
+            </div>
+            <!--end::Portlet-->
+        </div>
+    </div>
+</div>
+
+</body>
+
+<!-- end::Body -->
+</html>

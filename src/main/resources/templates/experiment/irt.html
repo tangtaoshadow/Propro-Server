@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+      layout:decorator="~{layouts/layout}">
+<!-- begin::Head -->
+<head>
+    <title th:text="#{title_welcome_to_propro}"></title>
+</head>
+<!-- end::Head -->
+<!-- end::Body -->
+<body>
+<div class="m-subheader ">
+    <div class="d-flex align-items-center">
+        <div class="mr-auto">
+            <h3 class="m-subheader__title m-subheader__title--separator">
+                iRT
+            </h3>
+        </div>
+    </div>
+</div>
+
+<div class="m-content" layout:fragment="content">
+
+    <div class="alert alert-danger" role="alert" th:if="${error_msg}" th:text="${error_msg}"></div>
+    <div th:if="${errorList}" th:each="arrayS:${errorList}">
+        <div class="alert alert-danger" role="alert" th:text="${arrayS}"></div>
+    </div>
+
+    <div class="alert alert-success" role="alert" th:if="${success_msg}" th:text="${success_msg}"></div>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="m-portlet m-portlet--tab">
+                <div class="m-portlet__head">
+                    <div class="m-portlet__head-caption">
+                        <div class="m-portlet__head-title">
+                            <span class="m-portlet__head-icon m--hide">
+                                <i class="la la-gear"></i>
+                            </span>
+                            <h3 class="m-portlet__head-text">iRT</h3>
+                        </div>
+                    </div>
+                </div>
+                <!--begin::Form-->
+                <form class="m-form m-form--fit m-form--label-align-right" th:action="@{/experiment/doirt}">
+                    <div class="m-portlet__body">
+                        <input type="text" name="id" hidden="hidden" th:value="${experiment?.id}">
+                        <div class="form-group m-form__group row">
+                            <label for="name" class="col-2 col-form-label" th:text="#{label_exp}">
+                            </label>
+                            <div class="col-10">
+                                <input type="text" class="form-control m-input" id="name" readonly name="name"
+                                       th:value="${experiment?.name}">
+                            </div>
+                        </div>
+                        <div class="form-group m-form__group row">
+                            <label for="airdPath" class="col-2 col-form-label" th:text="#{label_aird_file_path}">
+                            </label>
+                            <div class="col-10">
+                                <input type="text" class="form-control m-input" id="airdPath" readonly name="airdPath"
+                                       th:value="${experiment?.airdPath}">
+                            </div>
+                        </div>
+
+                        <div class="form-group m-form__group row">
+                            <label for="iRtLibraryId" class="col-2 col-form-label" th:text="#{label_irt_library}">
+                            </label>
+                            <div class="col-10">
+                                <select class="form-control m-input" id="iRtLibraryId" name="iRtLibraryId">
+                                    <option th:each="irtLibrary:${irtLibraries}" th:value="${irtLibrary.id}"
+                                            th:text="|${irtLibrary.name}(${irtLibrary.id})|"
+                                            th:selected="${iRtLibraryId}==${irtLibrary.id}?true:false"></option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group m-form__group row">
+                            <div class="col-2"></div>
+                            <div class="m-checkbox-list col-10">
+                                <label class="m-checkbox">
+                                    <input type="checkbox" id="useLibrary" name="useLibrary" th:checked="${useLibrary}"
+                                           th:text="#{label_use_library_for_irt}" onchange="changeVisible()">
+                                    <span></span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div id="librarySelectDiv">
+                            <div class="form-group m-form__group row">
+                                <label for="libraryId" class="col-2 col-form-label" th:text="#{label_library}">
+                                </label>
+                                <div class="col-10">
+                                    <select class="form-control m-input" id="libraryId" name="libraryId">
+                                        <option th:each="library:${libraries}" th:value="${library.id}"
+                                                th:text="|${library.name}(${library.id})|"
+                                                th:selected="${libraryId}==${library.id}?true:false"></option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group m-form__group row">
+                                <label for="wantedNumbers" class="col-2 col-form-label">Wanted Peptides</label>
+                                <div class="col-2">
+                                    <input type="number" class="form-control m-input" id="wantedNumbers"
+                                           name="wantedNumbers" th:value="${wantedNumbers}">
+                                    <span class="m-form__help">Default Value is 50</span>
+                                </div>
+                                <label for="pickedNumbers" class="col-2 col-form-label">Picked Peptides</label>
+                                <div class="col-2">
+                                    <input type="number" class="form-control m-input" id="pickedNumbers"
+                                           name="pickedNumbers" th:value="${pickedNumbers}">
+                                    <span class="m-form__help">Default Value is 500</span>
+                                </div>
+                                <label for="shapeScoreThreshold" class="col-2 col-form-label">Score Threshold</label>
+                                <div class="col-2">
+                                    <input type="text" class="form-control m-input" id="shapeScoreThreshold"
+                                           name="shapeScoreThreshold" th:value="${shapeScoreThreshold}">
+                                    <span class="m-form__help">Default Value is 0.95</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group m-form__group row">
+                            <label for="sigma" class="col-2 col-form-label" th:text="#{label_set_sigma}">
+                            </label>
+                            <div class="col-10">
+                                <input type="text" class="form-control m-input" id="sigma"
+                                       name="sigma" th:value="${sigma}">
+                                <span class="m-form__help" th:text="#{label_default_sigma}"></span>
+                            </div>
+                        </div>
+                        <div class="form-group m-form__group row">
+                            <label for="spacing" class="col-2 col-form-label" th:text="#{label_set_spacing}">
+                            </label>
+                            <div class="col-10">
+                                <input type="text" class="form-control m-input" id="spacing"
+                                       name="spacing"
+                                       th:value="${spacing}">
+                                <span class="m-form__help" th:text="#{label_default_spacing}"></span>
+                            </div>
+                        </div>
+                        <div class="form-group m-form__group row">
+                            <label for="mzExtractWindow" class="col-2 col-form-label"
+                                   th:text="#{label_mz_extract_window}"></label>
+                            <div class="col-10">
+                                <input type="text" class="form-control m-input" id="mzExtractWindow"
+                                       name="mzExtractWindow"
+                                       th:value="${mzExtractWindow}">
+                                <span class="m-form__help" th:text="#{label_default_mz_extract_window}"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="m-portlet__foot m-portlet__foot--fit">
+                        <div class="m-form__actions">
+                            <button type="submit" class="btn btn-primary" th:text="#{btn_start_irt}"></button>
+                        </div>
+                    </div>
+                </form>
+                <!--end::Form-->
+            </div>
+        </div>
+    </div>
+
+</div>
+</body>
+<th:block layout:fragment="script">
+    <script th:inline="javascript">
+
+        var useLibrary = document.getElementById("useLibrary").checked;
+        $librarySelectDiv = $('#librarySelectDiv');
+        $selectPointsCount = $('#selectPointsCountDiv');
+
+        $(document).ready(function () {
+            changeVisible();
+        });
+
+        function changeVisible() {
+            useLibrary = document.getElementById("useLibrary").checked;
+            if (useLibrary) {
+                $librarySelectDiv.show();
+                $selectPointsCount.show();
+            } else {
+                $librarySelectDiv.hide();
+                $selectPointsCount.hide();
+            }
+        }
+
+    </script>
+</th:block>
+<!-- end::Body -->
+</html>

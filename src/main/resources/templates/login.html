@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html th:with="url='https://wias.oss-cn-shanghai.aliyuncs.com'" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.w3.org/1999/xhtml" xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout">
+<!--<html th:with="url='http://localhost'" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.w3.org/1999/xhtml" xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout">-->
+<html xmlns:th="http://www.thymeleaf.org">
+	<!-- begin::Head -->
+	<head>
+		<meta charset="utf-8" />
+		<title th:text="#{title_welcome_to_propro}"></title>
+		<meta name="description" content="Swath Platform Login Page">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+        <!--begin::Base Styles -->
+		<link th:href="|${url}/assets/vendors/base/vendors.bundle.css|" rel="stylesheet" type="text/css" />
+		<link th:href="|${url}/assets/css/style.bundle.css|" rel="stylesheet" type="text/css" />
+
+		<!--end::Base Styles -->
+		<link th:href="|${url}/assets/favicon.ico|" rel="shortcut icon" />
+	</head>
+	<!-- end::Head -->
+    <!-- end::Body -->
+	<body class="m--skin- m-header--fixed m-header--fixed-mobile m-aside-left--enabled m-aside-left--skin-dark m-aside-left--offcanvas m-footer--push m-aside--offcanvas-default">
+        <!-- begin:: Page -->
+        <div class="m-grid m-grid--hor m-grid--root m-page">
+        <div class="m-login m-login--signin  m-login--5" id="m_login" th:style="|background-image: url(${url}/assets/app/media/img/bg/bg-3.jpg);|">
+            <div class="m-login__wrapper-1 m-portlet-full-height" style="width: 60%">
+                <div class="m-login__wrapper-1-1">
+                    <div class="m-login__contanier">
+                        <div class="m-login__content" style="width: 100%">
+                            <div class="m-login__title">
+                                <div style="font-size: 50px" th:text="#{propro_title}"></br></div>
+                                <b style="font-size: 70px">Propro</b>
+                                <b style="font-size: 10px">1.2.2-Release</b>
+                            </div>
+                            <div class="m-login__desc">
+                                <div style="font-size: 25px">Focus on <b>DIA/SWATH & PRM</b> analysis</div>
+                                <a href="https://www.java.com"><span class="m-badge m-badge--brand m-badge--wide">Java OpenJDK</span></a>
+                                <a href="https://spring.io/projects/spring-boot/"><span class="m-badge m-badge--info m-badge--wide">Spring Boot</span></a>
+                                <a href="https://github.com/Propro-Studio/propro-server"><span class="m-badge m-badge--primary m-badge--wide">Github</span></a>
+                                <a href="https://gitee.com/lums/propro"><span class="m-badge m-badge--accent m-badge--wide">Gitee</span></a>
+                                <a href="https://www.apache.org/licenses/LICENSE-2.0.html"><span class="m-badge m-badge--warning m-badge--wide">Apache License 2.0</span></a>
+                                <a href="https://www.yuque.com/proteomicspro/documentation"><span class="m-badge m-badge--danger m-badge--wide">Documents</span></a>
+                            </div>
+
+                            <div class="m-login__logo" style="margin-top: 20%;">
+<!--                                <a href="http://www.wias.org.cn/"><img style="height: 80px; width: 240px; " th:src="|${url}/assets/logo/university-blue-logo.jpg|" ></a>-->
+                                <a href="http://www.proteomics.pro"><img style="height: 70px; width: 210px; margin-left: 10px;" th:src="|${url}/assets/logo/propro-logo-hori-small.png|"></a>
+                                <a href="http://www.guomics.com"><img style="height: 80px; width: 80px; margin-left: 10px;" th:src="|${url}/assets/logo/guomics-logo.png|"></a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="m-login__border">
+                        <div></div>
+                    </div>
+                </div>
+            </div>
+            <div class="m-login__wrapper-2 m-portlet-full-height">
+                <div class="m-login__contanier">
+                    <div class="m-login__signin">
+                        <div class="m-login__head">
+                            <h1 class="m-login__title" style="font-size: 20px;" th:text="#{label_welcome_to_propro}"></h1>
+                        </div>
+                        <form class="m-login__form m-form" action="">
+                            <div class="form-group m-form__group">
+                                <input class="form-control m-input" type="text" th:placeholder="#{label_username}" name="username">
+                            </div>
+                            <div class="form-group m-form__group">
+                                <input class="form-control m-input m-login__form-input--last" type="Password" th:placeholder="#{label_password}" name="password">
+                            </div>
+                            <div class="row m-login__form-sub">
+                                <div class="col m--align-left">
+                                    <label class="m-checkbox m-checkbox--focus">
+                                        <input type="checkbox" name="remember" th:text="#{label_remember_me}">
+                                        <span></span>
+                                    </label>
+                                </div>
+                                <div class="m--align-right col">
+                                    <div class="m-dropdown m-dropdown--inline m-dropdown--small m-dropdown--arrow m-dropdown--align-right" data-dropdown-toggle="hover" aria-expanded="true">
+                                        <span href="#" class="m-dropdown__toggle btn btn-success dropdown-toggle change" th:text="#{btn_change_lang}"></span>
+                                        <div class="m-dropdown__wrapper">
+                                            <span class="m-dropdown__arrow m-dropdown__arrow--right"></span>
+                                            <div class="m-dropdown__inner">
+                                                <div class="m-dropdown__body">
+                                                    <div class="m-dropdown__content">
+                                                        <ul class="m-nav">
+                                                            <li class="m-nav__item">
+                                                                <a href="#" class="m-nav__link Chinese" >
+                                                            <span class="m-nav__link-text">
+											Simple Chinese-简体中文
+										                </span>
+                                                                </a>
+                                                            </li>
+                                                            <li class="m-nav__item">
+                                                                <a href="#" class="m-nav__link English">
+                                                            <span class="m-nav__link-text">
+											English-英文
+										</span>
+                                                                </a>
+                                                            </li>
+                                                        </ul>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="m-login__form-action">
+                                <button id="m_login_signin_submit" class="btn btn-focus m-btn m-btn--pill m-btn--custom m-btn--air" style="font-size: 16px;" th:text="#{btn_login}"></button>
+                                <button type="button" id="m_login_signup" class="btn btn-outline-focus m-btn--pill" style="font-size: 16px;" th:text="#{label_apply}"></button>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="m-login__signup">
+                        <div class="m-login__head">
+                            <h3 class="m-login__title" style="font-size: 20px;" th:text="#{label_apply}"></h3>
+<!--                            <div class="m-login__desc" style="font-size: 16px;">-->
+<!--                                enter some necessary information to apply-->
+<!--                            </div>-->
+                        </div>
+                        <form class="m-login__form m-form" action="">
+                            <div class="form-group m-form__group">
+                                <input class="form-control m-input" type="text" th:placeholder="|#{label_username}[#{label_required}]|" name="username">
+                            </div>
+                            <div class="form-group m-form__group">
+                                <input class="form-control m-input" type="text" th:placeholder="|#{label_email}[#{label_required}]|" name="email">
+                            </div>
+                            <div class="form-group m-form__group">
+                                <input class="form-control m-input" type="text" th:placeholder="|#{label_telephone}[#{label_required}]|" name="telephone">
+                            </div>
+                            <div class="form-group m-form__group">
+                                <input class="form-control m-input" type="text" th:placeholder="#{label_dingtalk_id}" name="dingtalkId">
+                            </div>
+                            <div class="form-group m-form__group">
+                                <input class="form-control m-input m-login__form-input--last" type="text" th:placeholder="#{label_organization}" name="organization">
+                            </div>
+<!--                            <div class="m-login__form-sub">-->
+<!--                                <label class="m-checkbox m-checkbox&#45;&#45;focus">-->
+<!--                                    <input type="checkbox" name="agree">-->
+<!--                                    I Agree the-->
+<!--                                    <a href="#" class="m-link m-link&#45;&#45;focus">-->
+<!--                                        terms and conditions-->
+<!--                                    </a>-->
+<!--                                    .-->
+<!--                                    <span></span>-->
+<!--                                </label>-->
+<!--                                <span class="m-form__help"></span>-->
+<!--                            </div>-->
+                            <div class="m-login__form-action">
+                                <button id="m_login_apply_submit" class="btn btn-focus m-btn m-btn--pill m-btn--custom m-btn--air" style="font-size: 16px;" th:text="#{btn_confirm}"></button>
+                                <button id="m_login_apply_cancel" class="btn btn-outline-focus m-btn m-btn--pill m-btn--custom" style="font-size: 16px;" th:text="#{btn_cancel}"></button>
+                            </div>
+                        </form>
+                    </div>
+<!--                    <div class="m-login__forget-password">-->
+<!--                        <div class="m-login__head">-->
+<!--                            <h3 class="m-login__title">-->
+<!--                                Forgotten Password ?-->
+<!--                            </h3>-->
+<!--                            <div class="m-login__desc">-->
+<!--                                Enter your email to reset your password:-->
+<!--                            </div>-->
+<!--                        </div>-->
+<!--                        <form class="m-login__form m-form" action="">-->
+<!--                            <div class="form-group m-form__group">-->
+<!--                                <input class="form-control m-input" type="text" placeholder="Email" name="email" id="m_email" autocomplete="off">-->
+<!--                            </div>-->
+<!--                            <div class="m-login__form-action">-->
+<!--                                <button id="m_login_forget_password_submit" class="btn btn-focus m-btn m-btn&#45;&#45;pill m-btn&#45;&#45;custom m-btn&#45;&#45;air" style="font-size: 16px;">-->
+<!--                                    Request-->
+<!--                                </button>-->
+<!--                                <button id="m_login_forget_password_cancel" class="btn btn-outline-focus m-btn m-btn&#45;&#45;pill m-btn&#45;&#45;custom" style="font-size: 16px;">-->
+<!--                                    Cancel-->
+<!--                                </button>-->
+<!--                            </div>-->
+<!--                        </form>-->
+<!--                    </div>-->
+                </div>
+            </div>
+        </div>
+    </div>
+        <!-- end:: Page -->
+    	<!--begin::Base Scripts -->
+		<script th:src="|${url}/assets/vendors/base/vendors.bundle.js|" type="text/javascript"></script>
+		<script th:src="|${url}/assets/js/propro/scripts.bundle.js|" type="text/javascript"></script>
+		<!--end::Base Scripts -->
+        <!--begin::Page Snippets -->
+		<script th:src="|${url}/assets/js/propro/login.js|" type="text/javascript"></script>
+
+		<!--end::Page Snippets -->
+        <script th:src="|${url}/assets/js/propro/common.js|" type="text/javascript"></script>
+	</body>
+	<!-- end::Body -->
+</html>

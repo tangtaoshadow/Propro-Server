@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+      layout:decorator="~{layouts/layout}">
+<!-- begin::Head -->
+<head>
+    <title th:text="#{title_welcome_to_propro}"></title>
+</head>
+<!-- end::Head -->
+<!-- end::Body -->
+<body>
+
+<div class="m-subheader ">
+    <div class="d-flex align-items-center">
+        <div class="mr-auto">
+            <h3 class="m-subheader__title m-subheader__title--separator" th:text="#{label_library_detail}">
+            </h3>
+        </div>
+    </div>
+</div>
+
+<div class="m-content" layout:fragment="content">
+
+    <div class="alert alert-danger" role="alert" th:if="${error_msg}" th:text="${error_msg}"></div>
+    <div th:if="${errorList}" th:each="arrayS:${errorList}">
+        <div class="alert alert-danger" role="alert" th:text="${arrayS}"></div>
+    </div>
+
+    <div class="alert alert-success" role="alert" th:if="${success_msg}" th:text="${success_msg}"></div>
+    <div class="row">
+        <div class="col-md-6">
+            <!--begin::Portlet-->
+            <div class="m-portlet m-portlet--tab">
+                <div class="m-portlet__head">
+                    <div class="m-portlet__head-caption">
+                        <div class="m-portlet__head-title">
+                            <span class="m-portlet__head-icon m--hide">
+                                <i class="la la-gear"></i>
+                            </span>
+                            <h3 class="m-portlet__head-text" th:text="#{label_library_detail}"></h3>
+                        </div>
+                    </div>
+                </div>
+                <!--begin::Form-->
+                <form class="m-form m-form--fit m-form--label-align-right">
+                    <div class="m-portlet__body">
+                        <div class="form-group m-form__group row">
+                            <label for="id" class="col-2 col-form-label" th:text="#{label_library_id}">
+                            </label>
+                            <div class="col-10">
+                                <input type="text" class="form-control m-input" id="id" name="id" readonly
+                                       th:value="${library?.id}">
+                            </div>
+                        </div>
+                        <div class="form-group m-form__group row">
+                            <label for="libraryName" class="col-2 col-form-label" th:text="#{label_library_name}">
+                            </label>
+                            <div class="col-10">
+                                <input type="text" class="form-control m-input" id="libraryName" name="name" readonly
+                                       th:value="${library?.name}">
+                                <span class="m-form__help" th:text="#{label_library_name_must_be_unique}"></span>
+                            </div>
+                        </div>
+                        <div class="form-group m-form__group row">
+                            <label for="libraryType" class="col-2 col-form-label" th:text="#{label_library_type}">
+                            </label>
+                            <div class="col-4">
+                                <input type="text" class="form-control m-input" id="libraryType" name="type" readonly th:if="${library?.type}==0"
+                                       th:value="#{label_library}">
+                                <input type="text" class="form-control m-input" id="libraryType" name="type" readonly th:if="${library?.type}==1"
+                                       th:value="#{label_irt_library}">
+                            </div>
+                            <label for="generator" class="col-2 col-form-label">Generator</label>
+                            <div class="col-4">
+                                <input type="text" class="form-control m-input" id="generator" name="generator" readonly th:if="${library?.type}==0"
+                                       th:value="${library?.generator}">
+                            </div>
+                        </div>
+                        <div class="form-group m-form__group row">
+                            <label for="proteinCount" class="col-2 col-form-label" th:text="#{label_proteins_count}">
+                            </label>
+                            <div class="col-2">
+                                <input type="text" class="form-control m-input" id="proteinCount" name="proteinCount"
+                                       readonly th:value="${library?.proteinCount}">
+                            </div>
+                            <label for="uniqueProteinCount" class="col-2 col-form-label" th:text="#{label_unique_proteins_count}">
+                            </label>
+                            <div class="col-2">
+                                <input type="text" class="form-control m-input" id="uniqueProteinCount" name="uniqueProteinCount"
+                                       readonly th:value="${library?.uniqueProteinCount}">
+                            </div>
+                            <label for="libraryDeWeightProtCount" class="col-2 col-form-label" th:text="#{label_unique_proteins_library_de_weight_count}">
+                            </label>
+                            <div class="col-2">
+                                <input type="text" class="form-control m-input" id="libraryDeWeightProtCount"
+                                       name="libraryDeWeightProtCount" readonly th:value="${library?.libraryDeWeightProtCount}">
+                            </div>
+                        </div>
+                        <div class="form-group m-form__group row">
+                            <label for="totalCount" class="col-2 col-form-label" th:text="#{label_peptides_count}">
+                            </label>
+                            <div class="col-2">
+                                <input type="text" class="form-control m-input" id="totalCount"
+                                       name="totalCount" readonly th:value="${library?.totalCount}">
+                            </div>
+                            <label for="totalUniqueCount" class="col-2 col-form-label" th:text="#{label_unique_peptides_count}">
+                            </label>
+                            <div class="col-2">
+                                <input type="text" class="form-control m-input" id="totalUniqueCount"
+                                       name="totalUniqueCount" readonly th:value="${library?.totalUniqueCount}">
+                            </div>
+                            <label for="libraryDeWeightPepCount" class="col-2 col-form-label" th:text="#{label_unique_target_peptides_library_de_weight_count}">
+                            </label>
+                            <div class="col-2">
+                                <input type="text" class="form-control m-input" id="libraryDeWeightPepCount" name="libraryDeWeightPepCount"
+                                       readonly th:value="${library?.libraryDeWeightPepCount}">
+                            </div>
+                        </div>
+                        <div class="form-group m-form__group row">
+                            <label for="fastaDeWeightProtCount" class="col-2 col-form-label" th:text="#{label_unique_proteins_fasta_de_weight_count}">
+                            </label>
+                            <div class="col-2">
+                                <input type="text" class="form-control m-input" id="fastaDeWeightProtCount"
+                                       name="fastaDeWeightProtCount" readonly th:value="${library?.fastaDeWeightProtCount}">
+                            </div>
+                            <label for="fastaDeWeightPepCount" class="col-2 col-form-label" th:text="#{label_unique_target_peptides_fasta_de_weight_count}">
+                            </label>
+                            <div class="col-2">
+                                <input type="text" class="form-control m-input" id="fastaDeWeightPepCount"
+                                       name="fastaDeWeightPepCount" readonly th:value="${library?.fastaDeWeightPepCount}">
+                            </div>
+                        </div>
+                        <div th:if="${minRt}" class="form-group m-form__group row">
+                            <label for="rtRange" class="col-2 col-form-label" th:text="#{label_rt_range}">
+                            </label>
+                            <div class="col-10">
+                                <input type="text" class="form-control m-input" id="rtRange"
+                                       name="rtRange" readonly th:value="|[${minRt},  ${maxRt}]|">
+                            </div>
+                        </div>
+                        <div class="form-group m-form__group row">
+                            <label for="description" class="col-2 col-form-label" th:text="#{label_detail_description}">
+                            </label>
+                            <div class="col-10">
+                                <textarea class="form-control m-input" id="description" name="description" rows="3"
+                                          readonly th:text="${library?.description}"></textarea>
+                            </div>
+                        </div>
+                        <div class="form-group m-form__group row">
+                            <label for="creator" class="col-2 col-form-label" th:text="#{label_creator}">
+                            </label>
+                            <div class="col-10">
+                                <input type="text" class="form-control m-input" id="creator" name="creator"
+                                       readonly th:value="${library?.creator}">
+                            </div>
+                        </div>
+                        <div class="form-group m-form__group row">
+                            <label for="createDate" class="col-2 col-form-label" th:text="#{label_create_date}">
+                            </label>
+                            <div class="col-10">
+                                <input type="text" class="form-control m-input" id="createDate" name="createDate"
+                                       readonly th:value="${#dates.format(library?.createDate, 'yyyy-MM-dd HH:mm:ss')}">
+                            </div>
+                        </div>
+                        <div class="form-group m-form__group row">
+                            <label for="lastModifiedDate" class="col-2 col-form-label" th:text="#{label_last_modified_date}">
+                            </label>
+                            <div class="col-10">
+                                <input type="text" class="form-control m-input" id="lastModifiedDate"
+                                       name="lastModifiedDate" readonly
+                                       th:value="${#dates.format(library?.lastModifiedDate, 'yyyy-MM-dd HH:mm:ss')}">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="m-portlet__foot m-portlet__foot--fit">
+                        <div class="m-form__actions">
+                            <a th:href="@{/library/edit/{id}(id=${library?.id})}" class="btn btn-primary" th:text="#{btn_modify}"></a>
+                            <a th:href="@{/library/delete/{id}(id=${library?.id})}" class="btn btn-danger" th:text="#{btn_delete}"></a>
+                        </div>
+                    </div>
+                </form>
+                <!--end::Form-->
+            </div>
+            <!--end::Portlet-->
+        </div>
+        <div class="col-md-6">
+            <div class="m-portlet m-portlet--tab">
+                <div class="m-portlet__head">
+                    <div class="m-portlet__head-caption">
+                        <div class="m-portlet__head-title">
+                            <span class="m-portlet__head-icon m--hide">
+                                <i class="la la-gear"></i>
+                            </span>
+                            <h3 class="m-portlet__head-text" th:text="#{label_peptide_analyse}"></h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="m-portlet__body">
+                    <a th:href="@{/library/aggregate/{id}(id=${library?.id})}" class="btn btn-warning" th:text="#{btn_recount_for_protein_and_peptide}"></a>
+                    <a th:href="@{/decoy/generate(id=${library?.id},generator='shuffle')}" class="btn btn-success" th:text="|#{btn_generate_decoy}(Shuffle)|"></a>
+                    <a th:href="@{/decoy/generate(id=${library?.id},generator='nico')}" class="btn btn-success" th:text="|#{btn_generate_decoy}(Nico)|"></a>
+                    <a th:href="@{/decoy/delete(id=${library?.id})}" class="btn btn-danger" th:text="#{btn_delete_decoy}"></a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
+</body>
+
+<!-- end::Body -->
+</html>

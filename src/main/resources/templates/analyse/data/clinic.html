@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+      layout:decorator="~{layouts/layout}">
+<!-- begin::Head -->
+<head>
+    <title th:text="#{title_welcome_to_propro}"></title>
+</head>
+<!-- end::Head -->
+<!-- end::Body -->
+<body>
+
+<div class="m-subheader ">
+    <div class="d-flex align-items-center">
+        <div class="mr-auto">
+            <h3 class="m-subheader__title m-subheader__title--separator" th:text="#{menu_peptide_clinic}"></h3>
+        </div>
+    </div>
+</div>
+
+<div class="m-content" layout:fragment="content">
+
+    <div class="alert alert-danger" role="alert" th:if="${error_msg}" th:text="${error_msg}"></div>
+    <div th:if="${errorList}" th:each="arrayS:${errorList}">
+        <div class="alert alert-danger" role="alert" th:text="${arrayS}"></div>
+    </div>
+
+    <div class="alert alert-success" role="alert" th:if="${success_msg}" th:text="${success_msg}"></div>
+    <div class="row">
+        <div class="col-md-9">
+            <div class="m-portlet__body">
+                <div class="clearfix">
+                    <form id="clinicForm" method="post" role="form"
+                          class="m-form m-form--fit m-form--label-align-right m-form--group-seperator-dashed"
+                          th:action="@{/analyse/clinic}">
+                        <div class="form-group m-form__group row">
+                            <input type="text" class="form-control m-input" name="expId" hidden th:value="${expId}">
+                            <input type="text" class="form-control m-input" name="libraryId" hidden
+                                   th:value="${libraryId}">
+                            <div class="input-group col-lg-2">
+                                <input type="text" class="form-control m-input" name="peptideRef"
+                                       placeholder="PeptideRef" th:value="${peptideRef}"
+                                       data-container="body" data-toggle="m-tooltip" data-placement="bottom"
+                                       data-original-title="PeptideRef">
+                            </div>
+                            <div class="input-group col-lg-1">
+                                <input type="text" class="form-control m-input" name="mzExtractWindow"
+                                       placeholder="MzExtractWindow" th:value="${mzExtractWindow}"
+                                       data-container="body" data-toggle="m-tooltip" data-placement="bottom"
+                                       data-original-title="MZ Extract Window">
+                            </div>
+                            <div class="input-group col-lg-1">
+                                <input type="text" class="form-control m-input" name="rtExtractWindow"
+                                       placeholder="RtExtractWindow" th:value="${rtExtractWindow}"
+                                       data-container="body" data-toggle="m-tooltip" data-placement="bottom"
+                                       data-original-title="RT Extract Window">
+                            </div>
+                            <div class="input-group col-lg-1">
+                                <input type="number" th:max="${peptide?.sequence?.length()}"
+                                       class="form-control m-input" name="minLength"
+                                       th:placeholder="#{label_fragment_min_length}" th:value="${minLength}"
+                                       data-container="body" data-toggle="m-tooltip" data-placement="bottom"
+                                       th:data-original-title="#{label_fragment_min_length}">
+                            </div>
+                            <div class="input-group col-lg-1">
+                                <input type="number" class="form-control m-input" name="maxCharge"
+                                       th:placeholder="#{label_max_charge}" th:value="${maxCharge}"
+                                       data-container="body" data-toggle="m-tooltip" data-placement="bottom"
+                                       th:data-original-title="#{label_max_charge}">
+                            </div>
+                            <div class="input-group col-lg-2">
+                                <div class="m-checkbox-list">
+                                    <label class="m-checkbox">
+                                        <input type="checkbox" class="form-control m-input" name="onlyLib" id="onlyLib"
+                                               th:checked="${onlyLib}" onclick="choose_lib()"
+                                               th:text="#{label_only_use_library}">
+                                        <span></span>
+                                    </label>
+                                </div>
+                            </div>
+                            <button class="btn btn-primary" type="submit" th:text="#{btn_analyse}"></button>
+                        </div>
+                        <div class="row">
+                            <div class="col-2 row">
+                                <div class="col-lg-12 m--margin-15">
+
+                                    <div class="m-checkbox-list">
+                                        <label>Ion types:</label>
+                                        <label class="m-checkbox m-checkbox--state-success">
+                                            <input type="checkbox" id="AIon" th:checked="checked" onclick="filter()"
+                                                   th:text="A-Ion"/><span></span>
+                                        </label>
+                                        <label class="m-checkbox m-checkbox--state-success">
+                                            <input type="checkbox" id="BIon" th:checked="checked" onclick="filter()"
+                                                   th:text="B-Ion"/><span></span>
+                                        </label>
+                                        <label class="m-checkbox m-checkbox--state-success">
+                                            <input type="checkbox" id="CIon" th:checked="checked" onclick="filter()"
+                                                   th:text="C-Ion"/><span></span>
+                                        </label>
+                                        <label class="m-checkbox m-checkbox--state-success">
+                                            <input type="checkbox" id="XIon" th:checked="checked" onclick="filter()"
+                                                   th:text="X-Ion"/><span></span>
+                                        </label>
+                                        <label class="m-checkbox m-checkbox--state-success">
+                                            <input type="checkbox" id="YIon" th:checked="checked" onclick="filter()"
+                                                   th:text="Y-Ion"/><span></span>
+                                        </label>
+                                        <label class="m-checkbox m-checkbox--state-success">
+                                            <input type="checkbox" id="ZIon" th:checked="checked" onclick="filter()"
+                                                   th:text="Z-Ion"/><span></span>
+                                        </label>
+                                    </div>
+
+                                    <div class="m-checkbox-list m--margin-top-15">
+                                        <label>Charge types:</label>
+                                        <label class="m-checkbox m-checkbox--state-success" th:each="charge:${charges}">
+                                            <input type="checkbox" th:id="|charge-${charge}|" th:checked="checked"
+                                                   onclick="filter()" th:text="|${charge}+|"/><span></span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-10 m--margin-top-100" id="chart" style="height: 600px">
+
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="col-12 row">
+                <div class="m-portlet m-portlet--tab col-12">
+                    <div class="m-portlet__body">
+                        <div class="form-group m-form__group row">
+                            <label class="col-3 col-form-label" th:text="#{label_exp_id}"></label>
+                            <label class="col-9 form-control" th:text="${exp?.id}"></label>
+                        </div>
+                        <div class="form-group m-form__group row">
+                            <label class="col-3 col-form-label" th:text="#{label_exp_name}"></label>
+                            <label class="col-9 form-control" th:text="${exp?.name}"></label>
+                        </div>
+                        <div class="form-group m-form__group row">
+                            <label class="col-3 col-form-label" th:text="#{label_slope_intercept}"></label>
+                            <label class="col-9 form-control"
+                                   th:text="|${exp?.irtResult?.si?.slope}/${exp?.irtResult?.si?.intercept}|"></label>
+                        </div>
+                        <div class="form-group m-form__group row">
+                            <label class="col-3 col-form-label" th:text="#{label_precursor_mz}"></label>
+                            <label class="col-9 form-control" th:text="${peptide?.mz}"></label>
+                        </div>
+                        <div class="form-group m-form__group row">
+                            <label class="col-3 col-form-label" th:text="#{label_library_id}"></label>
+                            <label class="col-9 form-control" th:text="${peptide?.libraryId}"></label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 row">
+                <div class="m-portlet m-portlet--tab col-12">
+                    <div class="m-portlet__head">
+                        <div class="m-portlet__head-caption">
+                            <div class="m-portlet__head-title">
+                            <span class="m-portlet__head-icon m--hide">
+                                <i class="la la-gear"></i>
+                            </span>
+                                <h3 class="m-portlet__head-text" style="font-size: 1rem;"
+                                    th:text="#{label_search_by_similar_peptide}"></h3>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="m-portlet__body">
+                        <input id="libraryId" type="hidden" th:value="${libraryId}" class="form-control"
+                               name="libraryId">
+                        <input id="precursorMz" type="hidden" th:value="${peptide?.mz}" class="form-control"
+                               name="precursorMz">
+                        <input id="experimentId" type="hidden" th:value="${expId}" class="form-control" name="expId">
+                        <div class="form-group m-form__group row">
+                            <label for="fragmentSequence" class="col-3 col-form-label"
+                                   th:text="#{label_fragment_sequence}"></label>
+                            <div class="col-9">
+                                <input type="text" class="form-control m-input" id="fragmentSequence"
+                                       name="fragmentSequence">
+                            </div>
+                        </div>
+                        <div class="input-group-append">
+                            <button class="btn btn-primary" onclick="search()" th:text="#{btn_search}">
+                            </button>
+                        </div>
+                        <div class="form-group m-form__group row">
+                            <label class="col-12 col-form-label" style="text-align: center;"
+                                   th:text="#{label_search_result}"></label>
+                            <div class="col-12" id="searchResult"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+
+</body>
+
+<th:block layout:fragment="script">
+    <script th:src="|${url}/assets/js/echarts/echarts.min.js|" type="text/javascript"></script>
+    <script th:src="|${url}/assets/js/echarts/dark.js|" type="text/javascript"></script>
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        var data_rt = [[${rt}]];
+        var libCutInfos = [[${libCutInfos}]];
+        var hitCutInfos = [[${hitCutInfos}]];
+        var intensityMap = [[${intensityMap}]];
+        var charges = [[${charges}]];
+        var bestRt = [[${bestRt}]];
+        var leftRtList = [[${leftRtList}]];
+        var rightRtList = [[${rightRtList}]];
+        var mzMap = [[${mzMap}]];
+        /*]]>*/
+        var chart;
+        var boundaryData = [];
+        $(document).ready(function () {
+            chart = echarts.init(document.getElementById('chart'));
+            refresh(hitCutInfos);
+        });
+
+        function search() {
+            var peptides;
+            var searchResult = document.getElementById("searchResult");
+            searchResult.innerText = "";
+            var fragmentSequence = document.getElementById("fragmentSequence").value;
+            var libraryId = document.getElementById("libraryId").value;
+            var precursorMz = document.getElementById("precursorMz").value;
+            var experimentId = document.getElementById("experimentId").value;
+            $.ajax({
+                type: "POST",
+                url: "/library/search",
+                data: {
+                    fragmentSequence: fragmentSequence,
+                    libraryId: libraryId,
+                    experimentId: experimentId,
+                    precursorMz: precursorMz
+                },
+                dataType: "json",
+                async: false,
+                success: function (result) {
+                    if (result.success) {
+                        peptides = result.model.peptides;
+                        if (peptides == null || peptides.length === 0) {
+                            searchResult.innerText = "No Similar Peptide";
+                        } else {
+                            var result = "";
+                            for (var i = 0; i < peptides.length; i++) {
+                                result += "<label>" + peptides[i] + "</label><br>";
+                            }
+                            searchResult.innerHTML = result;
+                        }
+                    }
+                }
+            });
+        }
+
+        function refresh(cutInfos) {
+            var intensity_series = [];
+
+            if (leftRtList != null && rightRtList != null && bestRt != null) {
+                for (var i = 0; i < leftRtList.length; i++) {
+                    if (bestRt < rightRtList[i] && bestRt > leftRtList[i]) {
+                        boundaryData.push([
+                            {xAxis: leftRtList[i] + "", itemStyle: {color: 'rgba(102,204,255,0.5)'}},
+                            {xAxis: rightRtList[i] + ""}
+                        ]);
+                    } else {
+                        boundaryData.push([
+                            {xAxis: leftRtList[i] + ""},
+                            {xAxis: rightRtList[i] + ""}
+                        ]);
+                    }
+                }
+            }
+
+            for (var i = 0; i < cutInfos.length; i++) {
+                intensity_series.push({
+                    name: cutInfos[i],
+                    type: 'line',
+                    smooth: false,
+                    data: intensityMap[cutInfos[i]],
+                    markArea: {
+                        silent: true,
+                        data: boundaryData
+                    }
+                });
+            }
+
+            option = {
+                legend: {
+                    orient: 'horizontal',
+                    data: cutInfos.sort(),
+                    left: '10%'
+                    // align: 'left',
+                },
+                dataZoom: [{
+                    type: 'inside',
+                    filterMode: 'empty',
+                    start: (chart.getModel() && chart.getModel().getOption().dataZoom[0].start) ? chart.getModel().getOption().dataZoom[0].start : 0,
+                    end: (chart.getModel() && chart.getModel().getOption().dataZoom[0].end) ? chart.getModel().getOption().dataZoom[0].end : 100
+                }, {
+                    type: 'slider'
+                }],
+                toolbox: {
+                    orient: "vertical",
+                    feature: {
+                        dataView: {},
+                        saveAsImage: {
+                            pixelRatio: 6
+                        },
+                        dataZoom: {}
+                    }
+                },
+                tooltip: {
+                    trigger: 'axis',
+                    formatter: function (params) {
+                        var showBion = "";
+                        var showYion = "";
+                        params = params.sort(function (m, n) {
+                            if (m.data < n.data) return -1;
+                            else if (m.data > n.data) return 1;
+                            else return 0
+                        });
+
+                        var rt = "";
+                        for (var i = 0; i < params.length; i++) {
+                            if (params[i].data !== 0) {
+                                if (params[i].seriesName.slice(0, 1) === "a" || params[i].seriesName.slice(0, 1) === "b" || params[i].seriesName.slice(0, 1) === "c") {
+                                    showBion += params[i].marker + params[i].seriesName + '(' + mzMap[params[i].seriesName] + '):' + params[i].data + '<br>'
+                                } else {
+                                    showYion += params[i].marker + params[i].seriesName + '(' + mzMap[params[i].seriesName] + '):' + params[i].data + '<br>'
+                                }
+                            }
+                            rt = params[i].axisValue;
+                        }
+                        if (showBion === "") {
+                            return "<div class='row' style='width: 500px;font-size: 1rem;'><div class='col-12'>RT:" + rt + "</div><div class='col-6'>" + showYion + "</div></div>";
+                        } else {
+                            return "<div class='row' style='width: 500px;font-size: 1rem;'><div class='col-12'>RT:" + rt + "</div><div class='col-6'>" + showBion + "</div><div class='col-6'>" + showYion + "</div></div>";
+                        }
+                    },
+                    axisPointer: {
+                        type: 'shadow'
+                    }
+                },
+                xAxis: {
+                    data: data_rt,
+                    silent: false,
+                    splitLine: {
+                        show: false
+                    }
+                },
+                yAxis: {},
+                series: intensity_series
+            };
+
+            chart.setOption(option, true);
+        }
+
+        function filter(){
+            var finalCutInfos = charge_filter(ion_filter(hitCutInfos));
+            refresh(finalCutInfos);
+        }
+        function ion_filter(targetCutInfo) {
+
+            var aion = document.getElementById("AIon");
+            var bion = document.getElementById("BIon");
+            var cion = document.getElementById("CIon");
+            var xion = document.getElementById("XIon");
+            var yion = document.getElementById("YIon");
+            var zion = document.getElementById("ZIon");
+            var newHitCutInfos = [];
+
+            for (var i = 0; i < targetCutInfo.length; i++) {
+                if (aion.checked && targetCutInfo[i].charAt(0) === 'a') {
+                    newHitCutInfos.push(targetCutInfo[i]);
+                }
+                if (bion.checked && targetCutInfo[i].charAt(0) === 'b') {
+                    newHitCutInfos.push(targetCutInfo[i]);
+                }
+                if (cion.checked && targetCutInfo[i].charAt(0) === 'c') {
+                    newHitCutInfos.push(targetCutInfo[i]);
+                }
+                if (xion.checked && targetCutInfo[i].charAt(0) === 'x') {
+                    newHitCutInfos.push(targetCutInfo[i]);
+                }
+                if (yion.checked && targetCutInfo[i].charAt(0) === 'y') {
+                    newHitCutInfos.push(targetCutInfo[i]);
+                }
+                if (zion.checked && targetCutInfo[i].charAt(0) === 'z') {
+                    newHitCutInfos.push(targetCutInfo[i]);
+                }
+            }
+
+            return newHitCutInfos;
+
+        }
+
+        function charge_filter(targetCutInfo) {
+            var chargeMap = {};
+            if (charges != null) {
+                for (var i = 0; i < charges.length; i++) {
+                    var chargeChk = document.getElementById("charge-" + charges[i]);
+                    chargeMap[charges[i]] = chargeChk.checked;
+                }
+
+                var newHitCutInfos = [];
+
+                for (var i = 0; i < targetCutInfo.length; i++) {
+                    for (var j = 0; j < charges.length; j++) {
+                        if(targetCutInfo[i].indexOf("^") === -1 && chargeMap[1]){
+                            newHitCutInfos.push(targetCutInfo[i]);
+                            break;
+                        }
+                        if(targetCutInfo[i].indexOf("^") === -1 && !chargeMap[1]){
+                            break;
+                        }
+
+                        if (chargeMap[charges[j]] && targetCutInfo[i].charAt(targetCutInfo[i].length - 1) === (charges[j]+"")) {
+                            newHitCutInfos.push(targetCutInfo[i]);
+                            break;
+                        }
+                    }
+                }
+
+                return newHitCutInfos;
+            }
+
+        }
+
+        function choose_lib() {
+            var chkOnlyLib = document.getElementById("onlyLib");
+            if (chkOnlyLib.checked) {
+                refresh(libCutInfos);
+            } else {
+                refresh(hitCutInfos);
+            }
+        }
+    </script>
+</th:block>
+
+
+<!-- end::Body -->
+</html>

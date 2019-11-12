@@ -6,13 +6,31 @@
 
 **CreateTime：**`2019-10-25 15:53:50`
 
-**UpdateTime：**`2019-10-25 19:43:35`
+**UpdateTime：**`2019-11-8 12:35:08`
 
 **Copyright:**   [唐涛](https://www.promiselee.cn/tao)   ©  2019
 
 **Email：**[tangtao2099@outlook.com](mailto:tangtao2099@outlook.com)
 
 **Link：**  [知乎](https://www.zhihu.com/people/tang-tao-24-36/activities)  [GitHub](https://github.com/tangtaoshadow)  [Gitee](https://gitee.com/tangtao_2099)
+
+
+
+# 文件上传要求：
+
+json文件只能会立即上传，
+
+json文件不能与aird文件一起添加。
+
+
+
+## 添加文件
+
+### 如果是aird 则请求json文件
+
+
+
+
 
 
 

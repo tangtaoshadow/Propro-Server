@@ -132,17 +132,28 @@ public class FileUtil {
         return chunkList;
     }
 
+
+    /***
+     *
+     * @param in 原文件
+     * @param out 复制的目标文件
+     * @param seek 文件写入的指针
+     * @throws IOException
+     */
     public static void randomAccessFile(File in, File out, Long seek) throws IOException {
         RandomAccessFile raFile = null;
         BufferedInputStream inputStream = null;
         try {
             // 以读写的方式打开目标文件
             raFile = new RandomAccessFile(out, "rw");
-            raFile.seek(seek);
+            // 设置文件指针的位置
+            raFile.seek(raFile.length());
             inputStream = new BufferedInputStream(new FileInputStream(in));
             byte[] buf = new byte[1024];
             int length = 0;
+            // 读文件
             while ((length = inputStream.read(buf)) != -1) {
+                // 第二个参数代表数组的位置 写入文件
                 raFile.write(buf, 0, length);
             }
         } finally {
@@ -211,6 +222,7 @@ public class FileUtil {
                         // 获取文件名
                         String fileName = file.getName();
                         // 检查是否是要寻找的文件
+                        // 注意：不检查文件大小是否相同 而是只比对名称是否相同
                         if (null != fileName && 0 < fileName.length() && fileName.equals(findFileName)) {
                             resultFile = file;
                             break;
@@ -388,17 +400,6 @@ public class FileUtil {
         if (bw != null) {
             try {
                 bw.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-
-    public static void close(BufferedReader bf) {
-        if (bf != null) {
-            try {
-                bf.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }

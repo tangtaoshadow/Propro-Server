@@ -11,6 +11,8 @@
 <body>
 <div class="m-content" layout:fragment="content">
 
+
+
     <div class="alert alert-danger" role="alert" th:if="${error_msg}" th:text="${error_msg}"></div>
     <div class="alert alert-success" role="alert" th:if="${success_msg}" th:text="${success_msg}"></div>
     <div class="row m--margin-top-10">
@@ -33,10 +35,10 @@
                     </tr>
                     </thead>
                     <tbody>
-                        <tr th:each="file:${fileList}">
-                            <td th:text="${file.name}"></td>
-                            <td th:text="${file.sizeStr}"></td>
-                        </tr>
+                    <tr th:each="file:${fileList}">
+                        <td th:text="${file.name}"></td>
+                        <td th:text="${file.sizeStr}"></td>
+                    </tr>
                     </tbody>
                 </table>
             </div>
@@ -87,6 +89,13 @@
             </div>
 
         </div>
+    </div>
+    <div id="tao-info"
+         class="row m--padding-15"
+         style="min-height: 500px;max-height: 1000px;overflow-y: auto;word-break:break-all;
+max-width: 700px;"
+    >
+
     </div>
 </div>
 <th:block layout:fragment="script">

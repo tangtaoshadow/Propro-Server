@@ -15,7 +15,9 @@ import com.westlake.air.propro.algorithm.parser.TraMLParser;
 import com.westlake.air.propro.algorithm.parser.LibraryTsvParser;
 import com.westlake.air.propro.service.LibraryService;
 import com.westlake.air.propro.service.PeptideService;
+import com.westlake.air.propro.utils.FileUtil;
 import com.westlake.air.propro.utils.PermissionUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -23,8 +25,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.List;
 
 /**
@@ -155,14 +156,35 @@ public class LibraryController extends BaseController {
                @RequestParam(value = "name", required = true) String name,
                @RequestParam(value = "type", required = true) Integer type,
                @RequestParam(value = "description", required = false) String description,
-               @RequestParam(value = "libFile", required = true) MultipartFile libFile,
+               @RequestParam(value = "useLocalPath", defaultValue = "false") Boolean useLocalPath,
+               @RequestParam(value = "localLibName", required = false) String localLibName,
+               @RequestParam(value = "projectName", required = false) String projectName,
+               @RequestParam(value = "libFile", required = false) MultipartFile libFile,
                @RequestParam(value = "prmFile", required = false) MultipartFile prmFile,
-               RedirectAttributes redirectAttributes) {
+               RedirectAttributes redirectAttributes) throws IOException {
 
-        if (libFile == null || libFile.getOriginalFilename() == null || libFile.getOriginalFilename().isEmpty()) {
-            model.addAttribute(ERROR_MSG, ResultCode.FILE_NOT_EXISTED);
-            return "library/create";
+        InputStream libFileStream = null;
+        String fileName = null;
+        if (useLocalPath) {
+            model.addAttribute("projectName", projectName);
+            model.addAttribute("localLibName", localLibName);
+
+            if(StringUtils.isEmpty(projectName) || StringUtils.isEmpty(localLibName)){
+                redirectAttributes.addFlashAttribute(ERROR_MSG, "Project Name or Library Name cannot be empty");
+                return "redirect:/library/create";
+            }
+            File file = FileUtil.getFile(projectName, localLibName);
+            libFileStream = new FileInputStream(file);
+            fileName = localLibName;
+        }else{
+            if (libFile == null || libFile.getOriginalFilename() == null || libFile.getOriginalFilename().isEmpty()) {
+                model.addAttribute(ERROR_MSG, ResultCode.FILE_NOT_EXISTED);
+                return "library/create";
+            }
+            libFileStream = libFile.getInputStream();
+            fileName = libFile.getOriginalFilename();
         }
+
         LibraryDO library = new LibraryDO();
         library.setName(name);
         library.setDescription(description);
@@ -178,13 +200,12 @@ public class LibraryController extends BaseController {
             return "redirect:/library/create";
         }
         try {
-            InputStream libFileStream = libFile.getInputStream();
             InputStream prmFileStream = null;
             if (!prmFile.isEmpty()) {
                 prmFileStream = prmFile.getInputStream();
             }
 
-            libraryTask.saveLibraryTask(library, libFileStream, libFile.getOriginalFilename(), prmFileStream, taskDO);
+            libraryTask.saveLibraryTask(library, libFileStream, fileName, prmFileStream, taskDO);
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -61,18 +61,46 @@
                                       rows="3" th:value="${library?.description}"></textarea>
                             </div>
                         </div>
-
-                        <div class="form-group m-form__group row">
-                            <label class="col-2 col-form-label" th:text="#{label_upload_library}">
-                            </label>
-                            <div class="col-10">
-                                <div class="custom-file">
-                                    <input type="file" class="custom-file-input" name="libFile" id="libFile">
-                                    <label class="custom-file-label" for="libFile" th:text="#{label_upload_csv_or_traml_format_library}">
+                        <div class="m-form__group form-group row">
+                            <label class="col-md-1 col-form-label"></label>
+                            <div class="col-md-11 row">
+                                <div class="m-checkbox-list col-md-3">
+                                    <label class="m-checkbox">
+                                        <input type="checkbox" th:checked="false" id="useLocalPath" name="useLocalPath" th:text="#{label_use_local_path}" onclick="displaySelectPanel()">
+                                        <span></span>
                                     </label>
                                 </div>
                             </div>
                         </div>
+
+                        <div class="form-group m-form__group row" id="projectNameDiv">
+                            <label class="col-2 col-form-label" th:text="#{label_project_name}"></label>
+                            <div class="col-10">
+                                <div class="custom-file">
+                                    <input type="text" class="form-control m-input" id="projectName" placeholder="Enter Project Name" name="projectName" th:value="${projectName}">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group m-form__group row" id="localPath">
+                            <label class="col-2 col-form-label" th:text="#{label_local_lib_name}"></label>
+                            <div class="col-10">
+                                <div class="custom-file">
+                                    <input type="text" class="form-control m-input" id="localLibName" placeholder="Enter Local Library File Name" name="localLibName" th:value="${localLibName}">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group m-form__group row" id="webPath">
+                            <label class="col-2 col-form-label" th:text="#{label_upload_library}"></label>
+                            <div class="col-10">
+                                <div class="custom-file">
+                                    <label class="custom-file-label" for="libFile" th:text="#{label_upload_csv_or_traml_format_library}"></label>
+                                    <input type="file" class="libFile" name="libFile" id="libFile">
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="form-group m-form__group row">
                             <label class="col-2 col-form-label" th:text="#{label_upload_peptide_list}">
                             </label>
@@ -102,6 +130,28 @@
 
 
 </body>
+<th:block layout:fragment="script">
+    <script th:inline="javascript">
+        $(document).ready(function () {
+            displaySelectPanel();
+        });
 
+        function displaySelectPanel(){
+            var checkbox = document.getElementById("useLocalPath");
+            var projectNameDiv = document.getElementById("projectNameDiv");
+            var localPath = document.getElementById("localPath");
+            var webPath = document.getElementById("webPath");
+            if(checkbox.checked){
+                localPath.hidden = false;
+                projectNameDiv.hidden = false;
+                webPath.hidden = true;
+            }else{
+                localPath.hidden = true;
+                projectNameDiv.hidden = true;
+                webPath.hidden = false;
+            }
+        }
+    </script>
+</th:block>
 <!-- end::Body -->
 </html>

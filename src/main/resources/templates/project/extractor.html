@@ -64,7 +64,7 @@
                             <div class="form-group m-form__group row">
                                 <label for="library" class="col-md-2 col-form-label" th:text="#{label_library}"></label>
                                 <div class="col-md-10">
-                                    <input th:value="${libraryId}"/>
+<!--                                    <input th:value="${libraryId}"/>-->
                                     <select class="form-control m-input" id="library" name="libraryId">
                                         <option th:each="library:${libraries}" th:value="${library.id}"
                                                 th:text="|${library.name}(${library.id})|"
@@ -75,7 +75,7 @@
                         </div>
                         <div class="m-accordion__item col-7 text-center mt-4">
                             <div class="m-accordion__item-head collapsed" role="tab" id="m_accordion_1_item_1_head"
-                                 data-toggle="collapse" href="#m_accordion_1_item_1_body" aria-expanded="    false"
+                                 data-toggle="collapse" href="#m_accordion_1_item_1_body" aria-expanded="false"
                                  style=" background-color: darkgrey;height: 30px;line-height: 30px;">
                                 <div class="higher">
                                     <div class="m-demo-icon__preview">

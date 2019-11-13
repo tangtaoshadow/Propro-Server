@@ -1,7 +1,9 @@
 /*
-updateTime 2019-11-10 02:37:33
-updateAuthor tangtao 2019-11-9 14:06:36
-*/
+ * @Author: TangTao https://www.promiselee.cn/tao
+ * @Date: 2019-11-13 12:36:05
+ * @Last Modified by:   TangTao tangtao2099@outlook.com
+ * @Last Modified time: 2019-11-13 12:36:05
+ */
 
 $(function() {
   var $ = jQuery, // just in case. Make sure it's not an other libaray.

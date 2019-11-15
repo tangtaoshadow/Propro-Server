@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+      layout:decorator="~{layouts/layout}">
+<!-- begin::Head -->
+<head>
+    <title th:text="#{title_welcome_to_propro}"></title>
+</head>
+<!-- end::Head -->
+<body>
+<div class="m-subheader ">
+    <div class="d-flex align-items-center">
+        <div class="mr-auto">
+            <h3 class="m-subheader__title m-subheader__title--separator" th:text="#{label_analyse_overview_detail}">
+            </h3>
+        </div>
+    </div>
+</div>
+
+<div class="m-content" layout:fragment="content">
+
+    <div class="alert alert-danger" role="alert" th:if="${error_msg}" th:text="${error_msg}"></div>
+    <div th:if="${errorList}" th:each="arrayS:${errorList}">
+        <div class="alert alert-danger" role="alert" th:text="${arrayS}"></div>
+    </div>
+
+    <div class="alert alert-success" role="alert" th:if="${success_msg}" th:text="${success_msg}"></div>
+    <div class="row">
+        <div class="col-md-8">
+            <!--begin::Portlet-->
+            <div class="m-portlet m-portlet--tab">
+                <div class="m-portlet__head">
+                    <div class="m-portlet__head-caption">
+                        <div class="m-portlet__head-title">
+                            <span class="m-portlet__head-icon m--hide">
+                                <i class="la la-gear"></i>
+                            </span>
+                            <h3 class="m-portlet__head-text" th:text="#{label_analyse_report}"></h3>
+                        </div>
+                    </div>
+                </div>
+                <!--begin::Form-->
+                <form class="m-form m-form--fit m-form--label-align-right">
+                    <div class="m-portlet__body">
+                        <div class="form-group m-form__group row">
+                            <label for="id" class="col-2 col-form-label">
+                                ID
+                            </label>
+                            <div class="col-4">
+                                <input type="text" class="form-control m-input" id="id" name="id" readonly
+                                       th:value="${overview?.id}">
+                            </div>
+                            <label for="id" class="col-2 col-form-label" th:text="#{label_analyse_code}"></label>
+                            <div class="col-4">
+                                <input type="text" class="form-control m-input" id="name" name="name" readonly
+                                       th:value="${overview?.name}">
+                            </div>
+                        </div>
+                        <div class="form-group m-form__group row">
+                            <label for="id" class="col-2 col-form-label" th:text="#{label_exp_id}"></label>
+                            <div class="col-4">
+                                <input type="text" class="form-control m-input" id="expId" name="expId" readonly
+                                       th:value="|${overview?.expName}(${overview?.expId})|">
+                            </div>
+                            <label for="library" class="col-2 col-form-label"
+                                   th:text="#{label_associated_library}"></label>
+                            <div class="col-4">
+                                <input type="text" class="form-control m-input" id="library" readonly
+                                       th:value="|${overview?.libraryName}(${overview?.libraryId})|">
+                            </div>
+                        </div>
+
+                        <div class="form-group m-form__group row">
+                            <label for="ExtractWindow" class="col-2 col-form-label"
+                                   th:text="#{label_mz_rt_extract_window}"></label>
+                            <div class="col-4">
+                                <input type="text" class="form-control m-input" id="ExtractWindow" readonly
+                                       th:value="|${overview?.rtExtractWindow}/${overview?.mzExtractWindow}|">
+                            </div>
+                            <label for="slopeIntercept" class="col-2 col-form-label"
+                                   th:text="#{label_slope_intercept}"></label>
+                            <div class="col-4">
+                                <input type="text" class="form-control m-input" id="slopeIntercept" readonly
+                                       th:value="|${slope}/${intercept}|">
+                            </div>
+                        </div>
+
+                        <div class="form-group m-form__group row">
+
+                            <label for="ExtractWindow" class="col-2 col-form-label">Sigma/Spacing</label>
+                            <div class="col-4">
+                                <input type="text" class="form-control m-input" id="ExtractWindow" readonly
+                                       th:value="|${overview?.sigma}/${overview?.spacing}|">
+                            </div>
+                            <label for="matchPeptide" class="col-2 col-form-label"
+                                   th:text="#{label_peptide_recognized_ratio}"></label>
+                            <div class="col-4">
+                                <input type="text" class="form-control m-input" id="matchPeptide" name="matchPeptide"
+                                       readonly
+                                       th:value="|${overview.matchedPeptideCount}/${overview.totalPeptideCount}|">
+                            </div>
+                        </div>
+
+                        <div class="form-group m-form__group row">
+                            <label for="ownerName" class="col-2 col-form-label" th:text="#{label_owner}"></label>
+                            <div class="col-4">
+                                <input type="text" class="form-control m-input" id="ownerName" readonly
+                                       th:value="|${overview?.ownerName}|">
+                            </div>
+                            <label for="createDate" class="col-2 col-form-label" th:text="#{label_create_date}"></label>
+                            <div class="col-4">
+                                <input type="text" class="form-control m-input" id="createDate" name="createDate"
+                                       readonly
+                                       th:value="${#dates.format(overview?.createDate, 'yyyy-MM-dd HH:mm:ss')}">
+                            </div>
+                        </div>
+                        <div class="form-group m-form__group row">
+                            <label for="peakCount" class="col-2 col-form-label"
+                                   th:text="#{label_peakgroup_count}"></label>
+                            <div class="col-4">
+                                <input type="text" class="form-control m-input" id="peakCount" readonly
+                                       th:value="|${overview?.peakCount}|">
+                            </div>
+                            <label for="fdr" class="col-2 col-form-label">FDR</label>
+                            <div class="col-4">
+                                <input type="text" class="form-control m-input" id="fdr" readonly
+                                       th:value="|${overview?.fdr}|">
+                            </div>
+                        </div>
+                        <div class="form-group m-form__group row">
+                            <label for="peakCount" class="col-2 col-form-label"
+                                   th:text="#{label_proteins_count}"></label>
+                            <div class="col-4">
+                                <input type="text" class="form-control m-input" id="peakCount" readonly
+                                       th:value="|${overview?.matchedProteinCount}|">
+                            </div>
+                        </div>
+                        <div class="form-group m-form__group row">
+                            <label for="ppRate" class="col-2 col-form-label">PP Rate</label>
+                            <div class="col-4">
+                                <input th:if="${overview?.matchedProteinCount} != 0" type="text" class="form-control m-input" id="ppRate" readonly
+                                       th:value="${overview?.matchedPeptideCount}/${overview?.matchedProteinCount}">
+                            </div>
+                            <label for="ppRateLibrary" class="col-2 col-form-label">PP Rate of Library</label>
+                            <div class="col-4">
+                                <input th:if="${library?.proteinCount} != 0" type="text" class="form-control m-input" id="ppRateLibrary" readonly
+                                       th:value="${library?.totalCount}/${library?.proteinCount}">
+                            </div>
+                        </div>
+                        <div class="m-form__actions">
+                            <a th:href="@{/analyse/overview/delete/{id}(id=${overview?.id})}" class="btn btn-danger"
+                               th:text="#{btn_delete}"></a>
+                        </div>
+                    </div>
+
+                </form>
+                <div class="m-portlet__foot m-portlet__foot--fit"></div>
+                <div id="rt_line" style="width: auto;height:600px; margin: 30px;"></div>
+                <div id="target_decoy_distributions" style="width: auto;height:600px; margin: 30px;"></div>
+                <!--end::Form-->
+            </div>
+            <!--end::Portlet-->
+        </div>
+        <div class="col-md-4">
+            <div class="m-portlet m-portlet--tab">
+                <div class="m-portlet__head">
+                    <div class="m-portlet__head-caption">
+                        <div class="m-portlet__head-title">
+                            <span class="m-portlet__head-icon m--hide">
+                                <i class="la la-gear"></i>
+                            </span>
+                            <h3 class="m-portlet__head-text"
+                                th:text="|#{label_feature_scores_weights},#{label_feature_score_types}:${overview.weights.size()}|"></h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="m-portlet__body">
+                    <div class="form-group m-form__group row">
+                        <div class="col-12">
+
+                            <table class="table table-bordered table-hover" style="table-layout:fixed;">
+                                <thead>
+                                <tr>
+                                    <th width="20%" th:text="#{label_feature_score_type}">
+                                    </th>
+                                    <th width="20%" th:text="#{label_feature_score_weight}">
+                                    </th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr th:each="scoreType:${overview.weights.keySet()}">
+                                    <td th:text="${scoreType}"></td>
+                                    <td th:text="${overview.weights.get(scoreType)}"></td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
+</body>
+<th:block layout:fragment="script">
+    <script th:src="|${url}/assets/js/echarts/echarts.min.js|" type="text/javascript"></script>
+    <script th:src="|${url}/assets/js/echarts/dark.js|" type="text/javascript"></script>
+
+    <script th:inline="javascript">
+        var chartRtLine;
+        var chartDistributions;
+        var rts = [[${rts}]];
+        var badRts = [[${badRts}]];
+        var slope = [[${slope}]];
+        var intercept = [[${intercept}]];
+
+
+        var targetMap = [[${targetMap}]];
+        var decoyMap = [[${decoyMap}]];
+        window.onload = init();
+
+        function init() {
+            initRtLine();
+            initDistributions();
+        }
+
+        function initDistributions() {
+            chartDistributions = echarts.init(document.getElementById('target_decoy_distributions'));
+            if (targetMap == null || decoyMap == null) {
+                return;
+            }
+
+            var targets = [];
+            var decoys = [];
+            var x = [
+                "0-0.001",
+                "0.001-0.002",
+                "0.002-0.003",
+                "0.003-0.004",
+                "0.004-0.005",
+                "0.005-0.006",
+                "0.006-0.007",
+                "0.007-0.008",
+                "0.008-0.009",
+                "0.009-0.01",
+                "0.01-0.02",
+                "0.02-0.03",
+                "0.03-0.04",
+                "0.04-0.05",
+                "0.05-0.06",
+                "0.06-0.07",
+                "0.07-0.08",
+                "0.08-0.09",
+                "0.09-0.1",
+                "0.1-0.2",
+                "0.2-0.3",
+                "0.3-0.4",
+                "0.4-0.5",
+                "0.5-0.6",
+                "0.6-0.7",
+                "0.7-0.8",
+                "0.8-0.9",
+                "0.9-1.0"
+            ];
+            for (var keyA in targetMap) {
+                if(keyA === "1_0-N"){
+                    continue;
+                }
+                targets.push([keyA.replace(/\_/g, "."), targetMap[keyA]]);
+            }
+            for (var keyB in decoyMap) {
+                if(keyB === "1_0-N"){
+                    continue;
+                }
+                decoys.push([keyB.replace(/\_/g, "."), decoyMap[keyB]]);
+            }
+
+            option = {
+                title: {
+                    text: "Range Distance:0.001, FDR>1 are ignored",
+                    left: 10
+                },
+                legend: {
+                    orient: 'vertical',
+                    left: 'right'
+                },
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: {            // 坐标轴指示器，坐标轴触发有效
+                        type: 'shadow'        // 默认为直线，可选为：'line' | 'shadow'
+                    },
+                    formatter: function (params) {
+                        return params[0].seriesName+":Ranges:" + params[0].data[0] + ";</br>Numbers:" + params[0].data[1] + "</br>"+
+                            params[1].seriesName+":Ranges:" + params[1].data[0] + ";</br>Numbers:" + params[1].data[1]
+                            ;
+                    }
+                },
+                xAxis: [
+                    {
+                        type: "category",
+                        name: "Ranges",
+                        data: x
+                    }
+                ],
+                yAxis: [
+                    {
+                        type: "value",
+                        name: "Numbers"
+                    }
+                ],
+                dataZoom: [{
+                    type: 'inside',
+                    filterMode: 'empty'
+                }, {
+                    type: 'slider'
+                }],
+                series: [{
+                    name: 'Target Distributions',
+                    type: 'bar',
+                    data: targets
+                },
+                    {
+                        name: 'Decoy Distributions',
+                        type: 'bar',
+                        data: decoys
+                    }
+                ]
+            };
+            chartDistributions.setOption(option);
+        }
+
+        function initRtLine() {
+            chartRtLine = echarts.init(document.getElementById('rt_line'));
+            if (rts == null) {
+                return;
+            }
+
+            var rtList = [];
+            var rtListIn100 = [];
+            var rtListIn200 = [];
+            var rtListBad = [];
+            var lineRtList = [];
+            var minRt = rts[0].rt;
+            var maxRt = rts[0].rt;
+            for (var i = 0; i < rts.length; i++) {
+                var libraryRt = rts[i].rt;
+                var delta = Math.abs((libraryRt - intercept) / slope - rts[i].bestRt);
+                if (delta < 100) {
+                    rtListIn100.push([rts[i].bestRt, rts[i].rt])
+                } else if (100 <= delta && delta < 200) {
+                    rtListIn200.push([rts[i].bestRt, rts[i].rt])
+                } else {
+                    rtList.push([rts[i].bestRt, rts[i].rt]);
+                }
+
+                if (rts[i].rt < minRt) {
+                    minRt = rts[i].rt;
+                }
+                if (rts[i].rt > maxRt) {
+                    maxRt = rts[i].rt;
+                }
+            }
+            for (i = 0; i < badRts.length; i++) {
+                rtListBad.push([badRts[i].bestRt, badRts[i].rt]);
+            }
+            lineRtList.push([(minRt - intercept) / slope, minRt]);
+            lineRtList.push([(maxRt - intercept) / slope, maxRt]);
+            option = {
+                title: {
+                    text: "Points:" + rts.length,
+                    left: 10
+                },
+                legend: {
+                    orient: 'vertical',
+                    left: 'right',
+                    selected: {
+                        'Not identified Points': false
+                    }
+                },
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: {            // 坐标轴指示器，坐标轴触发有效
+                        type: 'shadow'        // 默认为直线，可选为：'line' | 'shadow'
+                    },
+                    formatter: function (params) {
+                        return "Real RT:" + params[0].data[0] + ";</br>Library RT:" + params[0].data[1];
+                    }
+                },
+                xAxis: [
+                    {
+                        type: "value",
+                        name: "Real RT"
+                    }
+                ],
+                yAxis: [
+                    {
+                        type: "value",
+                        name: "Library RT"
+                    }
+                ],
+                dataZoom: [{
+                    type: 'inside',
+                    filterMode: 'empty',
+                    start: (chartRtLine.getModel() && chartRtLine.getModel().getOption().dataZoom[0].start) ? chartRtLine.getModel().getOption().dataZoom[0].start : 0,
+                    end: (chartRtLine.getModel() && chartRtLine.getModel().getOption().dataZoom[0].end) ? chartRtLine.getModel().getOption().dataZoom[0].end : 100
+                }, {
+                    type: 'slider'
+                }],
+                series: [{
+                    name: 'Points In 100 Delta Time',
+                    type: 'scatter',
+                    symbolSize: 3,
+                    data: rtListIn100
+                },
+                    {
+                        name: 'Points In 100-200 Delta Time',
+                        type: 'scatter',
+                        symbolSize: 3,
+                        data: rtListIn200
+                    },
+                    {
+                        name: 'Points Bigger than 200 Delta Time',
+                        type: 'scatter',
+                        symbolSize: 3,
+                        data: rtList
+                    },
+                    {
+                        name: 'Not identified Points',
+                        type: 'scatter',
+                        symbolSize: 3,
+                        data: rtListBad
+                    },
+                    {
+                        name: 'IRT Line ',
+                        type: 'line',
+                        data: lineRtList
+                    }
+                ]
+            };
+            chartRtLine.setOption(option);
+        }
+    </script>
+</th:block>
+<!-- end::Body -->
+</html>

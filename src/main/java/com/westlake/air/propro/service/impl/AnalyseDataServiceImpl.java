@@ -194,7 +194,9 @@ public class AnalyseDataServiceImpl implements AnalyseDataService {
 
     @Override
     public void updateMulti(String overviewId, List<SimpleFeatureScores> simpleFeatureScoresList) {
-        analyseDataDAO.updateMulti(overviewId, simpleFeatureScoresList);
+        if(!simpleFeatureScoresList.isEmpty()){
+            analyseDataDAO.updateMulti(overviewId, simpleFeatureScoresList);
+        }
     }
 
     /**
@@ -233,12 +235,7 @@ public class AnalyseDataServiceImpl implements AnalyseDataService {
         List<ProteinPeptide> ppList = analyseDataDAO.getAll(query, ProteinPeptide.class);
         HashSet<String> proteins = new HashSet<>();
         for (ProteinPeptide pp : ppList) {
-            if (pp.getProteinName().startsWith("1/")) {
-
-            }
-            if (pp.getIsUnique() && (!pp.getIsUnique() || !pp.getProteinName().startsWith("1/"))) {
-                continue;
-            } else {
+            if (pp.getProteinName().startsWith("1/") || pp.getIsUnique()) {
                 proteins.add(pp.getProteinName());
             }
         }

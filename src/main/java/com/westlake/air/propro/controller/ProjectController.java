@@ -140,6 +140,10 @@ public class ProjectController extends BaseController {
         return "project/create";
     }
 
+
+
+
+
     @PostMapping(value = "/add")
     String add(Model model,
                @RequestParam(value = "name", required = true) String name,
@@ -307,7 +311,7 @@ public class ProjectController extends BaseController {
      * @return 0 status
      */
     @PostMapping(value = "/filemanager")
-    String fileManager(@RequestParam(value = "projectName", required = true) String name) {
+    String fileManager(@RequestParam(value = "projectName") String name) {
 
         Map<String, Object> map = new HashMap<String, Object>();
         // 状态标记
@@ -330,10 +334,11 @@ public class ProjectController extends BaseController {
                 FileVO fileVO = new FileVO();
                 fileVO.setName(file.getName());
                 fileVO.setSize(file.length());
-                if (file.length() / 1024 / 1024 > 0) {
-                    fileVO.setSizeStr(file.length() / 1024 / 1024 + " MB");
+                if (file.length() > 0) {
+                    // 直接返回原始大小
+                    fileVO.setSizeStr(String.valueOf(file.length()));
                 } else {
-                    fileVO.setSizeStr(file.length() / 1024 + " KB");
+                    fileVO.setSizeStr(String.valueOf(null));
                 }
                 fileVOList.add(fileVO);
             }

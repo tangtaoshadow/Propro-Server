@@ -563,7 +563,7 @@ public class ProjectController extends BaseController {
     /***
      * @createAuthor tangtao
      * @createTime 2019-11-6 09:18:32
-     * @updateTime 2019-11-6 19:28:57
+     * @updateTime 2019-11-15 14:31:19
      * @archive 读取json文件
      * @param fileName
      * @param projectName
@@ -581,6 +581,10 @@ public class ProjectController extends BaseController {
         int status = -1;
         Map<String, Object> data = new HashMap<String, Object>();
 
+        // 添加好请求信息 供前端判断
+        data.put("fileName",fileName);
+        data.put("projectName",projectName);
+
         do {
             try {
                 // 尝试提取项目名字
@@ -591,6 +595,7 @@ public class ProjectController extends BaseController {
                 } else {
                     // 文件不存在
                     status = -3;
+                    data.put("errorInfo","json文件"+fileName+"：不存在");
                     break;
                 }
 
@@ -643,6 +648,7 @@ public class ProjectController extends BaseController {
         // 返回数据
         return JSON.toJSONString(map, SerializerFeature.WriteNonStringKeyAsString);
     }
+
 
 
     /***

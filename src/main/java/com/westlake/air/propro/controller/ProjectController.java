@@ -13,7 +13,13 @@ import com.westlake.air.propro.constants.enums.ScoreType;
 import com.westlake.air.propro.constants.enums.TaskTemplate;
 import com.westlake.air.propro.domain.ResultDO;
 import com.westlake.air.propro.domain.bean.analyse.SigmaSpacing;
-import com.westlake.air.propro.domain.db.*;
+import com.westlake.air.propro.domain.db.AnalyseDataDO;
+import com.westlake.air.propro.domain.db.AnalyseOverviewDO;
+import com.westlake.air.propro.domain.db.ExperimentDO;
+import com.westlake.air.propro.domain.db.LibraryDO;
+import com.westlake.air.propro.domain.db.PeptideDO;
+import com.westlake.air.propro.domain.db.ProjectDO;
+import com.westlake.air.propro.domain.db.TaskDO;
 import com.westlake.air.propro.domain.db.simple.PeptideIntensity;
 import com.westlake.air.propro.domain.db.simple.SimpleExperiment;
 import com.westlake.air.propro.domain.params.ExtractParams;
@@ -23,8 +29,33 @@ import com.westlake.air.propro.domain.query.ProjectQuery;
 import com.westlake.air.propro.domain.vo.FileBlockVO;
 import com.westlake.air.propro.domain.vo.FileVO;
 import com.westlake.air.propro.domain.vo.UploadVO;
-import com.westlake.air.propro.service.*;
-import com.westlake.air.propro.utils.*;
+import com.westlake.air.propro.service.AnalyseDataService;
+import com.westlake.air.propro.service.AnalyseOverviewService;
+import com.westlake.air.propro.service.ExperimentService;
+import com.westlake.air.propro.service.PeptideService;
+import com.westlake.air.propro.service.ProjectService;
+import com.westlake.air.propro.service.SwathIndexService;
+import com.westlake.air.propro.utils.FeatureUtil;
+import com.westlake.air.propro.utils.FileUtil;
+import com.westlake.air.propro.utils.PermissionUtil;
+import com.westlake.air.propro.utils.RepositoryUtil;
+import com.westlake.air.propro.utils.ScoreUtil;
+import java.io.File;
+import java.io.FileReader;
+import java.io.OutputStream;
+import java.math.BigInteger;
+import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.FormParam;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.json.simple.JSONArray;
@@ -32,21 +63,14 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.FormParam;
-import java.io.File;
-import java.io.FileReader;
-import java.io.OutputStream;
-import java.math.BigInteger;
-import java.net.URLEncoder;
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Created by James Lu MiaoShan
@@ -340,7 +364,6 @@ public class ProjectController extends BaseController {
 
             data.put("project", project);
             data.put("fileList", fileVOList);
-
             status = 0;
         } while (false);
 
@@ -435,6 +458,48 @@ public class ProjectController extends BaseController {
     public Object check(FileBlockVO block,
                         @RequestParam(value = "projectName", required = true) String projectName) {
         return chunkUploader.check(block, projectName);
+    }
+
+
+    @PostMapping(value = "/uploadJsonFile")
+    String uploadJsonFile(
+        @RequestParam(value = "projectName") String projectName,
+        @RequestParam(value = "fileName") String fileName,
+        @RequestParam(value = "fileIndex") String fileIndex,
+        @RequestParam("jsonFile") MultipartFile file) {
+
+        Map<String, Object> map = new HashMap<String, Object>();
+
+        // 状态标记
+        int status = -1;
+        Map<String, Object> data = new HashMap<String, Object>();
+        // 添加好请求信息 供前端判断
+        data.put("fileName", fileName);
+        data.put("projectName", projectName);
+        data.put("fileIndex", fileIndex);
+
+        do {
+            try {
+                //
+                ProjectDO project = projectService.getByName(projectName);
+                PermissionUtil.check(project);
+                chunkUploader.jsonUpload(file, fileName, projectName);
+            } catch (Exception e) {
+                // 出现异常
+                status = -3;
+                break;
+            }
+            // success
+            status = 0;
+        } while (false);
+
+        map.put("status", status);
+        map.put("data", data);
+
+        // 返回数据
+        return JSON.toJSONString(map, SerializerFeature.WriteNonStringKeyAsString);
+
+
     }
 
 

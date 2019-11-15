@@ -101,4 +101,53 @@ public class ChunkUploader {
         }
         return new ResultDO<>(true);
     }
+
+
+
+
+
+    public int jsonUpload(MultipartFile file, String fileName, String projectName) {
+
+        // 分片目录创建
+        String chunkDirPath = RepositoryUtil.getProjectTempRepo(projectName) + File.separator + fileName;
+        File chunkDir = new File(chunkDirPath);
+        if (!chunkDir.exists()) {
+            chunkDir.mkdirs();
+        }
+        // 处理 json 文件
+        String jsonFileName = fileName;
+        String jsonFilePath = chunkDir + File.separator + jsonFileName;
+        File jsonFile = new File(jsonFilePath);
+        try {
+            if (jsonFile.length() != 0 && file.getSize() == jsonFile.length()) {
+                // 提示文件已经存在
+                return 1;
+            } else {
+                // 即使 文件名称相同 出现文件大小不一致就覆盖
+                file.transferTo(jsonFile);
+            }
+
+        } catch (Exception e) {
+            logger.error("json文件上传服务器内存出错", e);
+            return -2;
+        }
+
+
+
+        // 开始移动文件
+
+        String destFilePath = RepositoryUtil.getProjectRepo(projectName) + File.separator + fileName;
+        File destFile = new File(destFilePath);
+        if (jsonFile.length() > 0) {
+            try {
+                FileUtil.randomAccessFile(jsonFile, destFile, (long) 0);
+            } catch (IOException e) {
+                logger.error("json 文件移动失败，出错信息如下", jsonFile.getName(), e.getMessage());
+                return -4;
+            }
+        }
+                FileUtil.deleteDirectory(chunkDirPath); // 删除分片文件夹
+        return 0;
+    }
+
 }

@@ -352,6 +352,72 @@ public class ProjectController extends BaseController {
 
     }
 
+
+    /***
+     * @author tangtao https://www.promiselee.cn/tao
+     * @updateTime 2019-11-10 01:32:26
+     * @archive 删除指定项目下的指定的文件
+     * @param fileName
+     * @param projectName
+     * @return 0 删除成功
+     */
+    @RequestMapping(value = "/deleteFile")
+    @ResponseBody
+    String deleteFile(@RequestParam(value = "fileName") String fileName,
+                      @RequestParam(value = "projectName") String projectName
+    ) {
+
+        Map<String, Object> map = new HashMap<String, Object>();
+
+        // 状态标记
+        int status = -1;
+        Map<String, Object> data = new HashMap<String, Object>();
+        // 添加好请求信息 供前端判断
+        data.put("fileName",fileName);
+        data.put("projectName",projectName);
+
+        do {
+
+            try {
+                // 尝试提取项目名字
+                ProjectDO project = projectService.getByName(projectName);
+                PermissionUtil.check(project);
+                File file = FileUtil.getFile(projectName, fileName);
+                if (null != file) {
+                    //  文件存在 执行删除
+                    if(FileUtil.deleteFile(file.toString())){
+                        //  删除成功
+                        data.put("info","delete success");
+                    }else{
+                        status=-4;
+                        data.put("errorInfo","删除失败");
+                        break;
+                    }
+                } else {
+                    // 文件不存在
+                    status = -3;
+                    data.put("errorInfo","文件不存在");
+                    break;
+                }
+                // 成功删除文件
+                status = 0;
+                break;
+            } catch (Exception e) {
+                //
+                status = -2;
+                break;
+            }
+        } while (false);
+
+        map.put("status", status);
+        map.put("data", data);
+
+        // 返回数据
+        return JSON.toJSONString(map, SerializerFeature.WriteNonStringKeyAsString);
+
+    }
+
+
     @PostMapping(value = "/doupload")
     ResultDO doUpload(Model model,
                       @RequestParam(value = "projectName", required = true) String projectName,

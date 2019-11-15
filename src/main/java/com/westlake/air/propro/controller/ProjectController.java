@@ -332,14 +332,9 @@ public class ProjectController extends BaseController {
 
             for (File file : fileList) {
                 FileVO fileVO = new FileVO();
+                // 返回文件名称 和 大小 即可
                 fileVO.setName(file.getName());
                 fileVO.setSize(file.length());
-                if (file.length() > 0) {
-                    // 直接返回原始大小
-                    fileVO.setSizeStr(String.valueOf(file.length()));
-                } else {
-                    fileVO.setSizeStr(String.valueOf(null));
-                }
                 fileVOList.add(fileVO);
             }
 
